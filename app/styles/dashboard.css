@@ -1,0 +1,281 @@
+.dashboardMain {
+    display: flex;
+    justify-content: space-between;
+}
+
+.dashboardMenu {
+    width: 15%;
+    color: #33c3f0 !important;
+    text-align: start;
+    border-right: 1px #efefef ridge;
+}
+
+.dashboardMenuItem {
+    text-decoration: none;
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.menuActive .menuName {
+    font-weight: 900;
+}
+
+.menuName:hover {
+    text-decoration: underline;
+}
+
+.dashboardContainer {
+    width: 96%;
+    margin: 0 auto;
+    padding: 12px 0px;
+}
+
+.dashboardMenuContent {
+    width: 85%;
+    text-align: start;
+    padding: 0px 40px;
+    position: relative;
+}
+
+.dashboardMenuContentBlockHead {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px #efefef ridge;
+    padding-bottom: 6px;
+}
+
+.dashboardMenuContentBlockData .content-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.dashboardMenuContentBlockData .content-item:nth-child(2n+1) {
+    background: #87CEEB;
+}
+
+.dashboardMenuContentTitle {
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: block;
+    font-size: 16px;
+}
+
+.dashboardMenuContentBlockDataPagination {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.dashboardMenuContentBlockDataPagination span {
+    background: #87ceeb;
+    margin: 0px 12px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 28px;
+}
+
+
+.page-active {
+    background: #000 !important;
+    color: #fff;
+}
+
+.content-item.transact {
+    flex-wrap: wrap;
+}
+
+.transactDetails {
+    width: 100%;
+    background: #DCDCDC;
+    padding: 8px 10px;
+}
+
+
+.dashboardMenuContentBlockHead .content-item:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.dashboardMenuContentTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.hidden {
+    display: none;
+}
+
+.dashboardAccount {
+    width: 85%;
+    padding: 0px 40px;
+}
+
+
+#updateAccount {
+    background: #33c3f0;
+    border: none;
+    color: #fff;
+}
+
+.dashboardAccountContent {
+    width: 35%;
+}
+
+.dashboardAccountContentItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0px;
+}
+
+.dashboardAccountContentItem input {
+    margin: 0px;
+    width: 65%;
+}
+
+.dashboardAccountBtns {
+    width: 35%;
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+}
+
+.content-item.account {
+    cursor: pointer;
+    padding: 3px 0px;
+}
+
+.content-item.account:hover {
+    background: #dcdcdc;
+}
+
+#back {
+    margin-right: 14px;
+}
+
+.dashboardMenuContentSearch {
+    display: flex;
+    justify-content: space-between;
+    width: 32%;
+}
+
+.dashboardUpdateSuccess {
+    position: absolute;
+    bottom: -20px;
+    font-size: 13px;
+    color: green;
+}
+
+.dashboardMenuContentExport {
+    position: absolute;
+    right: 33%;
+    top: 0px;
+}
+
+.dashboardMenuContentExport a {
+    display: inline-block;
+    height: 38px;
+    padding: 0 30px;
+    color: #555;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 38px;
+    letter-spacing: .1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.menuName {
+    margin-left: 10px;
+}
+
+.reports {
+    display: flex;
+    align-items: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.report-item {
+    border: 2px dashed #33c3f0;
+    margin-right: 16px;
+    padding: 10px;
+    margin-bottom: 16px;
+}
+
+.report-item a {
+    text-decoration: none;
+    color: #000;
+}
+
+.report-item a:hover {
+    color: #33c3f0;
+    text-decoration: underline;
+}
+
+.accountTransactions {
+    width: 40%;
+    display: flex;
+    align-items: center;
+    padding: 4px 0px;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
+
+.accountTransactions:nth-child(2n+1) {
+    background: #87CEEB;
+}
+
+.dashboardMenu ul {
+    position: sticky;
+    top: 55px;
+}
+
+
+.dashboardAccountTransactionsTitle {
+    font-size: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    margin-top: 14px;
+}
+
+.report-item-page {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 3px 0px;
+}
+
+.report-item-page:nth-child(2n+1) {
+    background: #87CEEB;
+}
+
+.dashboardMenuContentDateSort {
+    margin-right: 133px;
+}
+
+.report-item span:hover {
+    color: #33c3f0;
+    cursor: pointer;
+}

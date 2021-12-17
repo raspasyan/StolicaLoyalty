@@ -1,0 +1,48 @@
+{
+ "short_name": "Столица.Бонусы",
+ "name": "Столица.Бонусы",
+ "lang": "ru",
+ "background_color": "#FFFFFF",
+ "theme_color": "#33C3F0",
+ "start_url": "/",
+ "display": "standalone",
+ "orientation": "any",
+ "icons": [
+  {
+    "src": "/app/assets/favicon-512x512.png",
+    "type": "image/png",
+    "sizes": "512x512",
+    "purpose": "any maskable"
+  },
+  {
+    "src": "/app/assets/favicon-256x256.png",
+    "type": "image/png",
+    "sizes": "256x256"
+  },
+  {
+   "src": "/app/assets/android-icon-192x192.png",
+   "type": "image/png",
+   "sizes": "192x192"
+  },
+  {
+   "src": "/app/assets/apple-icon-180x180.png",
+   "type": "image/png",
+   "sizes": "180x180"
+  },
+  {
+   "src": "/app/assets/favicon-96x96.png",
+   "type": "image/png",
+   "sizes": "96x96"
+  },
+  {
+   "src": "/app/assets/favicon-32x32.png",
+   "type": "image/png",
+   "sizes": "32x32"
+  },
+  {
+   "src": "/app/assets/favicon-16x16.png",
+   "type": "image/png",
+   "sizes": "16x16"
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+@media screen and (min-width: 1200px) {
+    .main-logo {
+        background-image: url('../assets/logo_256.png');
+        height: 128px;
+    }
+}
