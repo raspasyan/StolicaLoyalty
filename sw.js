@@ -16,8 +16,8 @@ var urlsToCache = [
   // "https://cdn.glitch.com/b8fb15c3-17a1-4ad0-b799-b55551892feb%2Fharold.jpg?v=1597733166177",
   // "https://cdn.glitch.com/b8fb15c3-17a1-4ad0-b799-b55551892feb%2Flogo.png?v=1597989080702"
   "/app/js/animate.js",
-  "/app/assets/logo_512.png",
-    "/app/assets/card_back.jpg",
+  "/app/assets/logo/logo_512.png",
+    "/app/assets/backs/card_back.jpg",
     "/api",
     "/app/js/app_250921.min.js"
 ];

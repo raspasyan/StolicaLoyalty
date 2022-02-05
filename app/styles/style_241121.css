@@ -7,16 +7,24 @@ body {
   /* user-select: none; */
   font-family: "Open Sans", sans-serif;
   overflow-x: hidden;
-  background: url(/app/assets/bg.png);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  height: 100%;
+}
+
+.overlay-show {
+  overflow: hidden;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-rows: auto 1fr;
   min-height: 100vh;
+  width: 100vw;
 }
 
 .main-app-space {
-  display: grid;
-  align-items: center;
+  background: url(../assets/backs/bg.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: inherit;
 }
 
 input[type="date"] {
@@ -62,7 +70,7 @@ details[open] > summary.special {
 #top-nav {
   top: 0;
   position: sticky;
-  z-index: 3;
+  z-index: 1;
   height: 50px;
   border-bottom: 1px #efefef ridge;
   display: grid;
@@ -70,6 +78,7 @@ details[open] > summary.special {
   align-items: center;
   justify-items: center;
   background-color: white;
+  width: inherit;
 }
 #top-nav-back {
   font-size: 40px;
@@ -80,6 +89,10 @@ details[open] > summary.special {
   margin-bottom: 0;
 }
 #top-nav-menu {
+  font-size: 32px;
+  grid-area: 1/3/1/3;
+}
+#topnav-nav-menu {
   font-size: 32px;
   grid-area: 1/3/1/3;
 }
@@ -97,7 +110,7 @@ input.fail {
   align-items: center;
   width: 100%;
   height: 100%;
-  z-index: 3;
+  z-index: 7;
   color: white;
   background: rgba(0,0,0,.8);
 }
@@ -111,8 +124,7 @@ input.fail {
   align-items: center;
   width: 100%;
   height: 100%;
-  z-index: 4;
-  z-index: 3;
+  z-index: 6;
   text-align: center;
   background-color: rgba(0,0,0,.8);
   font-size: 20px;
@@ -136,11 +148,9 @@ input.fail {
 }
 
 .section {
-  padding: 10rem 0 10rem;
   text-align: center;
   overflow-x: hidden;
   width: 100%;
-  height: 100%;
 }
 
 .personal-photo {
@@ -190,12 +200,12 @@ details[open]>summary.details {
   height: 100%;
   width: 0;
   position: fixed;
-  z-index: 5;
+  z-index: 3;
   left: 0;
   top: 0;
   overflow-x: hidden;
   transition: 0.5s;
-  background: url(/app/assets/bg.png);
+  background: url(../assets/backs/bg.png);
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
@@ -233,13 +243,6 @@ details[open]>summary.details {
   align-items: center;
 }
 
-.main-logo {
-  background-image: url('../assets/logo_128.png');
-  height: 64px;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
 #reg_firstname, #reg_middlename, #reg_lastname {
   text-transform: capitalize;
 }
@@ -264,30 +267,26 @@ details[open]>summary.details {
   }
 }
 
-footer {
-  align-items: flex-end;
+#bottom-nav {
   bottom: 0;
-  position: fixed;
-  width: 100%;
+  position: sticky;
   z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-gap: 2vw;
   background-color: white;
-  z-index: 2;
+  width: inherit;
+  height: 8rem;
 }
-footer > div {
+#bottom-nav > div {
   text-align: center;
   padding: 10px 0;
 }
-footer > .current-section {
+#bottom-nav > .current-section {
   color: #28a960;
 }
-.bottom-nav-element.main > i {
-    font-size: 4rem;
-}
-.bottom-nav-element.main > div {
-    font-weight: bold;
+.bottom-nav-element > i {
+    font-size: 2rem;
 }
 .important {
     border-color: crimson;
@@ -315,10 +314,8 @@ footer > .current-section {
 
 .news {
   text-align: left;
-  margin-bottom: 32px;
   display: flex;
   justify-content: space-between;
-  background: #fff;
   align-items: flex-start;
 }
 
@@ -438,6 +435,88 @@ details .payment-row {
   }
 }
 
+.lds-ellipsis {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ellipsis div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #353638;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+.lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: lds-ellipsis1 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: lds-ellipsis3 0.6s infinite;
+}
+@keyframes lds-ellipsis1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes lds-ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes lds-ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
+}
+
+.lds-rotation {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #dbdbdb;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+} 
+#top-nav-indicator {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
 .terms {
   position: fixed;
   display: grid;
@@ -469,48 +548,17 @@ details .payment-row {
 }
 
 #feedback {
-  display: grid;
   position: fixed;
   top: 0;
-  z-index: 3;
+  z-index: 5;
   background: white;
   height: 100vh;
-  width: 100vw;
-}
-#feedback > .closebtn {
-  width: 48px;
-  height: 48px;
-  text-align: center;
-  font-size: 29px;
-  position: fixed;
-  right: 134px;
-  top: 61px;
-}
-#open-feedback-cont {
-  position: fixed;
-  bottom: 5%;
   width: 100%;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-gap: 2vw;
+  overflow: auto;
+  
 }
-#open-feedback {
-  position: relative;
-  text-align: center;
-  font-size: 4rem;
-  color: #33C3F0;
-  right: 0px;
-  grid-column-start: 4;
-
-  animation-name: open-feedback-animation;
-  animation-duration: 3s;
-  animation-iteration-count: infinite;
-}
-@keyframes open-feedback-animation {
-  0% {color: #33C3F0; bottom: 48px;}
-  50% {color: black; bottom: 72px;}
-  100% {color: #33C3F0; bottom: 48px;}
+#feedback>form {
+  padding: 2rem;
 }
 
 #drawing {
@@ -565,18 +613,6 @@ details .payment-row {
   font-size: 1.5rem;
   /* color: #ff6a00; */
   color: #33C3F0;
-}
-
-.load {
-  animation-name: load-animation;
-  animation-duration: 2s;
-  animation-iteration-count: infinite;
-}
-
-@keyframes load-animation {
-  0% {color: red;}
-  50% {color: transparent;}
-  100% {color: red;}
 }
 
 .gridstone {
@@ -1382,33 +1418,28 @@ details .payment-row {
 }
 
 #adult {
-  display: flex;
   align-items: center;
-  height: 100vh !important;
   padding: 0px !important;
   position: relative;
+  height: 100vh;
 }
 
 #intro {
-  display: flex;
   align-items: center;
-  height: 100vh !important;
   padding: 0px !important;
   position: relative;
+  height: 100vh;
 }
 
 #pre-registration {
   display: flex;
   align-items: center;
-  height: 100vh !important;
   padding: 0px !important;
   position: relative;
 }
 
 .main-logo {
-  position: absolute;
-  width: 100%;
-  top: 18%;
+  margin: 15% 0;
 }
 
 [type="radio"]:checked,
@@ -1626,7 +1657,6 @@ details .payment-row {
 }
 
 .personal__bottom-level-title {
-  margin-top: 10rem;
   font-weight: 600;
 }
 
@@ -1671,6 +1701,7 @@ details .payment-row {
 
 .wallet__top {
   background: #fff;
+  min-height: 35rem;
 }
 
 .balance-text {
@@ -1698,18 +1729,6 @@ details .payment-row {
 #stores iframe {
   width: 100%;
   height: 100%;
-}
-
-#stores {
-  height: 100vh;
-}
-
-#news {
-  padding-top: 18rem;
-  height: 100%;
-}
-#reset {
-  height: 100vh;
 }
 
 .store_block {
@@ -2221,8 +2240,40 @@ details .payment-row {
   border-top: 1px solid #D5D5D5;
 }
 
-
-
+#overlay-news {
+  position: fixed;
+  top: 0;
+  width: 100vw;;
+  height: 100vh;
+  background-color: rgba(0,0,0,.8);
+  z-index: 3;
+  overflow: auto;
+}
+#overlay-news-cont {
+  border-radius: 8px;
+  box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
+  background-color: white;
+  overflow: auto;
+  margin: 10vh 16px;
+}
+#overlay-news-image,.news-image {
+  width: 100%
+}
+#overlay-news-details, .news-details {
+  padding: 8px;
+  display: grid;
+}
+#overlay-news-details-date, .news-details-date {
+  margin: 0;
+  color: #757575;
+}
+.news-cont {
+  border-radius: 8px;
+  box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
+  background-color: white;
+  overflow: hidden;
+  margin: 2rem 0;
+}
 
 @media(max-width: 440px){
   .popup-drawing-block {
@@ -2585,7 +2636,6 @@ details .payment-row {
   }
 
   .personal__bottom-level-title {
-    margin-top: 5rem;
     font-weight: 600;
   }
 
@@ -2622,15 +2672,11 @@ details .payment-row {
   #authorization {
     display: flex;
     align-items: center;
-    height: 100vh;
     padding: 0px !important;
   }
 
   .alerts_block-item {
     padding: 10px 20px;
-  }
-  #alerts {
-    height: 100vh;
   }
   #feedback > .closebtn {
     right: 6px;
@@ -2660,12 +2706,6 @@ details .payment-row {
     display: flex !important;
     align-items: center;
     margin-left: 5px !important;
-  }
-
-  .section {
-    background: url(/app/assets/bg.png);
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
   }
 
   body {

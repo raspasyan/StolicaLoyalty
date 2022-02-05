@@ -145,6 +145,7 @@ class LMX {
 
                             foreach ($registartionActionsResult["data"]->data->actions as $key => $action) if (!$action->isDone) {
                                 $isDone = false;
+                                if ($debug) $result["debug"] = $action;
                                 break;
                             }
 

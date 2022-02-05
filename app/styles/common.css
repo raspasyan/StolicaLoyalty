@@ -218,7 +218,7 @@ details[open]>summary.details {
 }
 
 .main-logo {
-  background-image: url('../assets/logo_128.png');
+  background-image: url('../assets/logo/logo_128.png');
   height: 64px;
   background-repeat: no-repeat;
   background-position: center;

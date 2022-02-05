@@ -14,6 +14,16 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
+        debug($this->getStoresFullData());
+
+        // debug($this->callPassword('79625020264', '6581')); // ИСВ
+        // debug($this->callPassword('79625020264', '9842')); // ИСВ
+        // debug($this->callPassword('79990849232', '5687')); // Г
+        // debug($this->callPassword('79635658436', '6874')); // Я
+        // debug($this->callPassword('79098526882', '2875')); // Г2
+        // debug($this->callPassword('79098401401', '2175')); // Г2
+        // debug($this->callPassword('79990807027', '2169'));
+
         exit;
     }
 
@@ -60,7 +70,7 @@ class BonusApp {
                 //   die ("Not authorized");
                 // }
 
-                require_once 'templates/template_application_new.php';
+                require_once 'templates/index.html';
                 break;
             }
 
@@ -167,6 +177,13 @@ class BonusApp {
                     echo(json_encode($result));
                     exit;
                 }
+                
+                if (INPUT_LOG) $this->journal("INPUT", "", "", false, json_encode([
+                    "header" => getallheaders(),
+                    "get" => $_GET,
+                    "post" => $_POST,
+                    "json" => file_get_contents('php://input')
+                ]));
 
                 $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
                 $message = $_GET["message"];
@@ -222,10 +239,6 @@ class BonusApp {
                         // print_r($this->sendEmailDrawing());
                         break;
                     }
-                    case "cron6": {
-                        // print_r($this->setSourcePurchase());
-                        break;
-                    }
                     case "cron7": {
                         print_r($this->service_drawingRemind());
                         break;
@@ -240,10 +253,6 @@ class BonusApp {
                     }
                     case "cron10": {
                         print_r($this->uploadDump());
-                        break;
-                    }
-                    case "cron11": {
-                        print_r($this->uploadPurchases());
                         break;
                     }
                     case "processing": {
@@ -444,6 +453,49 @@ class BonusApp {
 
                 case "checkAuthorization": {
                     $resultData = $this->checkAuthorization();
+                    if ($resultData["status"]) {
+                        $phone = $resultData["data"]["phone"];
+
+                        // Подгрузим новости, магазины, профиль, номер карты и баланс
+                        $resultData["data"] = [
+                            "personal"   => [],
+                            "news"      => [],
+                            "stores"    => [],
+                            "wallet"    => []
+                        ];
+
+                        $fullAccountData = $this->getFullAccountDataByPhone($phone);
+                        if ($fullAccountData["status"]) {
+                            $resultData["data"]["personal"] = [
+                                "phone" => $phone,
+                                "status" => $fullAccountData["data"]["status"],
+                                "discount" => $fullAccountData["data"]["discount"],
+                                "discount_value" => $fullAccountData["data"]["discount_value"],
+                                "preferred_discount" => $fullAccountData["data"]["preferred_discount"],
+                                "ext_id" => $fullAccountData["data"]["ext_id"],
+                                "sex" => $fullAccountData["data"]["sex"],
+                                "firstname" => $fullAccountData["data"]["firstname"],
+                                "middlename" => $fullAccountData["data"]["middlename"],
+                                "lastname" => $fullAccountData["data"]["lastname"],
+                                "birthdate" => $fullAccountData["data"]["birthdate"],
+                                "email" => $fullAccountData["data"]["email"],
+                                "last_sync" => $fullAccountData["data"]["profile_last_sync"]
+                            ];
+
+                            $resultData["data"]["wallet"] = [
+                                "cardNumber" => $fullAccountData["data"]["card_number"],
+                                "balance" => $fullAccountData["data"]["balance"],
+                                "cardStatus" => $fullAccountData["data"]["status"],
+                                "last_sync" => $fullAccountData["data"]["card_last_sync"]
+                            ];
+                        }
+
+                        $getNewsResult = $this->getNews();
+                        if ($getNewsResult["status"]) $resultData["data"]["news"] = $getNewsResult["data"];
+
+                        $getStoresFullDataResult = $this->getStoresFullData();
+                        if ($getStoresFullDataResult["status"]) $resultData["data"]["stores"] = $getStoresFullDataResult["data"];
+                    }
                     break;
                 }
 
@@ -735,9 +787,24 @@ class BonusApp {
                     break;
                 }
 
+                case "getNews": {
+                    $resultData = $this->API_getNews(
+                        (!empty($requestData["data"]["lastId"]) ? $requestData["data"]["lastId"] : 0), 
+                        (!empty($requestData["data"]["limit"]) ? $requestData["data"]["limit"] : null)
+                    );
+
+                    break;
+                }
+
                 case "setCard": {
                     $resultData = $this->checkAuthorization($requestData["method"]);
                     if ($resultData["status"]) $resultData = $this->API_setCard($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["card_number"]);
+                    break;
+                }
+
+                case "setFeedback": {
+                    $resultData = $this->API_setFeedback($requestData["data"]);
+
                     break;
                 }
             }
@@ -864,19 +931,19 @@ class BonusApp {
                         // if ($regExtProfileResult["status"]) $emitCardResult = $this->service_emitCard($LMX, $phone, $regExtProfileResult["data"]["personId"]);  
 
                         // Генерация токена для входа по ссылке
-                        // $linkToSite = "https://" . SITE_DOMAIN;
-                        // $opResult = $this->getAccountDataByPhone($phone);
-                        // if ($opResult["status"]) {
-                        //     $opResult = $this->getTokenByAccountId($opResult["data"]["id"]);
-                        //     if ($opResult["status"]) {
-                        //         if (!empty($opResult["alias"])) {
-                        //             $linkToSite = $opResult["alias"];
-                        //         } else if (!empty($opResult["data"])) {
-                        //             $linkToSite .= "/bd?tk=" . $opResult["data"];
-                        //         }
-                        //     }
-                        // }
-                        $sendMessageResult = $this->sendMessage($phone, "Мы увеличили Ваш баланс до 5000 бонусов. С наступающим! Ваша Столица", DEFAULT_SMS_PROVIDER);
+                        $linkToSite = "https://" . SITE_DOMAIN;
+                        $opResult = $this->getAccountDataByPhone($phone);
+                        if ($opResult["status"]) {
+                            $opResult = $this->getTokenByAccountId($opResult["data"]["id"]);
+                            if ($opResult["status"]) {
+                                if (!empty($opResult["alias"])) {
+                                    $linkToSite = $opResult["alias"];
+                                } else if (!empty($opResult["data"])) {
+                                    $linkToSite .= "/bd?tk=" . $opResult["data"];
+                                }
+                            }
+                        }
+                        $sendMessageResult = $this->sendMessage($phone, "Вы зарегистрировались, перейти в ЛК: " . $linkToSite, DEFAULT_SMS_PROVIDER);
                         if (!$sendMessageResult["status"]) $this->journal("APP", __FUNCTION__, json_encode($sendMessageResult, JSON_UNESCAPED_UNICODE), $sendMessageResult["status"]);        
                     } else {
                         $result["status"] = false;
@@ -993,6 +1060,12 @@ class BonusApp {
             $result["data"]["discountValue"]        = $discountValue;
             $result["data"]["preferredDiscount"]    = $preferredDiscount; 
             $result["data"]["balance"]              = $cardBalance / 100;
+        } else {
+            $result = [
+                "status" => true,
+                "data" => [],
+                "description" => "Выполняется регистрация бонусного счёта."
+            ];
         }
 
         return $result;
@@ -1070,6 +1143,18 @@ class BonusApp {
         }
 
         return $result;
+    }
+
+    private function API_getNews($lastId = 0, $limit = 10) {
+        return $this->getNews($lastId, $limit);
+    }
+
+    private function API_setFeedback($data) {
+        $phone = ""; 
+        $authResult = $this->checkAuthorization();
+        if ($authResult["status"]) $phone = $authResult["data"]["phone"];
+        
+        return $this->setFeedback($phone, $data);
     }
 
     /* Утилитарные ф-ии */
@@ -1153,124 +1238,6 @@ class BonusApp {
             }
             ftp_close($conn_id);
             exit;
-        }
-    }
-
-    public function uploadPurchases() {
-        $operationResult = $this->initPDO();
-        if ($operationResult["status"]) {
-            $prevDay = date('Y-m-d', strtotime(' -1 day'));
-            $curentDay = date('Y-m-d');
-            $query = $this->pdo->prepare("SELECT
-                p.ext_id 'Идентификатор клиента',
-                p.firstname 'Имя',
-                p.birthdate 'Дата рождения',
-                p.email 'Почта',
-                p.city 'Город',
-                p.last_sync AS 'Дата регистрации',
-                b.card_number 'Номер карты',
-                ROUND(b.balance / 100, 2) 'Баланс',
-                CASE WHEN b.type = 0 THEN 'Виртуальная' ELSE 'Физическая' END 'type',
-                CASE WHEN a.discount = 1 THEN 'Скидка' ELSE 'Бонусы' END 'Текущая СЛ',
-                CASE WHEN a.preferred_discount = 1 THEN 'Скидка' ELSE 'Бонусы' END 'Предпочитаемая СЛ',
-                CASE WHEN a.discount = a.preferred_discount THEN 'НЕТ' ELSE 'ДА' END 'Ожидается переход'
-            FROM profiles
-                p
-            LEFT JOIN bonuscards b ON
-                p.account_id = b.account_id
-            LEFT JOIN accounts a ON
-                p.account_id = a.id
-            WHERE
-                b.id IN (SELECT
-                        MIN(b.id) as id
-                    FROM profiles
-                        p
-                    LEFT JOIN bonuscards b ON
-                        p.account_id = b.account_id
-                    LEFT JOIN accounts a ON
-                        p.account_id = a.id
-                    WHERE
-                        a.status = 1 AND p.last_sync BETWEEN '".$prevDay."' AND '".$curentDay."'
-                    GROUP BY
-                       p.ext_id)
-            ORDER BY
-                p.ext_id
-                
-            ");
-            $query->execute();
-            $queryResult = $query->fetchAll();
-            $head = [
-                'ext_id',
-                'Имя',
-                'Дата рождения',
-                'E-mail',
-                'Город',
-                'Дата регистрации',
-                'ID',
-                'Номер карты',
-                'Баланс',
-                'Тип карты',
-            ];
-
-            $temp_file_path = tempnam(sys_get_temp_dir(), 'purchases');
-            $fp = fopen($temp_file_path, 'w');
-            fputs($fp, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($fp, $head, ';');
-
-            foreach ($queryResult as $fields) {
-                fputcsv($fp, $fields, ';');
-            }
-            fclose($fp);
-
-            $mailto = 'i.gerovskyi@rsa.khv.ru'; //i.gerovskyi@rsa.khv.ru
-            $subject = 'Выгрузка регистраций';
-            $message = 'My message';
-
-            $content = file_get_contents($temp_file_path);
-            $content = chunk_split(base64_encode($content));
-
-            // a random hash will be necessary to send mixed content
-            $separator = md5(time());
-
-            // carriage return type (RFC)
-            $eol = "\r\n";
-
-            // main header (multipart)
-            $headers = "From: info@stolica-dv.ru" . $eol;
-            $headers .= "MIME-Version: 1.0" . $eol;
-            $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-            $headers .= "Content-Transfer-Encoding: 7bit" . $eol;
-            $headers .= "This is a MIME encoded message." . $eol;
-
-            // message
-            $body = "--" . $separator . $eol;
-            $body .= "Content-Type: text/plain; charset=\"iso-8859-1\"" . $eol;
-            $body .= "Content-Transfer-Encoding: 8bit" . $eol;
-            $body .= $eol . $message . $eol . $eol;
-
-            // attachment
-            $body .= "--" . $separator . $eol;
-            $body .= "Content-Type: application/octet-stream; name=purchases.csv" . $eol;
-            $body .= "Content-Transfer-Encoding: base64" . $eol;
-            $body .= "Content-Disposition: attachment" . $eol;
-            $body .= $eol . $content . $eol . $eol;
-            $body .= "--" . $separator . "--";
-
-
-            //SEND Mail
-            if (mail($mailto, $subject, $body, $headers)) {
-                echo "mail send ... OK";
-            } else {
-                echo "mail send ... ERROR!";
-                print_r( error_get_last() );
-            }
-
-            // Фиксация завершения обработки
-            $cd = new DateTime();
-            $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron11'");
-            $query->execute([$cd->format('Y-m-d H:i:s')]);
-
         }
     }
 
@@ -1474,31 +1441,6 @@ class BonusApp {
             $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron5'");
             $query->execute([$cd->format('Y-m-d H:i:s')]);
 
-        }
-    }
-
-    public function setSourcePurchase(){
-        $operationResult = $this->initPDO();
-        if ($operationResult["status"]) {
-            $dateFrom = date("Y-m-d", strtotime(' -1 day')).' 00:00:00';
-            $dateTo = date("Y-m-d", strtotime(' -1 day')).' 23:59:59';
-
-            $query = $this->pdo->prepare("UPDATE
-            purchases p
-                LEFT JOIN bonuscards b
-                          ON p.discount_card = b.card_number
-                LEFT JOIN accounts a
-                          ON b.account_id = a.id
-                LEFT JOIN messages m
-                          ON a.phone = m.phone AND NOT m.message LIKE '%рож%' AND NOT m.message LIKE '%рег%' AND p.sale_time BETWEEN m.sent_at AND DATE_ADD(m.sent_at, INTERVAL 5 MINUTE)
-            SET p.auth = CASE
-                WHEN m.provider IS NULL THEN 'QR'
-                ELSE m.provider
-                END
-            WHERE p.discount_amount > 0
-              AND p.sale_time BETWEEN '" .$dateFrom. "' AND '" .$dateTo. "'
-            ORDER BY p.id");
-            $query->execute();
         }
     }
 
@@ -1772,7 +1714,7 @@ class BonusApp {
         if ($opResult["status"]) {
             foreach ($opResult["data"] as $key => $value) {
                 if (isset($value["referral_gift"]) && !empty($value["referral_gift"])) {
-                    $chargeResult = $LMX->chargeOn($value["card_number"], $value["referral_gift"], 2, "Приведи друга");
+                    $chargeResult = $LMX->chargeOn($value["card_number"], $value["referral_gift"], 19, "Приведи друга");
                     $this->journal("CRON", __FUNCTION__, "", $chargeResult["status"], json_encode(["f" => "LMX->chargeOn", "a" => [$value["card_number"], $value["referral_gift"], 2]]), json_encode($chargeResult, JSON_UNESCAPED_UNICODE));
                     if ($chargeResult["status"]) {
                         $updateResult = $this->updateReferral($value["account_id"], ["gifted" => true]);
@@ -1858,7 +1800,7 @@ class BonusApp {
 
             // Фиксация завершения обработки
             $cd = new DateTime();
-            $this->journal("CRON", __FUNCTION__, json_encode(["startAt" => $cd->format('Y-m-d H:i:s'), "duration" => round(microtime(true) - $start, 4)], JSON_UNESCAPED_UNICODE));
+            $this->journal("CRON", __FUNCTION__, json_encode(["startAt" => $cd->format('Y-m-d H:i:s'), "duration" => round(microtime(true) - $start, 4)], JSON_UNESCAPED_UNICODE), 1);
         }
     }
 
@@ -1993,7 +1935,7 @@ class BonusApp {
     private function getCities() {
         $result = ["status" => false, "data" => null];
 
-        $query = $this->pdo->prepare("SELECT id, title, discount_value, default_discount FROM `cities` WHERE status = 1 ORDER BY title");
+        $query = $this->pdo->prepare("SELECT id, status, title, discount_value, default_discount FROM `cities` WHERE status > 0 ORDER BY title");
         $query->execute();
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
@@ -2352,6 +2294,44 @@ class BonusApp {
                 b.last_sync
         ");
         $query->execute(["token" => $token]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result["status"] = true;
+            $result["data"] = $queryResult[0];
+        }
+
+        return $result;
+    }
+
+    private function getFullAccountDataByPhone($phone) {
+        $result = ["status" => false, "data" => null];
+
+        $query = $this->pdo->prepare("SELECT 
+                a.id,
+                a.status AS account_status,
+                a.discount,
+                a.discount_value,
+                a.preferred_discount,
+                p.ext_id,
+                p.sex,
+                p.firstname,
+                p.middlename,
+                p.lastname,
+                p.birthdate,
+                p.email,
+                p.last_sync AS profile_last_sync,
+                b.card_number,
+                b.balance,
+                b.status AS card_status,
+                b.last_sync AS card_last_sync
+            FROM
+                accounts AS a
+                LEFT JOIN profiles AS p ON a.id = p.account_id
+                LEFT JOIN bonuscards AS b ON a.id = b.account_id
+            WHERE
+                a.phone = ?
+        ");
+        $query->execute([$phone]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result["status"] = true;
@@ -3089,58 +3069,6 @@ class BonusApp {
         return $result;
     }
 
-    private function getTransactions($cardNumber, $fromDate = null, $toDate = null) {
-        $result = ["status" => false, "data" => null];
-
-        if ($fromDate == null) {
-            $temp = new DateTime("2020-01-01");
-            $fromDate = $temp->format("Y-m-d H:i:s");
-        }
-
-        if ($toDate == null) {
-            $temp = new DateTime();
-            $toDate = $temp->format("Y-m-d H:i:s");
-        }
-
-        $queryText = "SELECT
-                    MIN(transactions.operation_date) AS operation_date,
-                    SUM(ROUND(transactions.amount / 100)) AS amount,
-                    transactions.type,
-                    stores.title AS store_title,
-                    stores.description AS store_description,
-                    purchases.id AS purchase_id
-                FROM transactions
-                LEFT JOIN stores
-                    ON transactions.rsa_id = stores.rsa_id
-                LEFT JOIN purchases
-                    ON transactions.rsa_id = purchases.rsa_id AND DATE_FORMAT(transactions.operation_date, '%y-%m-%d') = DATE_FORMAT(purchases.sale_time, '%y-%m-%d') AND purchases.discount_card = :cardNumberPurchase
-                        AND (((transactions.type = 'CHARGE' AND purchases.cashback_amount = transactions.amount) OR (transactions.type = 'WRITE_OFF' AND purchases.discount_amount = transactions.amount))
-                            OR (transactions.cash = purchases.cash AND transactions.shift = purchases.shift AND transactions.number = purchases.number))
-                        AND (transactions.cash = purchases.cash AND transactions.shift = purchases.shift AND transactions.number = purchases.number)
-                WHERE
-                    bonuscard_id IN (SELECT id FROM bonuscards WHERE card_number = :cardNumber)
-                    AND operation_date BETWEEN :fromDate AND :toDate
-                    AND type IN ('" . implode("','", SRC::$transactionTypes) . "')
-                GROUP BY
-                    DATE_FORMAT(transactions.operation_date, '%y-%m-%d'),
-                    transactions.type,
-                    stores.title,
-                    stores.description,
-                    purchases.id
-                ORDER BY
-                    MIN(transactions.operation_date) DESC
-            ";
-        $query = $this->pdo->prepare($queryText);
-        $query->execute(["cardNumber" => $cardNumber, "cardNumberPurchase" => $cardNumber, "fromDate" => $fromDate, "toDate" => $toDate]);
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) {
-            $result["status"] = true;
-            $result["data"] = $queryResult;
-        }
-
-        return $result;
-    }
-
     private function updateCardData($cardNumber, $lastSync) {
         $result = ["status" => false, "data" => null];
 
@@ -3179,8 +3107,6 @@ class BonusApp {
 
     private function addPurchase($purchase, $rsa_id, $person_id = null) {
         $result = ["status" => false];
-
-        // debug([$purchase, $rsa_id, $person_id]);
 
         try {
             $inTransaction = $this->pdo->inTransaction();
@@ -3393,8 +3319,8 @@ class BonusApp {
                         WHEN purchases.profile_ext_id IS NULL THEN -ROUND(purchases.discount_amount / 100, 2)
                         ELSE ROUND(purchases.payment_amount / 100, 2)
                     END AS purchase_payment_amount,
-                    IFNULL(p.title, positions.title) AS product_title,
-                    (positions.cost / 100) * (positions.count / 1000) cost,
+                    positions.title AS product_title,
+                    (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
                     CASE
                         WHEN purchases.profile_ext_id IS NULL THEN 0
@@ -3408,8 +3334,6 @@ class BonusApp {
                 FROM purchases
                 LEFT JOIN positions
                     ON purchases.id = positions.purchase_id
-                LEFT JOIN products p
-                    ON p.ext_id = positions.product_id
                 LEFT JOIN stores
                     ON purchases.rsa_id = stores.rsa_id
                 WHERE
@@ -3601,6 +3525,59 @@ class BonusApp {
         }
 
         return $result;
+    }
+
+    private function getStoresFullData() {
+        $result = ["status" => false];
+
+        $query = $this->pdo->prepare("SELECT
+                c.id,
+                c.title,
+                s.city_id,
+                s.rsa_id,
+                s.title AS store_title,
+                s.description,
+                s.shedule,
+                s.phone,
+                s.coordinates
+            FROM
+                cities c
+            LEFT JOIN stores s ON
+                c.id = s.city_id
+            WHERE
+                s.status = 1
+        ");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+
+        if (count($queryResult)) {
+            $cities = [];
+            foreach ($this->array_unique_key($queryResult, 'id') as $cityItem) {
+                $cities[] = [
+                    'id'    => $cityItem['id'],
+                    'title' => $cityItem['title']
+                ];
+            }
+
+            $stores = [];
+            foreach ($queryResult as $storesItem) {
+                $stores[] = [
+                    'city_id'       => $storesItem['city_id'],
+                    'rsa_id'        => $storesItem['rsa_id'],
+                    'description'   => $storesItem['description'],
+                    'shedule'       => $storesItem['shedule'],
+                    'phone'         => $storesItem['phone'],
+                    'coordinates'   => $storesItem['coordinates']
+                ];
+            }
+            
+            $result = [
+                "status" => true,
+                "data" => $queryResult
+            ];
+        }
+
+        return $result;   
     }
 
     function array_unique_key($array, $key) {
@@ -4208,8 +4185,6 @@ class BonusApp {
                     ON T1.account_id = T3.account_id
                 INNER JOIN bonuscards AS T4
                     ON T1.ref_account_id = T4.account_id
-                INNER JOIN purchases AS T5
-                    ON T3.card_number = T5.discount_card AND T5.sale_time >= DATE_ADD(NOW(), INTERVAL -90 DAY)
                 INNER JOIN profiles AS T6
                     ON T1.account_id = T6.account_id)
             WHERE T6.last_sync > DATE_ADD(NOW(), INTERVAL -90 DAY) AND T1.gifted = 0
@@ -4234,6 +4209,34 @@ class BonusApp {
             'status' => !empty($rows),
             'data' => $rows,
         ];
+    }
+
+    private function getNews($lastId = 0, $limit = 10) {
+        $result = ["status" => true, "data" => []];
+
+        $cd = new DateTime();
+        $query = $this->pdo->prepare("SELECT
+                id,
+                date_to_post,
+                date,
+                image,
+                title,
+                description
+            FROM
+                news
+            WHERE
+                id > :lastId
+                AND date_to_post <= :cd
+            LIMIT :limit
+        ");
+        $query->execute(["lastId" => $lastId, "cd" => $cd->format('Y-m-d'), "limit" => $limit]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) $result = [
+            "status" => true,
+            "data" => $queryResult
+        ];
+
+        return $result;
     }
 
     /* Работа с внешними ИБ */
@@ -4360,12 +4363,12 @@ class BonusApp {
         $time = time();
 
         $requestKey = NT_API_ACCESS_KEY . $time . hash('sha256',
-                $methodName . "\n" .
-                $time . "\n" .
-                NT_API_ACCESS_KEY . "\n" .
-                $data . "\n" .
-                NT_API_SIGNATURE_KEY
-            );
+            $methodName . "\n" .
+            $time . "\n" .
+            NT_API_ACCESS_KEY . "\n" .
+            $data . "\n" .
+            NT_API_SIGNATURE_KEY
+        );
 
         $resId = curl_init();
         curl_setopt_array($resId, [
@@ -4425,26 +4428,13 @@ class BonusApp {
     }
 
     private function tg($message, $status = "info") {
-        switch ($status) {
-            case "info": {
-                $emoji = "💬";
-                break;
-            }
-            case "sos": {
-                $emoji = "🆘";
+        $emoji = [
+            "info" => "💬",
+            "sos" => "🆘",
+            "warning" => "⚠️"
+        ];
 
-                break;
-
-                break;
-
-            }
-            case "warning": {
-                $emoji = "⚠️";
-                break;
-            }
-        }
-
-        return file_get_contents("https://api.telegram.org/bot906763368:AAE1rqS8ooFwOHW00fX7PsOlRIi8c990zAY/sendMessage?chat_id=-550701196&text=" . $emoji . "\n" . $message);
+        return file_get_contents("https://api.telegram.org/bot906763368:AAE1rqS8ooFwOHW00fX7PsOlRIi8c990zAY/sendMessage?chat_id=-550701196&text=" . $emoji[$status] . "\n" . $message);
     }
 
     /* Панель администратора */
@@ -5626,6 +5616,12 @@ class BonusApp {
                 "status" => false,
             ];
         }
+
+        return $result;
+    }
+
+    private function setFeedback($phone, $data) {
+        $result = ["status" => true, "data" => $data, "phone" => $phone];
 
         return $result;
     }

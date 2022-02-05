@@ -1,0 +1,93 @@
+function updateStoresData() {
+    if (!storesList.children.length) {
+        let city_id = false;
+        getStores().then(result => {
+            if (result.status) {
+                result.cities.forEach(city => {
+                    let option = document.createElement("option");
+                    option.value = city.id;
+                    option.innerText = city.name;
+                    store_cities.appendChild(option);
+                })
+                city_id = result.cities[0].id;
+                getStoresList(city_id);
+            }
+
+        }).catch(error => {
+            console.warn(error);
+            showPopup("Внимание", "Произошла ошибка, попробуйте позже.");
+        });
+    }
+}
+
+function drawStores(stores) {
+    let cities = [];
+    stores.forEach(item => {
+        if (cities.indexOf(item.id) == -1) cities.push(item.id);
+    });
+
+    cities.forEach(cityId => {
+        // console.log(cities, stores);
+        let storesInCity = [];
+        stores.forEach(item => {
+            if (item.id == cityId) storesInCity.push(item);
+        });
+
+        let option = document.createElement("option");
+        option.value = cityId;
+        option.setAttribute("data-stores", JSON.stringify(storesInCity));
+        option.innerText = storesInCity[0].title;
+        store_cities.appendChild(option);
+    });
+
+    let storesInCity = JSON.parse(store_cities.options[store_cities.selectedIndex].getAttribute("data-stores"));
+    drawStoresInCity(storesInCity);
+}
+
+function drawStoresInCity(stores) {
+    $("#storesList").html('');
+    stores.forEach(city => {
+        $("#storesList").append("<div class='store_block' data-rsa='" + city.rsa_id + "' data-coordinates='" + city.coordinates + "' data-phone='" + city.phone + "' data-city='" + city.title + "'><div class='store_block-title'>" + city.store_title + "</div><div class='store_block-shedule'>" + city.shedule + "</div><span class='show_store'>></span></div>");
+    });
+}
+
+function getStores() {
+    return fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify({
+            "method": "getStores"
+        })
+    }).then(response => response.json()).catch(error => {
+        return {
+            status: false,
+            description: error.message,
+            error: error
+        }
+    });
+}
+
+async function getStoresList(city_id) {
+    let body = {
+        "method": "getStoresList",
+        "city_id": city_id
+    };
+
+    let response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(body)
+    });
+
+    let result = await response.json();
+
+    $("#storesList").html('');
+
+    result.data.forEach(city => {
+        $("#storesList").append("<div class='store_block' data-rsa='" + city.rsa_id + "' data-coordinates='" + city.coordinates + "' data-phone='" + city.phone + "' data-city='" + city.city_name + "'><div class='store_block-title'>" + city.store_name + "</div><div class='store_block-shedule'>" + city.shedule + "</div><span class='show_store'>></span></div>");
+    });
+}

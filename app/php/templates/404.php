@@ -9,9 +9,9 @@
   <link rel="manifest" href="manifest.json" />
 
   <link rel="icon" type="image/png" sizes="192x192"
-    href="app/assets/android-icon-192x192.png" />
+    href="app/assets/icons/192x192.png" />
   <link rel="apple-touch-icon" type="image/png" sizes="180x180"
-    href="app/assets/apple-icon-180x180.png" />
+    href="app/assets/icons/180x180.png" />
 
   <title>Столица: 404</title>
 
