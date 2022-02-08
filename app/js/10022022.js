@@ -73,7 +73,14 @@ let sections = {
   }
 }
 
-let bearerToken = null;
+let bearerToken   = null;
+let currentUpdates = {
+  personalHash:"",
+  walletHash:"",
+  storesHash: "",
+  lastNews:"",
+  lastPurchase:""
+};
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
@@ -89,54 +96,54 @@ document.addEventListener("DOMContentLoaded", function () {
 
   bearerToken = localStorage.getItem(LS_TOKEN_LINK);
 
-  auth_phone.addEventListener("blur", (e) => { dropFail(e.target); auth_phone_popup.classList.remove("show"); });
-  auth_phone.addEventListener("change", (e) => { reg_phone.value = auth_phone.value; reset_phone.value = auth_phone.value; });
-  auth_phone.addEventListener("input", (e) => modifyInput(e.target));
+  auth_phone.addEventListener("blur", e => { dropFail(e.target); auth_phone_popup.classList.remove("show"); });
+  auth_phone.addEventListener("change", e => { reg_phone.value = auth_phone.value; reset_phone.value = auth_phone.value; });
+  auth_phone.addEventListener("input", e => modifyInput(e.target));
 
-  reg_phone.addEventListener("blur", (e) => { dropFail(e.target); reg_phone_popup.classList.remove("show"); });
-  reg_phone.addEventListener("change", (e) => { auth_phone.value = reg_phone.value; reset_phone.value = reg_phone.value; });
-  reg_phone.addEventListener("input", (e) => modifyInput(e.target));
+  reg_phone.addEventListener("blur", e => { dropFail(e.target); reg_phone_popup.classList.remove("show"); });
+  reg_phone.addEventListener("change", e => { auth_phone.value = reg_phone.value; reset_phone.value = reg_phone.value; });
+  reg_phone.addEventListener("input", e => modifyInput(e.target));
 
-  auth_pass.addEventListener("blur", (e) => { dropFail(e.target); auth_pass_popup.classList.remove("show"); });
-  reg_pass.addEventListener("blur", (e) => { dropFail(e.target); reg_pass_popup.classList.remove("show"); });
-  reg_confirmation_code.addEventListener("blur", (e) => { dropFail(e.target); reg_confirmation_code_popup.classList.remove("show"); });
-  reg_birthdate.addEventListener("blur", (e) => { dropFail(e.target); reg_birthdate_popup.classList.remove("show"); });
+  auth_pass.addEventListener("blur", e => { dropFail(e.target); auth_pass_popup.classList.remove("show"); });
+  reg_pass.addEventListener("blur", e => { dropFail(e.target); reg_pass_popup.classList.remove("show"); });
+  reg_confirmation_code.addEventListener("blur", e => { dropFail(e.target); reg_confirmation_code_popup.classList.remove("show"); });
+  reg_birthdate.addEventListener("blur", e => { dropFail(e.target); reg_birthdate_popup.classList.remove("show"); });
 
   // Переход на пластиковую карту
-  personal_changeCard_button.addEventListener("click", () => { changeCard(); });
+  personal_changeCard_button.addEventListener("click", () => changeCard());
 
   // Смена пароля
-  personal_new_pass.addEventListener("blur", (e) => { dropFail(e.target); personal_new_pass_popup.classList.remove("show"); });
-  personal_new_pass_confirmation.addEventListener("blur", (e) => { dropFail(e.target); personal_new_pass_confirmation_popup.classList.remove("show"); });
-  personal_changePassword_button.addEventListener("click", () => { changeProfileData(); });
+  personal_new_pass.addEventListener("blur", e => { dropFail(e.target); personal_new_pass_popup.classList.remove("show"); });
+  personal_new_pass_confirmation.addEventListener("blur", e => { dropFail(e.target); personal_new_pass_confirmation_popup.classList.remove("show"); });
+  personal_changePassword_button.addEventListener("click", () => changeProfileData());
 
   // Привязка пластиковой карты
   set_card.addEventListener("click", () => setCard());
 
   // Вход без пароля
-  reset_phone.addEventListener("blur", (e) => { dropFail(e.target); reset_phone_popup.classList.remove("show"); });
-  reset_phone.addEventListener("change", (e) => { reg_phone.value = reset_phone.value; auth_phone.value = reset_phone.value; });
-  reset_phone.addEventListener("input", (e) => { reset_button.disabled = (reset_phone.value ? false : true); modifyInput(e.target) });
-  reset_confirmation_code.addEventListener("input", (e) => { reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true); });
+  reset_phone.addEventListener("blur", e => { dropFail(e.target); reset_phone_popup.classList.remove("show"); });
+  reset_phone.addEventListener("change", e => { reg_phone.value = reset_phone.value; auth_phone.value = reset_phone.value; });
+  reset_phone.addEventListener("input", e => { reset_button.disabled = (reset_phone.value ? false : true); modifyInput(e.target) });
+  reset_confirmation_code.addEventListener("input", e => { reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true); });
   $('#reset_phone').mask('+7-000-000-00-00');
   $('#reset_confirmation_code').mask('0000');
 
-  auth_pass_toggle.addEventListener("click", (e) => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle.addEventListener("click", (e) => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle_confirm.addEventListener("click", (e) => { reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6"); });
+  auth_pass_toggle.addEventListener("click", e => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
+  reg_pass_toggle.addEventListener("click", e => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
+  reg_pass_toggle_confirm.addEventListener("click", e => { reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6"); });
 
-  update_pass_toggle.addEventListener("click", (e) => { personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6"); });
-  update_pass_toggle_confirm.addEventListener("click", (e) => { personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6"); });
+  update_pass_toggle.addEventListener("click", e => { personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6"); });
+  update_pass_toggle_confirm.addEventListener("click", e => { personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6"); });
 
-  reg_button.addEventListener("click", (e) => {
+  reg_button.addEventListener("click", e => {
     if (checkReg()) showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
   });
 
-  reset_button.addEventListener("click", (e) => {
+  reset_button.addEventListener("click", e => {
     if (canGetResetConfirmationCode()) showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
   });
 
-  document.getElementById("transactions-details-button").addEventListener("click", (e) => {
+  document.getElementById("transactions-details-button").addEventListener("click", e => {
     $("#transactions").toggleClass("transactionsOpen");
     $("#transactions-details-button").text((transactions.classList.contains("transactionsOpen")) ? "скрыть детализацию" : "открыть детализацию");
   });
@@ -183,27 +190,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  //Маршрутизация
-  let section = localStorage.getItem("section");
-  checkAuthorization().then(result => {
-    if (result.status) {
-      if (!document.getElementById("feedback-account").value && result.data.phone) {
-        document.getElementById("feedback-account").value = result.data.phone;
-        let userName = result.data.firstname + " " + result.data.middlename;
-        document.getElementById("feedback-name").value = (userName ? userName : "");
-      }
-
-      if (result.data.news.length) drawNews(result.data.news);
-      if (result.data.personal) drawPersonal(result.data.personal);
-      if (result.data.stores.length) drawStores(result.data.stores);
-
-      if (["wallet", "news", "personal", "stores", "refer"].indexOf(section) == -1) section = "wallet";
-    } else {
-      section = (section ? section : "adult");
-    }
+  checkUpdates(currentUpdates, function() {
+    let section = localStorage.getItem("section");
+    drawSection(section);
   });
-
-  drawSection(section);
 });
 
 function modifyInput(el) {
@@ -231,7 +221,6 @@ function routePrevSection() {
 
 function drawSection(section) {
   if (!section) section = "adult";
-  prevSection = localStorage.getItem("section");
 
   switch (section) {
     default: {
@@ -258,29 +247,17 @@ function drawSection(section) {
     }
 
     case "personal": {
-
+      //
       break;
     }
 
     case "stores": {
-
+      //
       break;
     }
 
     case "wallet": {
-      if (!sections[section].module) {
-        sections[section].module = loadScript("app/js/module." + String(section) + ".js");
-        sections[section].module.then(
-          script => updateWalletData(true),
-          error => {
-            showPopup('Сервер', error.message);
-            console.error(error);
-          }
-        );
-      } else {
-        updateWalletData();
-      }
-
+      //
       break;
     }
 
@@ -296,7 +273,7 @@ function drawSection(section) {
     }
 
     case "news": {
-
+      //
       break;
     }
   }
@@ -524,7 +501,9 @@ function checkAuthorization() {
     body: JSON.stringify({
       "method": "checkAuthorization"
     })
-  }).then(response => response.json()).catch(error => {
+  })
+  .then(response => response.json())
+  .catch(error => {
     return {
       status: false,
       description: error.message,
@@ -1121,4 +1100,89 @@ function API_setFeedback(body) {
 function onErrorCatch(error) {
   showPopup("Внимание", error.description);
   console.warn(error);
+}
+
+function checkUpdates(lastUpdates, callback) {
+  getUpdates(lastUpdates).then(result => {
+    if (result.status) {
+      if (result.data.news.length) {
+        drawNews(result.data.news);
+        currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);                
+      }
+      if (result.data.storesHash) {
+        drawStores(result.data.stores);
+        currentUpdates.storesHash = result.data.storesHash;
+      }
+      if (result.data.personalHash) {
+        drawPersonal(result.data.personal);
+        currentUpdates.personalHash = result.data.personalHash;
+
+        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
+        document.getElementById("feedback-name").value = (userName ? userName : "");
+      }
+      if (result.data.walletHash) {
+        drawWallet(result.data.wallet);
+        currentUpdates.walletHash = result.data.walletHash;
+      }
+      if (result.data.lastPurchase) {
+        drawPurchases(result.data.purchases);
+        currentUpdates.lastPurchase = result.data.lastPurchase;
+      }
+
+      // if (["wallet", "news", "personal", "stores", "refer"].indexOf(section) == -1) section = "wallet";
+    } 
+    // else {
+    //   section = (section ? section : "adult");
+    // }
+  })
+  .finally(() => {
+    if (callback) callback();
+
+    let timeout = setTimeout(checkUpdates, 6666, currentUpdates);
+    
+    updateWalletData();
+  });
+}
+
+function getUpdates(lastUpdates) {
+  return fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json;charset=utf-8",
+      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+    },
+    body: JSON.stringify({
+      "method": "getUpdates",
+      "data": lastUpdates
+    })
+  })
+  .then(response => response.json())
+  .catch(error => {
+    return {
+      status: false,
+      description: error.message,
+      error: error
+    }
+  });
+}
+
+function updateWalletData() {
+  return fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json;charset=utf-8",
+      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+    },
+    body: JSON.stringify({
+      "method": "updateWalletData"
+    })
+  })
+  .then(response => response.json())
+  .catch(error => {
+    return {
+      status: false,
+      description: error.message,
+      error: error
+    }
+  });
 }

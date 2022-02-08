@@ -14,16 +14,6 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        debug($this->getStoresFullData());
-
-        // debug($this->callPassword('79625020264', '6581')); // ИСВ
-        // debug($this->callPassword('79625020264', '9842')); // ИСВ
-        // debug($this->callPassword('79990849232', '5687')); // Г
-        // debug($this->callPassword('79635658436', '6874')); // Я
-        // debug($this->callPassword('79098526882', '2875')); // Г2
-        // debug($this->callPassword('79098401401', '2175')); // Г2
-        // debug($this->callPassword('79990807027', '2169'));
-
         exit;
     }
 
@@ -453,49 +443,14 @@ class BonusApp {
 
                 case "checkAuthorization": {
                     $resultData = $this->checkAuthorization();
-                    if ($resultData["status"]) {
-                        $phone = $resultData["data"]["phone"];
+                    
+                    break;
+                }
 
-                        // Подгрузим новости, магазины, профиль, номер карты и баланс
-                        $resultData["data"] = [
-                            "personal"   => [],
-                            "news"      => [],
-                            "stores"    => [],
-                            "wallet"    => []
-                        ];
+                case "getUpdates": {
+                    $resultData = $this->checkAuthorization($requestData["method"]);
+                    if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
 
-                        $fullAccountData = $this->getFullAccountDataByPhone($phone);
-                        if ($fullAccountData["status"]) {
-                            $resultData["data"]["personal"] = [
-                                "phone" => $phone,
-                                "status" => $fullAccountData["data"]["status"],
-                                "discount" => $fullAccountData["data"]["discount"],
-                                "discount_value" => $fullAccountData["data"]["discount_value"],
-                                "preferred_discount" => $fullAccountData["data"]["preferred_discount"],
-                                "ext_id" => $fullAccountData["data"]["ext_id"],
-                                "sex" => $fullAccountData["data"]["sex"],
-                                "firstname" => $fullAccountData["data"]["firstname"],
-                                "middlename" => $fullAccountData["data"]["middlename"],
-                                "lastname" => $fullAccountData["data"]["lastname"],
-                                "birthdate" => $fullAccountData["data"]["birthdate"],
-                                "email" => $fullAccountData["data"]["email"],
-                                "last_sync" => $fullAccountData["data"]["profile_last_sync"]
-                            ];
-
-                            $resultData["data"]["wallet"] = [
-                                "cardNumber" => $fullAccountData["data"]["card_number"],
-                                "balance" => $fullAccountData["data"]["balance"],
-                                "cardStatus" => $fullAccountData["data"]["status"],
-                                "last_sync" => $fullAccountData["data"]["card_last_sync"]
-                            ];
-                        }
-
-                        $getNewsResult = $this->getNews();
-                        if ($getNewsResult["status"]) $resultData["data"]["news"] = $getNewsResult["data"];
-
-                        $getStoresFullDataResult = $this->getStoresFullData();
-                        if ($getStoresFullDataResult["status"]) $resultData["data"]["stores"] = $getStoresFullDataResult["data"];
-                    }
                     break;
                 }
 
@@ -607,6 +562,13 @@ class BonusApp {
                 case "getWalletData": {
                     $resultData = $this->checkAuthorization($requestData["method"], (!empty($requestData["data"]["source"]) ? $requestData["data"]["source"] : "unknown"));
                     if ($resultData["status"]) $resultData = $this->API_getWalletData($resultData["data"]["token"], $requestData["data"]["last_id"], $requestData["data"]["only_balance"]);
+                    break;
+                }
+
+                case "updateWalletData": {
+                    $resultData = $this->checkAuthorization();
+                    if ($resultData["status"]) $resultData = $this->API_updateWalletData($resultData["data"]["personId"], $resultData["data"]["card_number"], $resultData["data"]["bonusCardLastSync"]);
+
                     break;
                 }
 
@@ -1019,6 +981,24 @@ class BonusApp {
         return $result;
     }
 
+    private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync) {
+        $result = ["status" => false, "data" => null];
+
+        $lastPurchaseDate = "2021-01-01 00:00:00";
+        $getLastPurchaseResult = $this->getLastPurchase($personId);
+        if ($getLastPurchaseResult["status"]) $lastPurchaseDate = $getLastPurchaseResult["data"]["sale_time"];
+
+        $cd = new DateTime();
+        $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
+        $ls_time = strtotime($bonusCardLastSync);
+        $dd = $cd_time - $ls_time;
+
+        // Подгружаем актуальный баланс из процессинговой системы
+        if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0)) $result = $this->updateCardDataByLMX($personId, $cardNumber, $lastPurchaseDate);
+
+        return $result;
+    }
+
     private function API_getWalletData($token, $lastId = 0, $onlyBalance = false) {
         $result = ["status" => false, "data" => null];
 
@@ -1046,9 +1026,9 @@ class BonusApp {
             if ($getBonusCardDataResult["status"]) $cardBalance = $getBonusCardDataResult["data"]["balance"];
 
             $result["data"]["purchases"] = [];
-            $getLastPurchasesIdResult = $this->getLastPurchasesId($personId);
-            if ($getLastPurchasesIdResult["status"]) {
-                if ($getLastPurchasesIdResult["data"] != $lastId) {
+            $getLastPurchaseResult = $this->getLastPurchase($personId);
+            if ($getLastPurchaseResult["status"]) {
+                if ($getLastPurchaseResult["data"]["id"] != $lastId) {
                     $getFullPurchasesDataByDateResult = $this->getFullPurchasesData($personId);
                     if ($getFullPurchasesDataByDateResult["status"]) $result["data"]["purchases"] = $getFullPurchasesDataByDateResult["data"];
                 }
@@ -1145,8 +1125,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_getNews($lastId = 0, $limit = 10) {
-        return $this->getNews($lastId, $limit);
+    private function API_getNews($lastNewsId = 0, $limit = 10) {
+        return $this->getNews($lastNewsId, $limit);
     }
 
     private function API_setFeedback($data) {
@@ -1932,6 +1912,93 @@ class BonusApp {
     //
     // Хранение токенов Лоймакс
 
+    private function getUpdates($phone, $options = null) {
+        // Подгрузим новости, магазины, профиль, номер карты и баланс
+        // $options = [
+        //     "personalHash"  => "",
+        //     "walletHash"    => "",
+        //     "storesHash"    => "",
+        //     "lastNews"      => "",
+        //     "lastPurchase"  => ""
+        // ];
+
+        $result = [
+            "status" => true,
+            "data" => [
+                "personal"      => [],
+                "personalHash"  => "",
+                "stores"        => [],
+                "storesHash"    => "",
+                "wallet"        => [],
+                "walletHash"    => "",
+                "news"          => [],
+                "purchases"     => []
+                
+            ]
+        ];
+
+        $fullAccountData = $this->getFullAccountDataByPhone($phone);
+        if ($fullAccountData["status"]) {
+            $personal = [
+                "phone"                 => $phone,
+                "status"                => $fullAccountData["data"]["status"],
+                "discount"              => $fullAccountData["data"]["discount"],
+                "discount_value"        => $fullAccountData["data"]["discount_value"],
+                "preferred_discount"    => $fullAccountData["data"]["preferred_discount"],
+                "sex"                   => $fullAccountData["data"]["sex"],
+                "firstname"             => $fullAccountData["data"]["firstname"],
+                "middlename"            => $fullAccountData["data"]["middlename"],
+                "lastname"              => $fullAccountData["data"]["lastname"],
+                "birthdate"             => $fullAccountData["data"]["birthdate"],
+                "email"                 => $fullAccountData["data"]["email"]
+            ];
+            $personalHash = hash("md5" ,implode("", $personal));
+            if ($options["personalHash"] != $personalHash) {
+                $result["data"]["personal"] = $personal;
+                $result["data"]["personalHash"] = $personalHash;
+            }
+
+            $wallet = [
+                "cardNumber"            => $fullAccountData["data"]["card_number"],
+                "balance"               => $fullAccountData["data"]["balance"],
+                "cardStatus"            => $fullAccountData["data"]["card_status"],
+                "discount"              => $fullAccountData["data"]["discount"],
+                "discountValue"         => $fullAccountData["data"]["discount_value"],
+                "preferredDiscount"     => $fullAccountData["data"]["preferred_discount"],
+                
+            ];
+            $walletHash = hash("md5", implode("", $wallet));
+            if ($options["walletHash"] != $walletHash) {
+                $result["data"]["wallet"] = $wallet;
+                $result["data"]["walletHash"] = $walletHash;
+            }
+
+            $personId = $fullAccountData["data"]["ext_id"];
+            if (!empty($personId)) {
+                $getFullPurchasesDataByDateResult = $this->getFullPurchasesData($personId, $options["lastPurchase"]);
+                if ($getFullPurchasesDataByDateResult["status"]) {
+                    $result["data"]["purchases"] = $getFullPurchasesDataByDateResult["data"];
+                    $result["data"]["lastPurchase"] = $result["data"]["purchases"][count($result["data"]["purchases"]) - 1]["operation_date"];
+                }
+            }
+        }
+
+        $getNewsResult = $this->getNews($options["lastNews"]);
+        if ($getNewsResult["status"]) $result["data"]["news"] = $getNewsResult["data"];
+
+        $getStoresFullDataResult = $this->getStoresFullData();
+        if ($getStoresFullDataResult["status"]) {
+            $stores = $getStoresFullDataResult["data"];
+            $storesHash = hash("md5" ,implode("", array_map(function($item) { return $item["rsa_id"]; }, $result["data"]["stores"])));
+            if ($options["storesHash"] != $storesHash) {
+                $result["data"]["stores"] = $stores;
+                $result["data"]["storesHash"] = $storesHash;
+            }
+        }
+
+        return $result;
+    }
+
     private function getCities() {
         $result = ["status" => false, "data" => null];
 
@@ -2319,11 +2386,9 @@ class BonusApp {
                 p.lastname,
                 p.birthdate,
                 p.email,
-                p.last_sync AS profile_last_sync,
                 b.card_number,
-                b.balance,
-                b.status AS card_status,
-                b.last_sync AS card_last_sync
+                ROUND(b.balance / 100, 2) AS balance,
+                b.status AS card_status
             FROM
                 accounts AS a
                 LEFT JOIN profiles AS p ON a.id = p.account_id
@@ -2366,7 +2431,6 @@ class BonusApp {
         $bearerToken = "";
 
         if (isset($_COOKIE["token"])) $cookieToken = $_COOKIE["token"];
-
         $operationResult = $this->getBearerToken();
         if ($operationResult["status"]) $bearerToken = $operationResult["data"];
 
@@ -2383,7 +2447,8 @@ class BonusApp {
                     T2.firstname,
                     T2.middlename,
                     T2.ext_id AS personId,
-                    b.card_number
+                    b.card_number,
+                    b.last_sync AS bonusCardLastSync
                 FROM
                     accounts AS T1
                     LEFT JOIN profiles AS T2
@@ -2399,11 +2464,8 @@ class BonusApp {
             if (count($queryResult)) {
                 $result["status"] = true;
                 $result["data"] = $queryResult[0];
-
-                setcookie("token", $token, strtotime('+12 month'));
             } else {
                 $result["description"] = "Пользователь не подтвердил номер телефона.";
-                setcookie("token", null, strtotime('-1 days'));
             }
         } else {
             $result["description"] = "Пользователь не авторизован.";
@@ -2418,9 +2480,6 @@ class BonusApp {
                     "post" => $_POST,
                     "json" => file_get_contents('php://input')
                 ];
-                // fwrite($fw, "HEADERS " . var_export(getallheaders(), true));
-                // fwrite($fw, "POST " . var_export($_POST, true));
-                // fwrite($fw, "JSON " . var_export(file_get_contents('php://input'), true));
             }
             try {
                 $this->journal("APP", __FUNCTION__, $journal, $result["status"], json_encode(["f" => "checkAuthorization", "a" => [$cookieToken, $bearerToken, $source]]), json_encode($output, JSON_UNESCAPED_UNICODE));
@@ -3261,31 +3320,32 @@ class BonusApp {
         return $result;
     }
     
-    private function getLastPurchasesId($personId) {
+    private function getLastPurchase($personId) {
         $result = ["status" => false];
         
         $query = $this->pdo->prepare("SELECT
-                id
+                *
             FROM
                 purchases
             WHERE
                 purchases.profile_ext_id = ?
             ORDER BY
                 sale_time DESC
+            LIMIT 1
         ");
         $query->execute([$personId]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result = [
                 "status" => true,
-                "data" => $queryResult[0]["id"]
+                "data" => $queryResult[0]
             ];
         }
 
         return $result;
     }
 
-    private function getFullPurchasesData($personId, $limit = 50) {
+    private function getFullPurchasesData($personId, $lastPurchaseDate = "2021-01-01 00:00:00", $limit = 50) {
         $result = ["status" => false, "data" => []];
 
         $query = $this->pdo->prepare("SELECT
@@ -3293,12 +3353,12 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                purchases.profile_ext_id = ?
+                profile_ext_id = ? AND sale_time > ?
             ORDER BY
                 sale_time DESC
             LIMIT ?
         ");
-        $query->execute([$personId, $limit]);
+        $query->execute([$personId, $lastPurchaseDate, $limit]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $purchasesId = [];
@@ -3344,12 +3404,12 @@ class BonusApp {
             $query->execute();
             $queryResult = $query->fetchAll();
             if (count($queryResult)) {
-                $lastId = null;
+                $lastPositionId = null;
                 $purchases = [];
                 $positions = [];
 
                 foreach ($queryResult as $row) {
-                    if (!$lastId || $lastId != $row["id"]) {
+                    if (!$lastPositionId || $lastPositionId != $row["id"]) {
                         array_push($purchases, [
                             "id"                => $row["id"],
                             "operation_date"    => $row["operation_date"],
@@ -3362,7 +3422,7 @@ class BonusApp {
                             "positions"         => []
                         ]);
 
-                        $lastId = $row["id"];
+                        $lastPositionId = $row["id"];
                     }
 
                     if ($row["product_title"] != null) {
@@ -3382,6 +3442,8 @@ class BonusApp {
                     foreach ($positions as $key => $position) if ($purchase["id"] == $position["purchase_id"]) array_push($purchase["positions"], $position);
                     array_push($result["data"], $purchase);
                 }
+                
+                usort($result["data"], function($a, $b) { return $a["operation_date"] > $b["operation_date"];});
                 
                 $result["status"] = true;
             }
@@ -3423,11 +3485,11 @@ class BonusApp {
             $query = $this->pdo->prepare("INSERT INTO stores (rsa_id, title) VALUES (?, ?)");
             $query->execute([$store["rsa_id"], $store["title"]]);
 
-            $lastId = $this->pdo->lastInsertId();
+            $lastInsertId = $this->pdo->lastInsertId();
 
             $result = [
                 "status" => true,
-                "data" => $lastId
+                "data" => $lastInsertId
             ];
         } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
@@ -4137,11 +4199,11 @@ class BonusApp {
             $query = $this->pdo->prepare("INSERT INTO referrals (ref_account_id, account_id) VALUES (?, ?)");
             $query->execute([$refAccountId, $accountId]);
 
-            $lastId = $this->pdo->lastInsertId();
+            $lastInsertId = $this->pdo->lastInsertId();
 
             $result = [
                 "status" => true,
-                "data" => $lastId
+                "data" => $lastInsertId
             ];
         } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
@@ -4211,7 +4273,7 @@ class BonusApp {
         ];
     }
 
-    private function getNews($lastId = 0, $limit = 10) {
+    private function getNews($lastNewsId = 0, $limit = 50) {
         $result = ["status" => true, "data" => []];
 
         $cd = new DateTime();
@@ -4225,11 +4287,13 @@ class BonusApp {
             FROM
                 news
             WHERE
-                id > :lastId
+                id > :lastNewsId
                 AND date_to_post <= :cd
+            ORDER BY
+                id
             LIMIT :limit
         ");
-        $query->execute(["lastId" => $lastId, "cd" => $cd->format('Y-m-d'), "limit" => $limit]);
+        $query->execute(["lastNewsId" => $lastNewsId, "cd" => $cd->format('Y-m-d'), "limit" => $limit]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) $result = [
             "status" => true,
@@ -4241,7 +4305,7 @@ class BonusApp {
 
     /* Работа с внешними ИБ */
 
-    private function updateCardDataByLMX($personId, $cardNumber, $fromDate, $onlyBalance = false) {
+    private function updateCardDataByLMX($personId, $cardNumber, $fromDate) {
         $result = ["status" => false, "data" => []];
 
         $cd = new DateTime();
@@ -4255,7 +4319,7 @@ class BonusApp {
             $newDate->add(new DateInterval('P1D'));
             $filters = [
                 "startChequeTime" => $fromDate,
-                "count" => 999,
+                "count" => 9999,
                 "personId" => $personId,
                 "state" => "Confirmed"
             ];
@@ -4272,6 +4336,8 @@ class BonusApp {
             $setBonusCardDataResult = $this->setBonusCardData($cardNumber, ["last_sync" => $cd->format('Y-m-d H:i:s'), "balance" => $getBalanceResult["data"]["amount"] * 100]);
             if ($setBonusCardDataResult["status"]) {
                 $this->pdo->commit();
+
+                $result = $setBonusCardDataResult;
             } else {
                 $this->pdo->rollback();
             }

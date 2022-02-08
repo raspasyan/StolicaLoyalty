@@ -47,7 +47,7 @@ function drawStores(stores) {
 function drawStoresInCity(stores) {
     $("#storesList").html('');
     stores.forEach(city => {
-        $("#storesList").append("<div class='store_block' data-rsa='" + city.rsa_id + "' data-coordinates='" + city.coordinates + "' data-phone='" + city.phone + "' data-city='" + city.title + "'><div class='store_block-title'>" + city.store_title + "</div><div class='store_block-shedule'>" + city.shedule + "</div><span class='show_store'>></span></div>");
+        $("#storesList").append("<div class='store_block animate__animated animate__fadeInLeft' data-rsa='" + city.rsa_id + "' data-coordinates='" + city.coordinates + "' data-phone='" + city.phone + "' data-city='" + city.title + "'><div class='store_block-title'>" + city.store_title + "</div><div class='store_block-shedule'>" + city.shedule + "</div><span class='show_store'>></span></div>");
     });
 }
 

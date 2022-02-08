@@ -1,171 +1,108 @@
-let walletUpdater = null;
-
-function updateWalletData(onlyBalance) {
-    if (!onlyBalance) onlyBalance = false;
-
-    let lastId = 0;
-    let walletData = JSON.parse(localStorage.getItem(LS_LINK));
-    if (walletData) {
-        if (onlyBalance) {
-            drawWalletData(walletData);
-            drawPurchases(walletData.purchases);
-        } else {
-            if (walletData.purchases.length) lastId = walletData.purchases[0].id;
-        }
-    } else {
-        walletData = {
-            balance: 0,
-            cardNumber: "",
-            discount: 0,
-            preferredDiscount: 0,
-            discountValue: 0,
-            purchases: []
-        }
-    }
-
-    // Сперва подгружаем баланс и номер карты, затем отдельно транзакции
-    getWalletData(lastId, onlyBalance).then(result => {
-        if (result.status) {
-            if (result.data.cardNumber) {
-                document.getElementById("wallet-placeholder").style.display = "none";
-                document.getElementById("wallet-loader").style.display = "none";
-                document.getElementById("wallet-data").style.display = "";
-
-                if (walletData.discountValue != result.data.discountValue || walletData.discount != result.data.discount || walletData.cardNumber != result.data.cardNumber || walletData.balance != result.data.balance || walletData.preferredDiscount != result.data.preferredDiscount) {
-                    walletData.cardNumber = result.data.cardNumber;
-                    walletData.balance = result.data.balance;
-                    walletData.discount = result.data.discount;
-                    walletData.preferredDiscount = result.data.preferredDiscount;
-                    walletData.discountValue = result.data.discountValue;
-                    drawWalletData(walletData);
-                }
-    
-                // Кешируем чеки при появлении новых
-                if (result.data.purchases && result.data.purchases.length) walletData.purchases = result.data.purchases;
-                // Отрисовываем чеки из кеша или при появлении новых
-                if ((onlyBalance && walletData.purchases.length) || (!onlyBalance && result.data.purchases.length)) drawPurchases(walletData.purchases);
-    
-                if (result.data.cardNumber) localStorage.setItem(LS_LINK, JSON.stringify(walletData));
-            } else {
-                document.getElementById("wallet-placeholder").style.display = "";
-                document.getElementById("wallet-loader").style.display = "";
-                document.getElementById("wallet-data").style.display = "none";   
-            }
-
-            if (onlyBalance || localStorage.getItem("section") == "wallet") walletUpdater = setTimeout(updateWalletData, 15000);
-        } 
-    }).catch(error => {
+function drawWallet(walletData) {
+    if (walletData.cardNumber) {
         document.getElementById("wallet-placeholder").style.display = "none";
-        document.getElementById("wallet-loader").style.display = "";
-        document.getElementById("wallet-data").style.display = "none"; 
+        document.getElementById("wallet-loader").style.display = "none";
+        document.getElementById("wallet-data").style.display = "";
 
-        console.warn(error);
-        if (onlyBalance || localStorage.getItem("section") == "wallet") walletUpdater = setTimeout(updateWalletData, 15000);
-    });
-}
-
-function drawWalletData(walletData) {
-    if (walletData.cardNumber && cardNumber.innerText != walletData.cardNumber) {
-        cardNumber.innerText = walletData.cardNumber;
-        animate({
-            duration: 1000,
-            timing: quad,
-            draw: function (progress, options) {
-                cardNumber.style.opacity = progress;
-            },
-            callback: function (options) { }
-        });
-
-        if (qrcode.codeNumber != walletData.cardNumber) {
-            if (qrcode.children.length) removeChildrens(qrcode);
-            drawBonusCard(walletData.cardNumber);
-        }
-    }
-
-    discountValue.innerText = walletData.discountValue + '%';
-
-    let discountBalance = false;
-
-    if (walletData.discount && walletData.preferredDiscount) {
-        // Текущая: скидка, предпочитаемая: скидка
-        cardType.innerText = "Дисконтная карта";
-        cardInfo.innerText = "Ваша скидка";
-        currencyType.innerText = "%";
-        cardDataDiscount.style.display = "flex";
-        // cardDataBonus.style.display = "none";
-        discountBalance = true;
-    } else if (!walletData.discount && !walletData.preferredDiscount) {
-        // Текущая: бонусы, предпочитаемая: бонусы
-        cardType.innerText = "Бонусная карта";
-        cardInfo.innerText = "Баланс";
-        currencyType.innerText = "бонусов";
-        cardDataBonusPreffered.style.display = "none";
-        // cardDataBonus.style.display = "none";
-        cardDataDiscount.style.display = "none";
-    } else if (!walletData.discount && walletData.preferredDiscount) {
-        // Текущая: бонусы, предпочитаемая: скидка
-        cardType.innerText = "Бонусная карта";
-        cardInfo.innerText = "Баланс";
-        currencyType.innerText = "бонусов";
-        cardDataBonusPreffered.style.display = "none";
-        // cardDataBonus.style.display = "none";
-        cardDataDiscount.style.display = "none";
-    } else if (walletData.discount && !walletData.preferredDiscount) {
-        // Текущая: скидка, предпочитаемая: бонусы
-        cardType.innerText = "Дисконтная карта";
-        cardInfo.innerText = "Баланс";
-        currencyType.innerText = "бонусов";
-        // cardDataBonus.style.display = "flex";
-        cardDataDiscount.style.display = "none";
-    }
-
-    if (walletData.discount != walletData.preferredDiscount) {
-        changeDiscountSystem.style.display = "";
-        changeDiscountSystemValue.innerText = (walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
-    } else {
-        changeDiscountSystem.style.display = "none";
-        changeDiscountSystemValue.innerText = "";
-    }
-
-    let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
-
-    if (balance != undefined) {
-        if (bonuses.innerText != balance) {
-            bonuses.classList.remove("load");
+        if (walletData.cardNumber && cardNumber.innerText != walletData.cardNumber) {
+            cardNumber.innerText = walletData.cardNumber;
             animate({
                 duration: 1000,
                 timing: quad,
                 draw: function (progress, options) {
-                    bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * progress)));
-                    bonuses.style.opacity = progress;
+                    cardNumber.style.opacity = progress;
                 },
-                callback: function (options) {
-                    bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(balance));
-                }
+                callback: function () { }
             });
+
+            if (qrcode.codeNumber != walletData.cardNumber) {
+                if (qrcode.children.length) removeChildrens(qrcode);
+                drawBonusCard(walletData.cardNumber);
+            }
+        }
+
+        discountValue.innerText = walletData.discountValue + '%';
+
+        let discountBalance = false;
+
+        if (walletData.discount && walletData.preferredDiscount) {
+            // Текущая: скидка, предпочитаемая: скидка
+            cardType.innerText = "Дисконтная карта";
+            cardInfo.innerText = "Ваша скидка";
+            currencyType.innerText = "%";
+            cardDataDiscount.style.display = "flex";
+            // cardDataBonus.style.display = "none";
+            discountBalance = true;
+        } else if (!walletData.discount && !walletData.preferredDiscount) {
+            // Текущая: бонусы, предпочитаемая: бонусы
+            cardType.innerText = "Бонусная карта";
+            cardInfo.innerText = "Баланс";
+            currencyType.innerText = "бонусов";
+            cardDataBonusPreffered.style.display = "none";
+            // cardDataBonus.style.display = "none";
+            cardDataDiscount.style.display = "none";
+        } else if (!walletData.discount && walletData.preferredDiscount) {
+            // Текущая: бонусы, предпочитаемая: скидка
+            cardType.innerText = "Бонусная карта";
+            cardInfo.innerText = "Баланс";
+            currencyType.innerText = "бонусов";
+            cardDataBonusPreffered.style.display = "none";
+            // cardDataBonus.style.display = "none";
+            cardDataDiscount.style.display = "none";
+        } else if (walletData.discount && !walletData.preferredDiscount) {
+            // Текущая: скидка, предпочитаемая: бонусы
+            cardType.innerText = "Дисконтная карта";
+            cardInfo.innerText = "Баланс";
+            currencyType.innerText = "бонусов";
+            // cardDataBonus.style.display = "flex";
+            cardDataDiscount.style.display = "none";
+        }
+
+        if (walletData.discount != walletData.preferredDiscount) {
+            changeDiscountSystem.style.display = "";
+            changeDiscountSystemValue.innerText = (walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
+        } else {
+            changeDiscountSystem.style.display = "none";
+            changeDiscountSystemValue.innerText = "";
+        }
+
+        let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
+
+        if (balance != undefined) {
+            if (bonuses.innerText != balance) {
+                bonuses.classList.remove("load");
+                animate({
+                    duration: 1000,
+                    timing: quad,
+                    draw: function (progress, options) {
+                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * progress)));
+                        bonuses.style.opacity = progress;
+                    },
+                    callback: function (options) {
+                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(balance));
+                    }
+                });
+            }
+        } else {
+            bonuses.innerText = "Не удалось загрузить с сервера.";
         }
     } else {
-        bonuses.innerText = "Не удалось загрузить с сервера.";
+        document.getElementById("wallet-placeholder").style.display = "";
+        document.getElementById("wallet-loader").style.display = "";
+        document.getElementById("wallet-data").style.display = "none";
     }
 }
 
 function drawPurchases(purchases) {
-    removeChildrens(transactions);
+    // removeChildrens(transactions);
 
-    purchases.forEach(purchase => {
-        try {
-            drawPurchase(purchase);
-        } catch (error) {
-            console.warn(error);
-            showPopup("Внимание", "Произошла ошибка при визуализации транзакций, попробуйте позже.");
-        }
-    });
+    purchases.forEach(purchase => drawPurchase(purchase));
 }
 
 function drawPurchase(purchase) {
     // Контейнер
     let paymentElement = document.createElement("div");
-    paymentElement.classList.add("payment");
+    paymentElement.classList.add("payment", "animate__animated", "animate__fadeIn");
 
     // Бонусы
     let paymentRowElement = null;
@@ -186,7 +123,7 @@ function drawPurchase(purchase) {
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
-    
+
     // Из них бонусами
     paymentRowElement = document.createElement("div");
     paymentRowElement.classList.add("payment-row");
@@ -204,7 +141,7 @@ function drawPurchase(purchase) {
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
-    
+
     // Начислено бонусов
     paymentRowElement = document.createElement("div");
     paymentRowElement.classList.add("payment-row");
@@ -263,7 +200,7 @@ function drawPurchase(purchase) {
         paymentRowElement.appendChild(spanElement);
     }
 
-    paymentElement.appendChild(paymentRowElement);
+    paymentElement.append(paymentRowElement);
 
     // Детализация чека
     if (purchase.positions.length) {
@@ -318,7 +255,7 @@ function drawPurchase(purchase) {
         });
     }
 
-    transactions.appendChild(paymentElement);
+    transactions.prepend(paymentElement);
 }
 
 function drawBonusCard(cardNumber) {
@@ -378,34 +315,4 @@ function drawBonusCard(cardNumber) {
             link.click();
         });
     });
-}
-
-async function getWalletData(lastId, onlyBalance) {
-    if (!onlyBalance) onlyBalance = false;
-
-    showIndicator();
-
-    return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "getWalletData",
-            "data": {
-                "last_id": lastId,
-                "only_balance": onlyBalance,
-                "source": 'website'
-            }
-        })
-    })
-    .then(response => response.json()).catch(error => {
-        return {
-            status: false,
-            description: error.message,
-            error: error
-        }
-    })
-    .finally(() => hideIndicator());
 }

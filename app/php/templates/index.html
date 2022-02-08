@@ -38,10 +38,11 @@
     src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"
     type="text/javascript"></script>
   <script src="https://yastatic.net/s3/frontend/forms/_/embed.js"></script> -->
-  <script src="app/js/index.js" defer></script>
+  <script src="app/js/10022022.js" defer></script>
   <script src="app/js/module.news.js" defer></script>
   <script src="app/js/module.stores.js" defer></script>
   <script src="app/js/module.personal.js" defer></script>
+  <script src="app/js/module.wallet.js" defer></script>
   
 </head>
 
@@ -489,16 +490,7 @@
       </div>
 
       <div id="news" class="section news" style="display: none;">
-        <div class="container">
-          <!-- <div class="news-cont">
-            <img class="news-image" src="" alt="">
-            <div class="news-details">
-              <p class="news-details-date"></p>
-              <h4 class="news-details-title"></h6>
-              <button class="button-primary"></button>
-            </div>
-          </div> -->
-        </div>
+        <div class="container"></div>
       </div>
 
       <div id="wallet" class="section wallet" style="display: none;">
@@ -513,14 +505,13 @@
             </div>
             <div id="wallet-data" style="display: none;">
               <div id="cardType"></div>
-              <div id="qrcode" style="display: none;"></div>
+              <div id="qrcode" class="animate__animated animate__fadeIn" style="display: none;"></div>
               <div style="display: none">Ваш персональный код:</div>
               <div style="display: none">
                 <span id="cardNumber" class="neutral">Загрузка..</span>
               </div>
               <button id="downloadCard" style="display: none">Скачать QR код</button>
               <h5 class="balance-text">
-                <i class="fa fa-money neutral" style="vertical-align: middle;color: #28a960;"></i>
                 <span class="balance-text-text" id="cardInfo"> БАЛАНС</span>
                 <span class="balance-text-hr"></span>
                 <div class="balance-text-result">
@@ -551,9 +542,7 @@
           </p>
           <button id="transactions-details-button" class="details button-primary">Открыть детализацию</button>
           <div id="transactions" style="display: none; margin: 0 16px;">
-            <div class="container">
-              <!-- Детализация -->
-            </div>
+            <div class="container"></div>
           </div>
         </div>
       </div>
@@ -565,9 +554,7 @@
             <p>Выберите город</p>
             <select id="store_cities" name="store_cities" class="reg_city"></select>
           </div>
-          <div id="storesList">
-
-          </div>
+          <div id="storesList"></div>
         </div>
       </div>
 

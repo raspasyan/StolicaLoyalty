@@ -1,19 +1,3 @@
-let lastId = 0;
-
-function updateNews() {
-    getNews(lastId, 10).then(result => {
-        if (result.status) {
-            if (result.data.length) {
-                lastId = result.data.reduce((newLastId, element) => (element.id > newLastId ? element.id : lastId), lastId);
-                drawNews(result.data);
-            }
-        } else {
-            showPopup('Соединение прервано', result.description, 'Ответ не был получен от сервера своевременно, повторите попытку позднее.');
-            console.error(result.eror);
-        }
-    });
-}
-
 function drawNews(newsList) {
     let container = document.getElementById("news").getElementsByClassName("container")[0];
 
@@ -46,7 +30,7 @@ function drawNews(newsList) {
                     document.body.classList.remove("overlay-show");
                 }
             })
-        })
+        });
 
         let newsImageElement = document.createElement("img");
         newsImageElement.classList.add("news-image");
@@ -73,28 +57,5 @@ function drawNews(newsList) {
         newsDetailsElement.appendChild(newsButton);
 
         container.prepend(newsContElement);
-    });
-}
-
-function getNews(lastId, limit) {
-    return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "getNews",
-            "data": {
-                "lastId": lastId,
-                "limit": limit
-            }
-        })
-    }).then(response => response.json()).catch(error => {
-        return {
-            status: false,
-            description: error.message,
-            error: error
-        }
     });
 }
