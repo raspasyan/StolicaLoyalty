@@ -14,6 +14,16 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
+        debug($this->getStoresFullData());
+
+        // debug($this->callPassword('79625020264', '6581')); // ИСВ
+        // debug($this->callPassword('79625020264', '9842')); // ИСВ
+        // debug($this->callPassword('79990849232', '5687')); // Г
+        // debug($this->callPassword('79635658436', '6874')); // Я
+        // debug($this->callPassword('79098526882', '2875')); // Г2
+        // debug($this->callPassword('79098401401', '2175')); // Г2
+        // debug($this->callPassword('79990807027', '2169'));
+
         exit;
     }
 
@@ -167,7 +177,7 @@ class BonusApp {
                     echo(json_encode($result));
                     exit;
                 }
-                
+
                 if (INPUT_LOG) $this->journal("INPUT", "", "", false, json_encode([
                     "header" => getallheaders(),
                     "get" => $_GET,
@@ -235,6 +245,10 @@ class BonusApp {
                     }
                     case "cron8": {
                         print_r($this->getBonuscardsToReferralCong());
+                        break;
+                    }
+                    case "cron9": {
+                        print_r($this->setReports());
                         break;
                     }
                     case "cron10": {
@@ -359,12 +373,29 @@ class BonusApp {
                 break;
             }
 
+            case "dashboard-export": {
+                $this->DashboardExport($_GET['table']);
+                exit;
+                break;
+            }
+
             case "dashboard-report": {
                 $BoardReport = file_get_contents('php://input');
 
                 if (!empty($BoardReport)) {
                     $this->api($BoardReport);
                 }
+                exit;
+                break;
+            }
+
+            case "report-export": {
+                $data = $_GET['report'];
+                $date = (isset($_GET['date'])) ? $_GET['date'] : false;
+                $search = (isset($_GET['search'])) ? $_GET['search'] : false;
+
+                $this->ReportExport($data, $date, $search);
+
                 exit;
                 break;
             }
@@ -422,7 +453,7 @@ class BonusApp {
 
                 case "checkAuthorization": {
                     $resultData = $this->checkAuthorization();
-                    
+
                     break;
                 }
 
@@ -627,6 +658,16 @@ class BonusApp {
                     break;
                 }
 
+                case "importProducts": {
+                    if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["products"]) $resultData = $this->API_importProductsHandler($requestData["data"]["products"]);
+                    break;
+                }
+
+                case "importBarcodes": {
+                    if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["barcodes"]) $resultData = $this->API_importBarcodesHandler($requestData["data"]["barcodes"]);
+                    break;
+                }
+
                 case "importStores": {
                     if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["stores"]) $resultData = $this->importStores($requestData["data"]["stores"]);
                     break;
@@ -642,8 +683,60 @@ class BonusApp {
                     break;
                 }
 
+                case "importPurchases": {
+                    if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["purchases"] && $requestData["data"]["date"] && $requestData["data"]["rsa_id"]) $resultData = $this->API_importPurchases($requestData["data"]["purchases"], $requestData["data"]["date"], $requestData["data"]["rsa_id"]);
+                    break;
+                }
+
+                case "exportPurchases": {
+                    if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["purchases"] && $requestData["data"]["date"] && $requestData["data"]["rsa_id"]) $resultData = $this->getPurchases($requestData["data"]["date"], $requestData["data"]["rsa_id"]);
+                    break;
+                }
+
+                case "authDashboard": {
+                    $resultData = $this->loginBoard($requestData['data']['phone'], $requestData['data']['pass']);
+
+                    break;
+                }
+
+                case "logoutDashboard": {
+                    $resultData = $this->logoutBoard();
+
+                    break;
+                }
+
+                case "DashboardContent": {
+                    $resultData = $this->getDashboardMenuItem($requestData["menuItem"], $requestData["page"], $requestData["sort"], $requestData["sortDirection"], $requestData["search"], $requestData["date"]);
+
+                    break;
+                }
+
+                case "DashboardTransactionDetails": {
+                    // $resultData = $this->getTransactionDetails($requestData["id"], $requestData["cardID"], $requestData["extID"]);
+
+                    break;
+                }
+
+                case "getAccount": {
+                    $resultData = $this->getAccount($requestData["id"]);
+
+                    break;
+                }
+
                 case "updateProfile": {
                     $resultData = $this->setProfileDataByPhone($requestData["phone"], $requestData["data"]);
+
+                    break;
+                }
+
+                case "DashboardExport": {
+                    $resultData = $this->DashboardExport($requestData["data"]);
+
+                    break;
+                }
+
+                case "getReport": {
+                    $resultData = $this->DashboardReport($requestData["reportItem"], $requestData["date"], $requestData["page"], $requestData["search"]);
 
                     break;
                 }
@@ -850,6 +943,54 @@ class BonusApp {
         return $result;
     }
 
+    private function API_importProductsHandler($products) {
+        $result = ["status" => false, "data" => []];
+
+        try {
+            $currentProducts = [];
+
+            $operationResult = $this->getProducts();
+            if ($operationResult["status"]) $currentProducts = array_map(
+                function($product) { return $product["ext_id"]; },
+                $operationResult["data"]
+            );
+
+            $this->pdo->beginTransaction();
+            foreach ($products as $product) array_push($result["data"], (!in_array($product["ext_id"], $currentProducts) ? $this->addProduct($product) : $this->updateProduct($product)));
+            $this->pdo->commit();
+
+            $result["status"] = true;
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
+    private function API_importBarcodesHandler($barcodes) {
+        $result = ["status" => false, "data" => []];
+
+        try {
+            $currentBarcodes = [];
+
+            $operationResult = $this->getBarcodes();
+            if ($operationResult["status"]) $currentBarcodes = array_map(
+                function($barcode) { return $barcode["barcode"]; },
+                $operationResult["data"]
+            );
+
+            $this->pdo->beginTransaction();
+            foreach ($barcodes as $barcode) array_push($result["data"], (!in_array($barcode["barcode"], $currentBarcodes) ? $this->addBarcode($barcode) : $this->updateBarcode($barcode)));
+            $this->pdo->commit();
+
+            $result["status"] = true;
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
     private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync) {
         $result = ["status" => false, "data" => null];
 
@@ -920,6 +1061,26 @@ class BonusApp {
         return $result;
     }
 
+    private function API_importPurchases($purchases, $date, $rsa_id) {
+        $result = ["status" => false, "data" => []];
+
+        $currentPurchases = [];
+        $operationResult = $this->getPurchases($date, $rsa_id);
+        if ($operationResult["status"]) foreach ($operationResult["data"] as $purchase) array_push($currentPurchases, md5($purchase["cash"] . $purchase["shift"] . $purchase["number"]));
+
+        try {
+            $this->pdo->beginTransaction();
+            foreach ($purchases as $purchase) array_push($result["data"], in_array(md5($purchase["cash"] . $purchase["shift"] . $purchase["number"]), $currentPurchases) ? ["status" => false] : $this->addPurchase($purchase, $rsa_id));
+            $this->pdo->commit();
+
+            $result["status"] = true;
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
     private function API_setCard($accountId, $personId, $cardNumber) {
         $result = ["status" => false, "description" => "", "data" => null];
 
@@ -982,7 +1143,6 @@ class BonusApp {
         $phone = ""; 
         $authResult = $this->checkAuthorization();
         if ($authResult["status"]) $phone = $authResult["data"]["phone"];
-        $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
         
         return $this->setFeedback($phone, $data);
     }
@@ -1791,6 +1951,7 @@ class BonusApp {
         if ($fullAccountData["status"]) {
             $personal = [
                 "phone"                 => $phone,
+                "status"                => $fullAccountData["data"]["status"],
                 "discount"              => $fullAccountData["data"]["discount"],
                 "discount_value"        => $fullAccountData["data"]["discount_value"],
                 "preferred_discount"    => $fullAccountData["data"]["preferred_discount"],
@@ -1799,8 +1960,7 @@ class BonusApp {
                 "middlename"            => $fullAccountData["data"]["middlename"],
                 "lastname"              => $fullAccountData["data"]["lastname"],
                 "birthdate"             => $fullAccountData["data"]["birthdate"],
-                "email"                 => $fullAccountData["data"]["email"],
-                "city"                  => $fullAccountData["data"]["city"],
+                "email"                 => $fullAccountData["data"]["email"]
             ];
             $personalHash = hash("md5" ,implode("", $personal));
             if ($options["personalHash"] != $personalHash) {
@@ -1825,7 +1985,7 @@ class BonusApp {
 
             $personId = $fullAccountData["data"]["ext_id"];
             if (!empty($personId)) {
-                $getFullPurchasesDataByDateResult = $this->getFullPurchasesData($personId, $options["lastPurchase"]);
+                $getFullPurchasesDataByDateResult = $this->getFullPurchasesDataNew($personId, $options["lastPurchase"]);
                 if ($getFullPurchasesDataByDateResult["status"]) {
                     $result["data"]["purchases"] = $getFullPurchasesDataByDateResult["data"];
                     $result["data"]["lastPurchase"] = $result["data"]["purchases"][count($result["data"]["purchases"]) - 1]["operation_date"];
@@ -2117,6 +2277,50 @@ class BonusApp {
         return $result;
     }
 
+    private function sendMultiMessage($phones, $message, $provider = null) {
+        $result = NULL;
+
+        if ($provider == null) $provider = DEFAULT_PROVIDER;
+
+        switch ($provider) {
+            default: {
+                $result = ["status" => false, "description" => "UNDEFINED_PROVIDER"];
+                break;
+            }
+            case "NT": {
+                $result = ["status" => false, "description" => "UNDEFINED_PROVIDER_NT"];
+                break;
+            }
+            case "BEE": {
+                $result = $this->smsMulti($phones, $message);
+                break;
+            }
+            case "DIG": {
+                $result = ["status" => false, "description" => "UNDEFINED_PROVIDER_DIG"];
+                break;
+            }
+            case "DIG_FC": {
+                $result = ["status" => false, "description" => "UNDEFINED_PROVIDER_DIG_FC"];
+                break;
+            }
+        }
+
+        if ($result["status"]) {
+            $sentAt = new Datetime();
+
+            $this->pdo->beginTransaction();
+            foreach ($phones as $key => $phone) {
+                $query = $this->pdo->prepare("INSERT INTO messages (ext_id, provider, phone, message, sent_at) VALUES (?, ?, ?, ?, ?)");
+                $query->execute([$result["data"]["ext_id"], $provider, $phone, $message, $sentAt->format("Y-m-d H:i:s")]);
+            }
+            $this->pdo->commit();
+        } else {
+            foreach ($phones as $key => $phone) $this->journal("APP", "sendMessage", $phone . ", " . $message . ", ". $provider, $result["status"]);
+        }
+
+        return $result;
+    }
+
     private function getFullAccountDataByToken($token) {
         $result = ["status" => false, "data" => null];
 
@@ -2181,6 +2385,7 @@ class BonusApp {
 
         $query = $this->pdo->prepare("SELECT 
                 a.id,
+                a.status AS account_status,
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
@@ -2191,7 +2396,6 @@ class BonusApp {
                 p.lastname,
                 p.birthdate,
                 p.email,
-                p.city,
                 b.card_number,
                 ROUND(b.balance / 100, 2) AS balance,
                 b.status AS card_status
@@ -2613,6 +2817,23 @@ class BonusApp {
         return $result;
     }
 
+    private function getLastCardNumber() {
+        $result = ["status" => false, "data" => null];
+
+        $query = $this->pdo->prepare("SELECT value FROM settings WHERE setting = 'last_card'");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        if (count($queryResult[0])) {
+            $query = $this->pdo->prepare("UPDATE settings SET value = :last_card WHERE setting = 'last_card'");
+            $query->execute(["last_card" => (int)$queryResult[0]["value"] + 1]);
+
+            $result["status"] = true;
+            $result["data"] = ["lastCardNumber" => (int)$queryResult[0]["value"]];
+        }
+
+        return $result;
+    }
+
     private function getProfileDataByPhone($phone) {
         $result = ["status" => false, "data" => null];
 
@@ -2713,6 +2934,92 @@ class BonusApp {
         return $result;
     }
 
+    private function createNewCard($phone, $cardNumber = "") {
+        $result = ["status" => false, "data" => null];
+
+        $this->pdo->beginTransaction();
+
+        $cards = [];
+
+        $operationResult = $this->getCardNumberByPhone($phone);
+        if ($operationResult["status"]) array_push($cards, $operationResult["data"]["card_number"]);
+
+        // Создаем новую карту в БД, если не был передан номер предварительно созданной
+        if (empty($cardNumber)) {
+            $requestResult = $this->getLastCardNumber();
+            if ($requestResult["status"]) {
+                $lastCardNumber = $requestResult["data"]["lastCardNumber"];
+
+                $cardNumber = $lastCardNumber;
+                while (strlen($cardNumber ) < 7) $cardNumber  = "0".$cardNumber;
+                $cardNumber = $cardNumber . UTY::getRandomChars(7);
+
+                $query = $this->pdo->prepare("INSERT INTO bonuscards (account_id, card_number, last_sync, type) VALUES (
+                    (SELECT id FROM accounts WHERE phone = :phone),
+                    :cardNumber,
+                    NOW(),
+                    0
+                )");
+                $query->execute(["phone" => $phone, "cardNumber" => $cardNumber]);
+            }
+        }
+
+        if (!empty($cardNumber)) {
+            $requestResult = $this->getProfileDataByPhone($phone);
+            if ($requestResult["status"]) {
+                $accountData = $requestResult["data"];
+
+                array_push($cards, $cardNumber);
+
+                $requestResult = SRC::getCardsCatalog($cards, $accountData);
+                if ($requestResult["status"]) {
+
+                    $requestResult = $this->setBonusCardData($cardNumber, ["status" => 0]);
+                    if ($requestResult["status"]) {
+                        $result["status"] = true;
+                        $result["data"] = $requestResult;
+                    } else {
+                        $result["data"] = ["error_code" => "Не удалось записать статус карты."];
+                    }
+                } else {
+                    $result["data"] = ["error_code" => "Не удалось зарегистрировать карту."];
+                }
+            } else {
+                $result["data"] = ["error_code" => "Не удалось получить свойства профиля."];
+            }
+        } else {
+            $result["data"] = ["error_code" => "Не удалось получить номер карты."];
+        }
+
+        if ($result["status"]) {
+            $this->pdo->commit();
+        } else {
+            $this->pdo->rollBack();
+        }
+
+        return $result;
+    }
+
+    private function getCardNumberByPhone($phone) {
+        $result = ["status" => false, "data" => null];
+
+        $query = $this->pdo->prepare("SELECT
+                card_number
+            FROM bonuscards
+            WHERE
+                account_id IN (SELECT id FROM accounts WHERE phone = :phone)
+                AND status = 1
+        ");
+        $query->execute(["phone" => $phone]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result["status"] = true;
+            $result["data"] = $queryResult[0];
+        }
+
+        return $result;
+    }
+
     private function addBonusCard($phone, $cardNumber) {
         $result = ["status" => false];
 
@@ -2771,6 +3078,10 @@ class BonusApp {
         if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
 
         return $result;
+    }
+
+    private function addClientDataToCard($cardNumber, $clientData) {
+        // В этой ф-ии нужно изменить данные клиента по его идентификатору, коим является account_id
     }
 
     private function addTransaction($cardNumber, $transactionData) {
@@ -3044,7 +3355,114 @@ class BonusApp {
         return $result;
     }
 
-    private function getFullPurchasesData($personId, $lastPurchaseDate = "2021-01-01 00:00:00", $limit = 50) {
+    private function getFullPurchasesData($personId, $limit = 50) {
+        $result = ["status" => false, "data" => []];
+
+        $query = $this->pdo->prepare("SELECT
+                id
+            FROM
+                purchases
+            WHERE
+                purchases.profile_ext_id = ?
+            ORDER BY
+                sale_time DESC
+            LIMIT ?
+        ");
+        $query->execute([$personId, $limit]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $purchasesId = [];
+            foreach ($queryResult as $key => $row) array_push($purchasesId, $row["id"]);
+
+            $query = $this->pdo->prepare("SELECT
+                    purchases.sale_time AS operation_date,
+                    stores.title AS store_title,
+                    stores.description AS store_description,
+                    purchases.id,
+                    ROUND(purchases.amount / 100, 2) AS purchase_amount,
+                    ROUND(purchases.cashback_amount / 100, 2) AS purchase_cashback_amount,
+                    CASE
+                        WHEN purchases.profile_ext_id IS NULL THEN 0
+                        ELSE ROUND(purchases.discount_amount / 100, 2)
+                    END AS purchase_discount_amount,
+                    CASE
+                        WHEN purchases.profile_ext_id IS NULL THEN -ROUND(purchases.discount_amount / 100, 2)
+                        ELSE ROUND(purchases.payment_amount / 100, 2)
+                    END AS purchase_payment_amount,
+                    positions.title AS product_title,
+                    (positions.cost / 100) cost,
+                    ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
+                    CASE
+                        WHEN purchases.profile_ext_id IS NULL THEN 0
+                        ELSE ROUND(positions.discount_amount / 100, 2)
+                    END AS discount_amount,
+                    CASE
+                        WHEN purchases.profile_ext_id IS NULL THEN -ROUND(positions.discount_amount / 100, 2)
+                        ELSE ROUND(positions.payment_amount / 100, 2)
+                    END AS payment_amount,
+                    ROUND(positions.amount / 100, 2) AS amount
+                FROM purchases
+                LEFT JOIN positions
+                    ON purchases.id = positions.purchase_id
+                LEFT JOIN stores
+                    ON purchases.rsa_id = stores.rsa_id
+                WHERE
+                    purchases.id IN (" . join(",", $purchasesId) . ")
+                ORDER BY
+                    purchases.sale_time DESC   
+            ");
+            $query->execute();
+            $queryResult = $query->fetchAll();
+            if (count($queryResult)) {
+                $lastId = null;
+                $purchases = [];
+                $positions = [];
+
+                foreach ($queryResult as $row) {
+                    if (!$lastId || $lastId != $row["id"]) {
+                        array_push($purchases, [
+                            "id"                => $row["id"],
+                            "operation_date"    => $row["operation_date"],
+                            "store_title"       => $row["store_title"],
+                            "store_description" => $row["store_description"],
+                            "amount"            => $row["purchase_amount"],
+                            "cashback_amount"   => $row["purchase_cashback_amount"],
+                            "discount_amount"   => $row["purchase_discount_amount"],
+                            "payment_amount"    => $row["purchase_payment_amount"],
+                            "positions"         => []
+                        ]);
+
+                        $lastId = $row["id"];
+                    }
+
+                    if ($row["product_title"] != null) {
+                        array_push($positions, [
+                            "purchase_id"       => $row["id"],
+                            "product_title"     => $row["product_title"],
+                            "cost"              => $row["cost"],
+                            "cashback_amount"   => $row["cashback_amount"],
+                            "discount_amount"   => $row["discount_amount"],
+                            "payment_amount"    => $row["payment_amount"],
+                            "amount"            => $row["amount"]
+                        ]);
+                    }
+                }
+
+                foreach ($purchases as $key => $purchase) {
+                    foreach ($positions as $key => $position) if ($purchase["id"] == $position["purchase_id"]) array_push($purchase["positions"], $position);
+                    array_push($result["data"], $purchase);
+                }
+                
+                $result["status"] = true;
+            }
+        } else {
+            $result["data"] = 'Чеки отсутствуют';
+        }
+
+        return $result;
+    }
+
+    private function getFullPurchasesDataNew($personId, $lastPurchaseDate = "2021-01-01 00:00:00", $limit = 50) {
         $result = ["status" => false, "data" => []];
 
         $query = $this->pdo->prepare("SELECT
@@ -3377,6 +3795,33 @@ class BonusApp {
         return $result;
     }
 
+    private function logoutBoard() {
+        $_SESSION['authBoard'] = 'not-login';
+        $result = [
+            "status" => false,
+        ];
+
+        return $result;
+    }
+
+    private function addProduct($product) {
+        $result = ["status" => false];
+
+        try {
+            $query = $this->pdo->prepare("INSERT INTO products (ext_id, title) VALUES (?, ?)");
+            $query->execute([$product["ext_id"], $product["title"]]);
+
+            $result = [
+                "status" => true,
+                "data" => $this->pdo->lastInsertId()
+            ];
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
     public function updateProduct($product) {
         $result = ["status" => false];
 
@@ -3393,6 +3838,56 @@ class BonusApp {
             }
             if (!$inTransaction) $this->pdo->commit();
         } catch (Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
+    private function getProducts() {
+        $result = ["status" => false];
+
+        $query = $this->pdo->prepare("SELECT id, ext_id, title FROM products");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result = [
+                "status" => true,
+                "data" => $queryResult
+            ];
+        }
+
+        return $result;
+    }
+
+    private function getProductByBarcode($barcode) {
+        $result = ["status" => false];
+
+        $query = $this->pdo->prepare("SELECT p.ext_id AS product_id, p.title FROM barcodes b LEFT JOIN products p ON b.product_id = p.ext_id WHERE b.barcode = ?");
+        $query->execute([$barcode]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result = [
+                "status" => true,
+                "data" => $queryResult[0]
+            ];
+        }
+
+        return $result;
+    }
+
+    private function addBarcode($barcode) {
+        $result = ["status" => false];
+
+        try {
+            $query = $this->pdo->prepare("INSERT INTO barcodes (product_id, barcode) VALUES (?, ?)");
+            $query->execute([$barcode["product_id"], $barcode["barcode"]]);
+
+            $result = [
+                "status" => true,
+                "data" => $this->pdo->lastInsertId()
+            ];
+        } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
         }
 
@@ -3416,6 +3911,22 @@ class BonusApp {
             if (!$inTransaction) $this->pdo->commit();
         } catch (Throwable $th) {
             $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
+    private function getBarcodes() {
+        $result = ["status" => false];
+
+        $query = $this->pdo->prepare("SELECT id, product_id, barcode FROM barcodes");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result = [
+                "status" => true,
+                "data" => $queryResult
+            ];
         }
 
         return $result;
@@ -3911,128 +4422,6 @@ class BonusApp {
         return $result;
     }
 
-    private function getDrawingWinners(){
-        $durations = [
-            1 => [
-                'firstDay' => '2021-06-27',
-                'lastDay' => '2021-07-03',
-            ],
-            2 => [
-                'firstDay' => '2021-07-04',
-                'lastDay' => '2021-07-10',
-            ],
-            3 => [
-                'firstDay' => '2021-07-11',
-                'lastDay' => '2021-07-17',
-            ],
-            4 => [
-                'firstDay' => '2021-07-18',
-                'lastDay' => '2021-07-24',
-            ],
-            5 => [
-                'firstDay' => '2021-07-25',
-                'lastDay' => '2021-07-31',
-            ],
-            6 => [
-                'firstDay' => '2021-08-01',
-                'lastDay' => '2021-08-07',
-            ],
-            7 => [
-                'firstDay' => '2021-08-08',
-                'lastDay' => '2021-08-14',
-            ],
-            8 => [
-                'firstDay' => '2021-08-15',
-                'lastDay' => '2021-08-21',
-            ],
-        ];
-
-        foreach ($durations as $duration){
-            $query = $this->pdo->prepare("SELECT
-                id,
-                SUBSTR(lastname,1,1) AS lastname,
-                firstname AS firstname,
-                SUBSTR(middlename,1,1) AS middlename,
-                confirmation_date
-            FROM
-                drawing d
-            WHERE winner = 1 AND confirmation_date BETWEEN '". $duration['firstDay'] ."' AND '". $duration['lastDay'] ."'
-            ");
-            $query->execute();
-            $queryResult = $query->fetchAll();
-
-            $result[] = [
-                'data' => $queryResult,
-                'duration' => "".$duration['firstDay']." - ".$duration['lastDay']."",
-            ];
-        }
-
-
-        return $result;
-    }
-
-    private function showPopupDrawing(){
-        if(!isset($_SESSION['showPopupDrawing'])){
-            $_SESSION['showPopupDrawing'] = true;
-            $result = [
-                "status" => true,
-            ];
-        }
-        else{
-            $result = [
-                "status" => false,
-            ];
-        }
-
-        return $result;
-    }
-
-    private function setFeedback($phone = null, $data) {
-        $result = ["status" => true, "data" => $data, "phone" => $phone];
-
-        try {
-            $cd = new DateTime();
-            
-            $query = $this->pdo->prepare("INSERT INTO feedbacks 
-                (
-                    name,
-                    account_phone,
-                    phone,
-                    email,
-                    message,
-                    time,
-                    reason
-                ) VALUES (
-                    :name,
-                    :account_phone,
-                    :phone,
-                    :email,
-                    :message,
-                    :time,
-                    :reason
-                )
-            ");
-            $query->execute([
-                $data["name"],
-                $phone,
-                $data["phone"],
-                $data["email"],
-                $data["message"],
-                $cd->format('Y-m-d H:i:s'),
-                $data["reason"]
-            ]);
-
-            $result = [
-                "status" => true,
-                "data" => $this->pdo->lastInsertId()
-            ];
-        } catch (\Throwable $th) {
-            $result["data"] = $th->getMessage();
-        }
-
-        return $result;
-    }
-
     /* Работа с внешними ИБ */
 
     private function updateCardDataByLMX($personId, $cardNumber, $fromDate) {
@@ -4231,6 +4620,1195 @@ class BonusApp {
         ];
 
         return file_get_contents("https://api.telegram.org/bot906763368:AAE1rqS8ooFwOHW00fX7PsOlRIi8c990zAY/sendMessage?chat_id=-550701196&text=" . $emoji[$status] . "\n" . $message);
+    }
+
+    /* Панель администратора */
+
+    private function getDashboardMenuItem($menuItem, $page, $sort, $sortDirection, $search, $date){
+        $page = $page;
+        $items_per_page = 60;
+        $offset = ($page - 1) * $items_per_page;
+
+        $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8", DB_USER, DB_PASS, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ]);
+
+        if($date == 'none'){
+            $dateFrom = date("Y-m-d", strtotime(' -7 day'));
+            $dateTo = date("Y-m-d");
+        }
+        else{
+            $dateChunk = explode("||", $date);
+            list($dateFrom, $dateTo) = $dateChunk;
+        }
+
+        switch($menuItem) {
+            case "accounts": {
+                ($search) ? $query = $pdo->prepare("SELECT a.id, a.phone, p.firstname, p.lastname, p.middlename, p.sex, p.birthdate, p.email, p.city, b.card_number, b.balance FROM `accounts` a INNER JOIN `profiles` p ON p.account_id = a.id INNER JOIN `bonuscards` b ON b.account_id = a.id WHERE " . $search['alias'] . "='" . $search['row'] . "' ORDER BY " .$sort. " " .$sortDirection. " LIMIT " . $offset . "," . $items_per_page) : $query = $pdo->prepare("SELECT a.id, a.phone, p.firstname, p.lastname, p.middlename, p.sex, p.birthdate, p.email, p.city, b.card_number, b.balance FROM `accounts` a INNER JOIN `profiles` p ON p.account_id = a.id INNER JOIN `bonuscards` b ON b.account_id = a.id ORDER BY " .$sort. " " .$sortDirection. " LIMIT " . $offset . "," . $items_per_page);
+                $query->execute();
+                $queryResult = $query->fetchAll();
+                $countRow = $pdo->query('SELECT COUNT(*) FROM accounts')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $content = [
+                    'Head' => [
+                        'ID' => [
+                            'sort' => false,
+                            'sortName' => 'id',
+                        ],
+                        'Телефон' => [
+                            'sort' => true,
+                            'sortName' => 'phone',
+                        ],
+                        'Номер карты' => [
+                            'sort' => true,
+                            'sortName' => 'card_number',
+                        ],
+                        'Баланс' => [
+                            'sort' => true,
+                            'sortName' => 'balance',
+                        ],
+                        'Пол' => [
+                            'sort' => true,
+                            'sortName' => 'sex',
+                        ],
+                        'Имя' => [
+                            'sort' => true,
+                            'sortName' => 'firstname',
+                        ],
+                        'Отчество' => [
+                            'sort' => true,
+                            'sortName' => 'middlename',
+                        ],
+                        'Фамилия' => [
+                            'sort' => true,
+                            'sortName' => 'lastname',
+                        ],
+                        'Город' => [
+                            'sort' => true,
+                            'sortName' => 'city',
+                        ],
+                        'Дата рождения' => [
+                            'sort' => false,
+                            'sortName' => 'birthdate',
+                        ],
+                    ],
+                    'Data' => $queryResult,
+                    'Pages' => $pages,
+                    'sortDirection' => $sortDirection,
+                    'SearchRow' => [
+                        'Телефон' => 'phone',
+                        'Номер карты' => 'card_number',
+                    ],
+                    'Export' => true,
+                ];
+
+
+                return $content;
+                break;
+            }
+            case "bonuscards": {
+                ($search) ? $query = $pdo->prepare("SELECT b.id, b.card_number, b.balance, b.status, b.type, b.last_sync FROM `bonuscards` b LEFT JOIN `accounts` a ON b.account_id = a.id WHERE b." . $search['alias'] . "='" . $search['row'] . "' ORDER BY " .$sort. " " .$sortDirection. " LIMIT " . $offset . "," . $items_per_page) : $query = $pdo->prepare("SELECT b.id, b.card_number, b.balance, b.status, b.type, b.last_sync FROM `bonuscards` b LEFT JOIN `accounts` a ON b.account_id = a.id ORDER BY " .$sort. " " .$sortDirection. " LIMIT " . $offset . "," . $items_per_page);
+                $query->execute();
+                $queryResult = $query->fetchAll();
+                $countRow = $pdo->query('SELECT COUNT(*) FROM bonuscards')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $content = [
+                    'Head' => [
+                        'ID' => [
+                            'sort' => false,
+                            'sortName' => 'id',
+                        ],
+                        'Номер карты' => [
+                            'sort' => true,
+                            'sortName' => 'card_number',
+                        ],
+                        'Баланс карты' => [
+                            'sort' => true,
+                            'sortName' => 'balance',
+                        ],
+                        'Статус' => [
+                            'sort' => true,
+                            'sortName' => 'status',
+                        ],
+                        'Тип' => [
+                            'sort' => true,
+                            'sortName' => 'type',
+                        ],
+                        'Последняя синхронизация' => [
+                            'sort' => true,
+                            'sortName' => 'last_sync',
+                        ],
+                    ],
+                    'Data' => $queryResult,
+                    'Pages' => $pages,
+                    'sortDirection' => $sortDirection,
+                    'SearchRow' => [
+                        'ID' => 'id',
+                        'Номер карты' => 'card_number',
+                    ],
+                    'Export' => true,
+                ];
+
+                return $content;
+                break;
+            }
+            case "transactions": {
+                $query = $pdo->prepare("SELECT t.id, t.amount, t.bonuscard_id, t.ext_id, t.type, t.rsa_id FROM `transactions` t LEFT JOIN `bonuscards` b ON t.bonuscard_id = b.id ORDER BY " .$sort. " " .$sortDirection. " LIMIT " . $offset . "," . $items_per_page);
+                $query->execute();
+                $queryResult = $query->fetchAll();
+                $countRow = $pdo->query('SELECT COUNT(*) FROM transactions')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $content = [
+                    'Head' => [
+                        'ID' => [
+                            'sort' => false,
+                            'sortName' => 'id',
+                        ],
+                        'Сумма' => [
+                            'sort' => true,
+                            'sortName' => 'amount',
+                        ],
+                        'Тип' => [
+                            'sort' => true,
+                            'sortName' => 'type',
+                        ],
+                        'Магазин' => [
+                            'sort' => true,
+                            'sortName' => 'rsa_id',
+                        ],
+                    ],
+                    'Data' => $queryResult,
+                    'Pages' => $pages,
+                    'sortDirection' => $sortDirection,
+                    'Export' => true,
+                ];
+
+                return $content;
+                break;
+            }
+            case "reports": {
+                $content = [
+                    'Head' => false,
+                    'Data' => [
+                        'Детализация чеков' => 'detailsReceipt',
+                        'Карты без движений' => 'cardsHold',
+                        'Приведи друга' => 'searchRef',
+                        'Бонусы на ДР' => 'salesArea',
+                        'Продажи, детализация полная' => 'salesDetails',
+                        'Продажи, детализация' => 'salesDetailsMini',
+                        'Продажи, общее' => 'salesShared',
+                        'Новые по розыгрышу' => 'newDrawing',
+                        'Баланс карт' => 'balanceCards',
+                    ],
+                    'Pages' => false,
+                    'sortDirection' => false,
+                    'Export' => false,
+                    'DateSort' => true,
+                ];
+
+                return $content;
+                break;
+            }
+            case "journal": {
+                $query = $pdo->prepare("SELECT * FROM journal WHERE time BETWEEN '" .$dateFrom. "' AND '" .$dateTo. "' ORDER BY " .$sort. " " .$sortDirection." LIMIT " . $offset . "," . $items_per_page);
+                $query->execute();
+                $queryResult = $query->fetchAll();
+                $countRow = $pdo->query('SELECT COUNT(*) FROM journal')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $content = [
+                    'Head' => [
+                        'ID' => [
+                            'sort' => true,
+                            'sortName' => 'id',
+                        ],
+                        'Источник' => [
+                            'sort' => true,
+                            'sortName' => 'source',
+                        ],
+                        'Событие' => [
+                            'sort' => true,
+                            'sortName' => 'event',
+                        ],
+                        'Статус' => [
+                            'sort' => true,
+                            'sortName' => 'status',
+                        ],
+                        'Коментарий' => [
+                            'sort' => false,
+                            'sortName' => 'comment',
+                        ],
+                        'Дата' => [
+                            'sort' => true,
+                            'sortName' => 'time',
+                        ],
+                    ],
+                    'Data' => $queryResult,
+                    'Pages' => $pages,
+                    'sortDirection' => $sortDirection,
+                    'SearchRow' => false,
+                    'Export' => true,
+                ];
+
+
+                return $content;
+                break;
+            }
+            case "settings": {
+                $content = [
+                    'Head' => false,
+                    'Data' => false,
+                    'Pages' => false,
+                    'sortDirection' => false,
+                    'Export' => false,
+                ];
+
+                return $content;
+                break;
+            }
+
+        }
+
+    }
+
+    private function getTransactionDetails($id, $cardID, $extID){
+        $query = $this->pdo->prepare("SELECT token FROM accounts WHERE id IN (SELECT account_id FROM bonuscards WHERE id = ?)");
+        $query->execute([$cardID]);
+        $queryResult = $query->fetch();
+        $transactionsData = $this->API_getWalletData($queryResult["token"], []);
+        foreach ($transactionsData["data"]["transactions"] as $transaction){
+            if ($transaction['ext_id'] == $extID){
+                $transactionData[] = $transaction;
+                break;
+            }
+        }
+
+        return $transactionData;
+    }
+
+    private function getAccount($id){
+        // $query = $this->pdo->prepare("SELECT a.id, a.phone, p.firstname, p.lastname, p.middlename, p.sex, p.birthdate, p.email, p.city, b.card_number, b.balance, t.ext_id, b.id AS 'cardID' FROM `accounts` a INNER JOIN `profiles` p ON p.account_id = a.id INNER JOIN `bonuscards` b ON b.account_id = a.id INNER JOIN `transactions` t ON t.bonuscard_id = b.id WHERE a.id = ?");
+        // $query->execute([$id]);
+        // $queryResult = $query->fetch();
+        // $transactions = $this->getTransactions($queryResult['card_number']);
+        // $data = [
+        //     'account' => $queryResult,
+        //     'transactions' => $transactions,
+        //     'cardID' => $queryResult['cardID'],
+        // ];
+
+        // return $data;
+    }
+
+    private function DashboardExport($data){
+        $this->initPDO();
+        switch($data) {
+            case "accounts": {
+                $query = $this->pdo->prepare("SELECT a.id, a.phone, p.firstname, p.lastname, p.middlename, p.sex, p.birthdate, p.email, p.city, b.card_number, b.balance FROM `accounts` a INNER JOIN `profiles` p ON p.account_id = a.id INNER JOIN `bonuscards` b ON b.account_id = a.id");
+                break;
+            }
+            case "transactions": {
+                $query = $this->pdo->prepare("SELECT t.id, t.amount, t.bonuscard_id, t.ext_id, t.type, t.rsa_id FROM `transactions` t LEFT JOIN `bonuscards` b ON t.bonuscard_id = b.id");
+                break;
+            }
+            case "journal": {
+                $query = $this->pdo->prepare("SELECT * FROM journal");
+                break;
+            }
+            default:
+                die();
+        }
+
+        $query->execute();
+        $queryResult = $query->fetchAll();
+
+        $temp_file_path = tempnam(sys_get_temp_dir(), $data);
+        $fp = fopen($temp_file_path, 'w');
+        fputs($fp, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+
+        foreach ($queryResult as $fields) {
+            fputcsv($fp, $fields, ';');
+        }
+        fclose($fp);
+
+        ob_end_clean();
+        header('Content-Description: Filte Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename='.$data.'.csv');
+        header('Content-Transfer-Encoding: binary');
+        header('Expiries: 0');
+        header('Cache-Control: must-revalidate');
+        header('Content-Length: ' . filesize($temp_file_path));
+        readfile($temp_file_path);
+        exit;
+
+    }
+
+    private function ReportExport($data, $date, $search){
+        $dateFrom = ($date == 'none') ? date("Y-m-d", strtotime(' -7 day')) :  explode("||", $date)[0];
+        $dateTo = ($date == 'none') ? date("Y-m-d") : explode("||", $date)[1];
+
+        $searchAlias = ($search == 'none') ? false : explode("||", $search)[0];
+        $searchData = ($search == 'none') ? false : explode("||", $search)[1];
+        $searchRow = ($searchData) ? str_replace("|", "', '", $searchData) : false;
+
+        $this->initPDO();
+
+        switch($data) {
+            case "detailsReceipt": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'detailsReceipt' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'detailsReceipt' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'");
+                $fileName = 'Детализация чеков';
+                $head = [
+                    'Магазин',
+                    'Продажа',
+                    'Смена',
+                    'Касса',
+                    'Чек',
+                    'Время продажи',
+                    'Всего оплачено',
+                    'Общий кэшбек',
+                    'Общая скидка',
+                    'Карта',
+                    'Артикул',
+                    'Кол-во',
+                    'Цена',
+                    'Кэшбек',
+                    'Скидка',
+                    'Оплачено',
+                    'Номенклатура',
+                ];
+                break;
+            }
+            case "cardsHold": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'cardsHold' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.last_sync')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'cardsHold' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.last_sync')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'");
+                $fileName = 'Карты без движений';
+                $head = [
+                    'Телефон',
+                    'Карта',
+                    'Тип карты',
+                    'Пол',
+                    'Имя',
+                    'Отчество',
+                    'Фамилия',
+                    'Дата рождения',
+                    'Почта',
+                    'Город',
+                    'Дата регистрации',
+                ];
+                break;
+            }
+            case "searchRef": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'searchRef' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "')") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'searchRef'");
+                $fileName = 'Приведи друга';
+                $head = [
+                    'Карта зарегистрированного',
+                    'Карта нового пользователя',
+                    'Дата регистрации',
+                    'Сумма чека',
+                    'Списания всего',
+                    'Начисления всего',
+                ];
+                break;
+            }
+            case "salesArea": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesArea' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "')") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesArea'");
+                $fileName = 'Бонусы на ДР';
+                $head = [
+                    'Телефон',
+                    'Имя',
+                    'Отчество',
+                    'Фамилия',
+                    'Дата рождения',
+                    'Пол',
+                    'Дата/время регистрации',
+                    'Номер карты',
+                    'Нач. пер. ДР',
+                    'Кон. пер. ДР',
+                    'Кол-во чеков (ДР)',
+                    'Оплачено (ДР)',
+                    'Кэшбек (ДР)',
+                    'Скидка (ДР)',
+                    'Нач. пер. до ДР',
+                    'Кон. пер. до ДР',
+                    'Кол-во чеков (до ДР)',
+                    'Оплачено (до ДР)',
+                    'Кэшбек (до ДР)',
+                    'Скидка (до ДР)',
+                ];
+                break;
+            }
+            case "salesDetails": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetails' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetails' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'");
+                $fileName = 'Продажи, детализация полная';
+                $head = [
+                    'Карта',
+                    'Баланс',
+                    'Начисления всего',
+                    'Списания всего',
+                    'Чеков всего',
+                    'Чек',
+                    'Продажа',
+                    'Сумма чека',
+                    'Скидка по чеку',
+                    'Начислено по чеку',
+                    'Время покупки',
+                ];
+                break;
+            }
+            case "salesDetailsMini": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetailsMini' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetailsMini' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."'");
+                $fileName = 'Продажи, детализация';
+                $head = [
+                    'Карта',
+                    'Дата регистрации',
+                    'Баланс',
+                    'Начисления всего',
+                    'Списания всего',
+                    'Чеков всего',
+                    'Чек',
+                    'Продажа',
+                    'Дата продажи',
+                    'Сумма чека',
+                    'Скидка по чеку',
+                    'Начеслено по чеку',
+                ];
+                break;
+            }
+            case "salesShared": {
+                ($searchRow) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesShared' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$searchAlias."')) IN ('" . $searchRow . "')") :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesShared'");
+                $fileName = 'Продажи, общее';
+                $head = [
+                    'Карта',
+                    'Списания всего',
+                    'Начисления всего',
+                    'Чеков всего',
+                    'Сумма чека',
+                ];
+                break;
+            }
+            case "newDrawing": {
+                $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'newDrawing'");
+                $fileName = 'Новые по розыгрышу';
+                $head = [
+                    'Кол-во зарегистрированных',
+                    'Из них учавствуют',
+                ];
+                break;
+            }
+            case "balanceCards": {
+                $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'balanceCards'");
+                $fileName = 'Баланс карт';
+                $head = [
+                    'Телефон',
+                    'Имя',
+                    'Фамилия',
+                    'Отчевство',
+                    'Номер карты',
+                    'Тип карты',
+                    'Баланс',
+                    'Крайний чек',
+                    'Дата регистрации',
+                ];
+                break;
+            }
+            default:
+                die();
+        }
+
+        $query->execute();
+        $queryResult = $query->fetchAll();
+
+
+
+        $temp_file_path = tempnam(sys_get_temp_dir(), $data);
+        $fp = fopen($temp_file_path, 'w');
+        fputs($fp, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        fputcsv($fp, $head, ';');
+
+        foreach ($queryResult as $fields) {
+            $row = (array)json_decode($fields['report']);
+            switch($data) {
+                case "detailsReceipt": {
+                    $newRow = [
+                        'title' => $row['title'],
+                        'rsa_id' => $row['rsa_id'],
+                        'operation_type' => $row['operation_type'],
+                        'shift' => $row['shift'],
+                        'cash' => $row['cash'],
+                        'sale_time' => $row['sale_time'],
+                        'amount' => $row['amount'],
+                        'cashback_amount' => $row['cashback_amount'],
+                        'discount_amount' => $row['discount_amount'],
+                        'discount_card' => $row['discount_card'],
+                        'product_id' => $row['product_id'],
+                        'count' => $row['count'],
+                        'cost' => $row['cost'],
+                        'cashback' => $row['cashback'],
+                        'discount' => $row['discount'],
+                        'amount_pay' => $row['amount_pay'],
+                        'position' => $row['position'],
+                    ];
+                    break;
+                }
+                case "cardsHold": {
+                    $newRow = [
+                        'card_number' => $row['card_number'],
+                        'phone' => $row['phone'],
+                        'type' => $row['type'],
+                        'city' => $row['city'],
+                        'last_sync' => $row['last_sync'],
+                        'firstname' => $row['firstname'],
+                        'middlename' => $row['middlename'],
+                        'lastname' => $row['lastname'],
+                        'email' => $row['email'],
+                    ];
+                    break;
+                }
+                case "searchRef": {
+                    $newRow = [
+                        'card_number' => $row['card_number'],
+                        'ref_card_number' => $row['ref_card_number'],
+                        'last_sync' => $row['last_sync'],
+                        'amount' => $row['amount'],
+                        'discount_amount' => $row['discount_amount'],
+                        'cashback_amount' => $row['cashback_amount'],
+                    ];
+                    break;
+                }
+                case "salesArea": {
+                    $newRow = [
+                        'phone' => $row['phone'],
+                        'firstname' => $row['firstname'],
+                        'middlename' => $row['middlename'],
+                        'lastname' => $row['lastname'],
+                        'birthdate' => $row['birthdate'],
+                        'sex' => $row['sex'],
+                        'last_sync' => $row['last_sync'],
+                        'card_number' => $row['card_number'],
+                        'start_dr' => $row['start_dr'],
+                        'end_dr' => $row['end_dr'],
+                        'amount_purchases_dr' => $row['amount_purchases_dr'],
+                        'purchases_dr' => $row['purchases_dr'],
+                        'cashback_dr' => $row['cashback_dr'],
+                        'sale_dr' => $row['sale_dr'],
+                        'start_before_dr' => $row['start_before_dr'],
+                        'end_before_dr' => $row['end_before_dr'],
+                        'amount_purchase_before_dr' => $row['amount_purchase_before_dr'],
+                        'purchases_before_dr' => $row['purchases_before_dr'],
+                        'cashback_before_dr' => $row['cashback_before_dr'],
+                        'sale_before_dr' => $row['sale_before_dr'],
+                    ];
+                    break;
+                }
+                case "salesDetails": {
+                    $newRow = [
+                        'discount_card' => $row['discount_card'],
+                        'balance' => $row['balance'],
+                        'total_discount' => $row['total_discount'],
+                        'total_cashback' => $row['total_cashback'],
+                        'total_purchases' => $row['total_purchases'],
+                        'number' => $row['number'],
+                        'operation_type' => $row['operation_type'],
+                        'amount' => $row['amount'],
+                        'discount_amount' => $row['discount_amount'],
+                        'cashback_amount' => $row['cashback_amount'],
+                        'sale_time' => $row['sale_time'],
+                    ];
+                    break;
+                }
+                case "salesDetailsMini": {
+                    $newRow = [
+                        'discount_card' => $row['discount_card'],
+                        'last_sync' => $row['last_sync'],
+                        'balance' => $row['balance'],
+                        'total_discount' => $row['total_discount'],
+                        'total_cashback' => $row['total_cashback'],
+                        'total_purchases' => $row['total_purchases'],
+                        'number' => $row['number'],
+                        'operation_type' => $row['operation_type'],
+                        'sale_time' => $row['sale_time'],
+                        'amount' => $row['amount'],
+                        'discount_amount' => $row['discount_amount'],
+                        'cashback_amount' => $row['cashback_amount'],
+                    ];
+                    break;
+                }
+                case "salesShared": {
+                    $newRow = [
+                        'discount_card' => $row['discount_card'],
+                        'cashback_amount' => $row['cashback_amount'],
+                        'discount_amount' => $row['discount_amount'],
+                        'purchases_count' => $row['purchases_count'],
+                        'amount' => $row['amount'],
+                    ];
+                    break;
+                }
+                case "newDrawing": {
+                    $newRow = [
+                        'reg' => $row['reg'],
+                        'count' => $row['count'],
+                    ];
+                    break;
+                }
+                case "balanceCards": {
+                    $newRow = [
+                        'phone' => $row['phone'],
+                        'firstname' => $row['firstname'],
+                        'middlename' => $row['middlename'],
+                        'lastname' => $row['lastname'],
+                        'card_number' => $row['card_number'],
+                        'type' => $row['type'],
+                        'balance' => $row['balance'],
+                        'last_sync' => $row['last_sync'],
+                        'sale_time' => $row['sale_time'],
+                    ];
+                    break;
+                }
+            }
+
+
+            fputcsv($fp, $newRow, ';');
+        }
+
+
+        ob_end_clean();
+        header('Content-Description: Filte Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="'.$fileName.'.csv"');
+        header('Content-Transfer-Encoding: binary');
+        header('Expiries: 0');
+        header('Cache-Control: must-revalidate');
+        header('Content-Length: ' . filesize($temp_file_path));
+        readfile($temp_file_path);
+        exit;
+    }
+
+    private function DashboardReport($reportItem, $date, $page, $search) {
+        if($date == 'none') {
+            $dateFrom = date("Y-m-d", strtotime(' -7 day'));
+            $dateTo = date("Y-m-d");
+        } else {
+            $dateChunk = explode("||", $date);
+            list($dateFrom, $dateTo) = $dateChunk;
+        }
+
+        $page = $page;
+        $items_per_page = 100;
+        $offset = ($page - 1) * $items_per_page;
+        $searchRow = false;
+        $searchData = false;
+
+        if($search){
+            $searchData = str_replace(" ", "', '", $search['row']);
+        }
+
+
+        switch($reportItem) {
+            case "detailsReceipt": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'detailsReceipt' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'detailsReceipt' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Детализация чеков';
+                $head = [
+                    'Магазин',
+                    'Продажа',
+                    'Смена',
+                    'Касса',
+                    'Чек',
+                    'Время продажи',
+                    'Всего оплачено',
+                    'Общий кэшбек',
+                    'Общая скидка',
+                    'Карта',
+                    'Артикул',
+                    'Кол-во',
+                    'Цена',
+                    'Кэшбек',
+                    'Скидка',
+                    'Оплачено',
+                    'Номенклатура',
+                ];
+                $countRow = $this->pdo->query("SELECT COUNT(*) FROM reports WHERE report_type = '".$reportItem."'")->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'discount_card',
+                ];
+                break;
+            }
+            case "cardsHold": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'cardsHold' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.last_sync')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'cardsHold' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.last_sync')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Карты без движений';
+                $head = [
+                    'Карта',
+                    'Телефон',
+                    'Тип карты',
+                    'Город',
+                    'Дата регистрации',
+                    'Имя',
+                    'Отчество',
+                    'Фамилия',
+                    'Почта',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM bonuscards')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'card_number',
+                    'Номер телефона' => 'phone',
+                ];
+                break;
+            }
+            case "searchRef": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'searchRef' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'searchRef' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Приведи друга';
+                $head = [
+                    'Карта зарегистрированного',
+                    'Карта нового пользователя',
+                    'Дата регистрации',
+                    'Сумма чека',
+                    'Списания всего',
+                    'Начисления всего',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM referrals')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'card_number',
+                ];
+                break;
+            }
+            case "salesArea": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesArea' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesArea' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Бонусы на ДР';
+                $head = [
+                    'Телефон',
+                    'Имя',
+                    'Отчество',
+                    'Фамилия',
+                    'Дата рождения',
+                    'Пол',
+                    'Дата/время регистрации',
+                    'Номер карты',
+                    'Нач. пер. ДР',
+                    'Кон. пер. ДР',
+                    'Кол-во чеков (ДР)',
+                    'Оплачено (ДР)',
+                    'Кэшбек (ДР)',
+                    'Скидка (ДР)',
+                    'Нач. пер. до ДР',
+                    'Кон. пер. до ДР',
+                    'Кол-во чеков (до ДР)',
+                    'Оплачено (до ДР)',
+                    'Кэшбек (до ДР)',
+                    'Скидка (до ДР)',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM referrals')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'card_number',
+                    'Номер телефона' => 'phone',
+                ];
+                break;
+            }
+            case "salesDetails": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetails' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetails' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Продажи, детализация полная';
+                $head = [
+                    'Карта',
+                    'Баланс',
+                    'Начисления всего',
+                    'Списания всего',
+                    'Чеков всего',
+                    'Чек',
+                    'Продажа',
+                    'Сумма чека',
+                    'Скидка по чеку',
+                    'Начеслено по чеку',
+                    'Время покупки',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM referrals')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'discount_card',
+                ];
+                break;
+            }
+            case "salesDetailsMini": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetailsMini' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesDetailsMini' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Продажи, детализация';
+                $head = [
+                    'Карта',
+                    'Дата регистрации',
+                    'Баланс',
+                    'Начисления всего',
+                    'Списания всего',
+                    'Чеков всего',
+                    'Чек',
+                    'Продажа',
+                    'Дата продажи',
+                    'Сумма чека',
+                    'Скидка по чеку',
+                    'Начеслено по чеку',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM referrals')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'discount_card',
+                ];
+                break;
+            }
+
+            case "salesShared": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesShared' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'salesShared' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Продажи, общее';
+                $head = [
+                    'Карта',
+                    'Списания всего',
+                    'Начисления всего',
+                    'Чеков всего',
+                    'Сумма чека',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM referrals')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'discount_card',
+                ];
+                break;
+            }
+            case "newDrawing": {
+                $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'newDrawing'");
+                $fileName = 'Новые по розыгрышу';
+                $head = [
+                    'Кол-во зарегистрированных',
+                    'Из них учавствуют',
+                ];
+                $pages = false;
+                break;
+            }
+            case "balanceCards": {
+                ($search) ? $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'balanceCards' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.".$search['alias']."')) IN ('" . $searchData . "') AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page) :
+                    $query = $this->pdo->prepare("SELECT report FROM reports WHERE report_type = 'balanceCards' AND JSON_UNQUOTE(JSON_EXTRACT(report, '$.sale_time')) BETWEEN '". $dateFrom ."' AND '". $dateTo ."' LIMIT " . $offset . "," . $items_per_page);
+                $fileName = 'Баланс карт';
+                $head = [
+                    'Телефон',
+                    'Имя',
+                    'Фамилия',
+                    'Отчевство',
+                    'Номер карты',
+                    'Тип карты',
+                    'Баланс',
+                    'Крайний чек',
+                    'Дата регистрации',
+                ];
+                $countRow = $this->pdo->query('SELECT COUNT(*) FROM bonuscards')->fetchColumn();
+                $pages = $countRow / $items_per_page;
+                $searchRow = [
+                    'Номер карты' => 'card_number',
+                ];
+                break;
+            }
+            default:
+                die();
+        }
+
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        $data = [
+            'title' => $fileName,
+            'data' => $queryResult,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'head' => $head,
+            'pages' => $pages,
+            'SearchRow' => $searchRow,
+        ];
+
+
+        $cl = mb_strlen(serialize($data), '8bit');
+        header("Access-Control-Expose-Headers: ".$cl);
+        return $data;
+    }
+
+    private function setReports(){
+        //set_time_limit(300);
+        $this->initPDO();
+        $this->pdo->query("TRUNCATE TABLE reports");
+        $reports = ['detailsReceipt', 'cardsHold', 'searchRef', 'salesArea', 'salesDetails', 'salesDetailsMini', 'salesShared', 'newDrawing', 'balanceCards'];
+
+        array_map(function ($report){
+            switch($report) {
+                case "detailsReceipt":
+                {
+                    $query = $this->pdo->prepare("SELECT t4.title, t1.rsa_id, t1.operation_type, t1.shift, t1.cash, t1.number, t1.sale_time, ROUND(t1.amount / 100, 2) AS 'amount', ROUND(t1.cashback_amount / 100, 2) AS 'cashback_amount', ROUND(t1.discount_amount / 100, 2) AS 'discount_amount', t1.discount_card, t2.product_id, ROUND(t2.count / 1000, 2) AS 'count', ROUND(t2.cost / 100, 2) AS 'cost', ROUND(t2.cashback_amount / 100, 2) AS 'cashback', ROUND(t2.discount_amount / 100, 2) AS 'discount', ROUND(t2.amount / 100, 2) AS 'amount_pay', t3.title AS 'position' FROM purchases as t1 INNER JOIN positions AS t2 ON t1.id = t2.purchase_id INNER JOIN products AS t3 ON t2.product_id = t3.ext_id LEFT JOIN stores AS t4 ON t1.rsa_id = t4.rsa_id WHERE t1.discount_amount >= 0 AND t1.sale_time ORDER BY t1.discount_card, t1.sale_time");
+                    break;
+                }
+                case "cardsHold":
+                {
+                    $query = $this->pdo->prepare("SELECT T2.phone, T1.card_number, T1.type, T3.sex, T3.firstname, T3.middlename, T3.lastname, T3.birthdate, T3.email, T3.city, DATE_ADD(T3.last_sync, INTERVAL 7 HOUR) AS 'last_sync' FROM `bonuscards` AS T1 INNER JOIN accounts AS T2 ON T1.account_id = T2.id LEFT JOIN profiles AS T3 ON T2.id = T3.account_id WHERE T1.status = 1  AND NOT T1.card_number IN (SELECT DISTINCT `discount_card` as card_number FROM `purchases`)");
+                    break;
+                }
+                case "searchRef":
+                {
+                    $query = $this->pdo->prepare("SELECT b.card_number, bref.card_number AS 'ref_card_number', prof.last_sync, ROUND(p.amount / 100, 2) AS 'amount', ROUND(p.discount_amount / 100, 2) AS 'discount_amount', ROUND(p.cashback_amount / 100, 2) AS 'cashback_amount'
+                        FROM referrals AS r
+                                INNER JOIN bonuscards AS b ON r.account_id = b.account_id
+                                LEFT JOIN bonuscards AS bref ON r.ref_account_id = bref.account_id
+                                LEFT JOIN purchases AS p ON b.card_number = p.discount_card
+                                LEFT JOIN profiles AS prof ON r.account_id = prof.account_id GROUP BY b.card_number");
+                    break;
+                }
+                case "salesArea":
+                {
+                    $query = $this->pdo->prepare("SELECT T0.phone AS 'phone',
+                        T1.firstname,
+                        T1.middlename,
+                        T1.lastname,
+                        T1.birthdate,
+                        CASE WHEN T1.sex = 1 THEN 'М' WHEN T1.sex = 2 THEN 'Ж' ELSE '-' END AS 'sex',
+                        T1.last_sync,
+                        T2.card_number,
+                        DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(T1.birthdate, '%m-%d')), INTERVAL -7 DAY), '%Y-%m-%d 00:00:00') AS 'start_dr',
+                        DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(T1.birthdate, '%m-%d')), INTERVAL 7 DAY), '%Y-%m-%d 23:59:59') AS 'end_dr',
+                        IFNULL(bdp.Count, 0) AS 'amount_purchases_dr',
+                        IFNULL(ROUND(bdp.Amount / 100, 2), 0) AS 'purchases_dr',
+                        IFNULL(ROUND(bdp.CashbackAmount / 100, 2), 0) AS 'cashback_dr',
+                        IFNULL(ROUND(bdp.DiscountAmount / 100, 2), 0) AS 'sale_dr',
+                        DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(T1.birthdate, '%m-%d')), INTERVAL -21 DAY), '%Y-%m-%d 00:00:00') AS 'start_before_dr',
+                        DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(T1.birthdate, '%m-%d')), INTERVAL -8 DAY), '%Y-%m-%d 23:59:59') AS 'end_before_dr',
+                        IFNULL(bp.Count, 0) AS 'amount_purchase_before_dr',
+                        IFNULL(ROUND(bp.Amount / 100, 2), 0) AS 'purchases_before_dr',
+                        IFNULL(ROUND(bp.CashbackAmount / 100, 2), 0) AS 'cashback_before_dr',
+                        IFNULL(ROUND(bp.DiscountAmount / 100, 2), 0) AS 'sale_before_dr'
+                        FROM
+                        accounts AS T0
+                        LEFT JOIN profiles AS T1
+                        ON T0.id = T1.account_id
+                        LEFT JOIN bonuscards AS T2
+                        ON T0.id = T2.account_id
+                        LEFT JOIN (SELECT
+                        b.card_number AS CardNumber,
+                        COUNT(p.id) AS Count,
+                        SUM(p.amount) AS Amount,
+                        SUM(p.cashback_amount) AS CashbackAmount,
+                        SUM(p.discount_amount) AS DiscountAmount
+                        FROM
+                        profiles pr
+                        INNER JOIN bonuscards b
+                        ON pr.account_id = b.account_id
+                        INNER JOIN purchases p
+                        ON b.card_number = p.discount_card AND p.sale_time BETWEEN DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(pr.birthdate, '%m-%d')), INTERVAL -7 DAY), '%Y-%m-%d 00:00:00')
+                        AND DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(pr.birthdate, '%m-%d')), INTERVAL 7 DAY), '%Y-%m-%d 23:59:59')
+                        GROUP BY
+                        b.card_number
+                        ) AS bdp
+                        ON T2.card_number = bdp.CardNumber
+                        LEFT JOIN (SELECT
+                        b.card_number AS CardNumber,
+                        COUNT(p.id) AS Count,
+                        SUM(p.amount) AS Amount,
+                        SUM(p.cashback_amount) AS CashbackAmount,
+                        SUM(p.discount_amount) AS DiscountAmount
+                        FROM
+                        profiles pr
+                        INNER JOIN bonuscards b
+                        ON pr.account_id = b.account_id
+                        INNER JOIN purchases p
+                        ON b.card_number = p.discount_card AND p.sale_time BETWEEN DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(pr.birthdate, '%m-%d')), INTERVAL -21 DAY), '%Y-%m-%d 00:00:00')
+                        AND DATE_FORMAT(DATE_ADD(CONCAT(YEAR(NOW()), '-', DATE_FORMAT(pr.birthdate, '%m-%d')), INTERVAL -8 DAY), '%Y-%m-%d 23:59:59')
+                        GROUP BY
+                        b.card_number
+                        ) AS bp
+                        ON T2.card_number = bp.CardNumber
+                        WHERE
+                        T0.status = 1
+                        AND T0.id IN (SELECT
+                        account_id
+                        FROM
+                        profiles)");
+                    break;
+                }
+                case "salesDetails":
+                {
+                    $query = $this->pdo->prepare("SELECT T2.discount_card, ROUND(T3.balance / 100, 2) AS 'balance', T2.total_cashback AS 'total_cashback', T2.total_discount AS 'total_discount', T2.total_purchases AS 'total_purchases', T1.rsa_id, T1.number, T1.operation_type AS 'operation_type', ROUND(T1.amount / 100, 2) AS 'amount', ROUND(T1.discount_amount / 100, 2) AS 'discount_amount', ROUND(T1.cashback_amount / 100, 2) AS 'cashback_amount', T1.sale_time AS 'sale_time' FROM purchases as T1 LEFT JOIN (SELECT T1.discount_card, ROUND(SUM(T1.discount_amount / 100), 2) AS total_discount, ROUND(CASE WHEN T2.type = 0 THEN 2000 ELSE 1500 END + SUM(T1.cashback_amount / 100), 2) AS total_cashback, COUNT(T1.id) AS total_purchases FROM purchases AS T1 LEFT JOIN bonuscards AS T2 ON T1.discount_card = T2.card_number WHERE T1.discount_amount >= 0 GROUP BY T1.discount_card) AS T2 ON T1.discount_card = T2.discount_card LEFT JOIN bonuscards AS T3 ON T2.discount_card = T3.card_number WHERE T1.discount_amount >= 0 ORDER BY T1.discount_card, T1.sale_time");
+                    break;
+                }
+                case "salesDetailsMini":
+                {
+                    $query = $this->pdo->prepare("SELECT
+                            T2.discount_card,
+                            p.last_sync,
+                            ROUND(T3.balance / 100, 2) AS 'balance',
+                            T2.total_cashback AS 'total_cashback',
+                            T2.total_discount AS 'total_discount',
+                            T2.total_purchases AS 'total_purchases',
+                            T1.rsa_id,
+                            T1.number AS 'number',
+                            T1.operation_type AS 'operation_type',
+                            DATE_FORMAT(T1.sale_time, '%Y-%m-%d') 'sale_time',
+                            ROUND(T1.amount / 100, 2) AS 'amount',
+                            ROUND(T1.discount_amount / 100, 2) AS 'discount_amount',
+                            ROUND(T1.cashback_amount / 100, 2) AS 'cashback_amount'
+                        FROM
+                            purchases as T1
+                            LEFT JOIN (SELECT
+                                    T1.discount_card,
+                                    ROUND(SUM(T1.discount_amount / 100), 2) AS total_discount,
+                                    ROUND(CASE
+                                        WHEN T2.type = 0 THEN 2000
+                                        ELSE 1500
+                                    END + SUM(T1.cashback_amount / 100), 2) AS total_cashback,
+                                    COUNT(T1.id) AS total_purchases
+                                FROM
+                                    purchases AS T1
+                                    LEFT JOIN bonuscards AS T2
+                                        ON T1.discount_card = T2.card_number
+                                WHERE
+                                    T1.discount_amount >= 0
+                                GROUP BY
+                                    T1.discount_card) AS T2
+                                ON T1.discount_card = T2.discount_card
+                            LEFT JOIN bonuscards AS T3
+                                ON T2.discount_card = T3.card_number
+                            LEFT JOIN profiles p
+                                ON T3.account_id = p.account_id
+                        WHERE
+                            T1.discount_amount >= 0
+                        ORDER BY
+                            T1.discount_card,
+                            T1.sale_time");
+                    break;
+                }
+                case "salesShared":
+                {
+                    $query = $this->pdo->prepare("SELECT T1.discount_card, ROUND(SUM(T1.discount_amount / 100), 2) AS 'discount_amount', ROUND(CASE WHEN T2.type = 0 THEN 2000 ELSE 1500 END + SUM(T1.cashback_amount / 100), 2) AS 'cashback_amount', COUNT(T1.id) AS 'purchases_count', ROUND(T1.amount / 100, 2) AS 'amount' FROM purchases AS T1 LEFT JOIN bonuscards AS T2 ON T1.discount_card = T2.card_number WHERE T1.discount_amount >= 0 GROUP BY T1.discount_card");
+                    break;
+                }
+                case "newDrawing":
+                {
+                    $query = $this->pdo->prepare("SELECT COUNT(p.id) AS 'count', COUNT(d.id) AS 'reg' 
+                        FROM profiles p 
+                        LEFT JOIN drawing AS d ON d.account_id = p.account_id");
+                    break;
+                }
+                case "balanceCards":
+                {
+                    $query = $this->pdo->prepare("SELECT a.phone, p.firstname, p.middlename, p.lastname, b.card_number, b.type, ROUND(b.balance / 100, 2) 'balance', pr.sale_time, p.last_sync FROM accounts a LEFT JOIN profiles p ON a.id = p.account_id LEFT JOIN bonuscards b ON a.id = b.account_id LEFT JOIN (SELECT discount_card, MAX(sale_time) sale_time FROM purchases GROUP BY discount_card) pr ON b.card_number = pr.discount_card WHERE a.status = 1");
+                    break;
+                }
+            }
+
+            $query->execute();
+            $queryResult = $query->fetchAll();
+
+            foreach ($queryResult as $result) {
+                $data = json_encode($result);
+                $queryReport = $this->pdo->prepare("INSERT INTO reports (report_type, report) VALUES (?, ?)");
+                $queryReport->execute([$report, $data]);
+            }
+            $this->journal("CRON", "setReports", $report, 1);
+
+        }, $reports);
+
+        // Фиксация завершения обработки
+        $cd = new DateTime();
+        $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron9'");
+        $query->execute([$cd->format('Y-m-d H:i:s')]);
+
+    }
+
+    private function getDrawingWinners(){
+        $durations = [
+            1 => [
+                'firstDay' => '2021-06-27',
+                'lastDay' => '2021-07-03',
+            ],
+            2 => [
+                'firstDay' => '2021-07-04',
+                'lastDay' => '2021-07-10',
+            ],
+            3 => [
+                'firstDay' => '2021-07-11',
+                'lastDay' => '2021-07-17',
+            ],
+            4 => [
+                'firstDay' => '2021-07-18',
+                'lastDay' => '2021-07-24',
+            ],
+            5 => [
+                'firstDay' => '2021-07-25',
+                'lastDay' => '2021-07-31',
+            ],
+            6 => [
+                'firstDay' => '2021-08-01',
+                'lastDay' => '2021-08-07',
+            ],
+            7 => [
+                'firstDay' => '2021-08-08',
+                'lastDay' => '2021-08-14',
+            ],
+            8 => [
+                'firstDay' => '2021-08-15',
+                'lastDay' => '2021-08-21',
+            ],
+        ];
+
+        foreach ($durations as $duration){
+            $query = $this->pdo->prepare("SELECT
+                id,
+                SUBSTR(lastname,1,1) AS lastname,
+                firstname AS firstname,
+                SUBSTR(middlename,1,1) AS middlename,
+                confirmation_date
+            FROM
+                drawing d
+            WHERE winner = 1 AND confirmation_date BETWEEN '". $duration['firstDay'] ."' AND '". $duration['lastDay'] ."'
+            ");
+            $query->execute();
+            $queryResult = $query->fetchAll();
+
+            $result[] = [
+                'data' => $queryResult,
+                'duration' => "".$duration['firstDay']." - ".$duration['lastDay']."",
+            ];
+        }
+
+
+        return $result;
+    }
+
+    private function showPopupDrawing(){
+        if(!isset($_SESSION['showPopupDrawing'])){
+            $_SESSION['showPopupDrawing'] = true;
+            $result = [
+                "status" => true,
+            ];
+        }
+        else{
+            $result = [
+                "status" => false,
+            ];
+        }
+
+        return $result;
+    }
+
+    private function setFeedback($phone, $data) {
+        $result = ["status" => true, "data" => $data, "phone" => $phone];
+
+        return $result;
     }
 }
 ?>

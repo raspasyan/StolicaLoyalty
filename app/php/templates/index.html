@@ -34,15 +34,16 @@
   <script src="app/js/jquery.min.js"></script>
   <script src="app/js/jquery.mask.min.js"></script>
   <script src="app/js/qrious.min.js"></script>
+  <script src="app/js/imask.min.js"></script>
   <!-- <script
     src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"
     type="text/javascript"></script>
   <script src="https://yastatic.net/s3/frontend/forms/_/embed.js"></script> -->
-  <script src="app/js/10022022.js" defer></script>
-  <script src="app/js/module.news.js" defer></script>
-  <script src="app/js/module.stores.js" defer></script>
-  <script src="app/js/module.personal.js" defer></script>
-  <script src="app/js/module.wallet.js" defer></script>
+  <script src="app/js/module.main.100222.js" defer></script>
+  <script src="app/js/module.news.100222.js" defer></script>
+  <script src="app/js/module.stores.100222.js" defer></script>
+  <script src="app/js/module.personal.100222.js" defer></script>
+  <script src="app/js/module.wallet.100222.js" defer></script>
   
 </head>
 
@@ -90,7 +91,7 @@
   </div>
 
   <div id="feedback" class="animate__animated animate__slideInDown" style="display: none;">
-    <form>
+    <div class="container">
       <div class="row">
         <div class="six columns">
           <label for="feedback-name">Ваше имя</label>
@@ -100,7 +101,7 @@
         </div>
         <div class="six columns">
           <label for="feedback-phone">Телефон</label>
-          <input class="u-full-width" type="text" placeholder="7-___-___-__-__" id="feedback-phone">
+          <input class="u-full-width" type="text" placeholder="+7(___)___-__-__" id="feedback-phone">
           <label for="feedback-reason">Причина обращения</label>
           <select class="u-full-width" id="feedback-reason">
             <option value="Комментарий">Комментарий</option>
@@ -121,7 +122,7 @@
           <button class="u-full-width" onclick="hideFeedback();">Закрыть</button>
         </div>
       </div>
-    </form>
+    </div>
   </div>
 
   <div id="terms" class="terms" style="display: none">
@@ -277,18 +278,16 @@
             <!-- Номер телефона -->
             <div class="popup"><span class="popup-text" id="reg_phone_popup">Введите номер телефона</span></div>
             <div class="reg_inp required">
-              <input class="u-full-width required" type="text" placeholder="+7-___-___-__-__" id="reg_phone" />
+              <input class="u-full-width required" type="text" id="reg_phone" />
             </div>
             <div class="popup"><span class="popup-text" id="reg_birthdate_popup">Введите дату рождения</span></div>
             <div class="reg_inp required">
-              <input class="u-full-width" data-date-format="dd-mm-yyyy" type="text" placeholder="__-__-____"
-                id="reg_birthdate" />
+              <p>Дата рождения:</p>
+              <input class="u-full-width" data-date-format="dd-mm-yyyy" type="text" id="reg_birthdate" />
             </div>
-            <!-- Дата рождения -->
             <div class="reg_inp">
               <input class="u-full-width" type="email" placeholder="e-mail" id="reg_email" />
             </div>
-            <!-- Пароль -->
             <div class="popup"><span class="popup-text" id="reg_pass_popup">Введите пароль, не менее 6 символов</span>
             </div>
             <div id="reg_password_group" class="reg_inp required"

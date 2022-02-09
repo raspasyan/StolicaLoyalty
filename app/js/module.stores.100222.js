@@ -1,25 +1,3 @@
-function updateStoresData() {
-    if (!storesList.children.length) {
-        let city_id = false;
-        getStores().then(result => {
-            if (result.status) {
-                result.cities.forEach(city => {
-                    let option = document.createElement("option");
-                    option.value = city.id;
-                    option.innerText = city.name;
-                    store_cities.appendChild(option);
-                })
-                city_id = result.cities[0].id;
-                getStoresList(city_id);
-            }
-
-        }).catch(error => {
-            console.warn(error);
-            showPopup("Внимание", "Произошла ошибка, попробуйте позже.");
-        });
-    }
-}
-
 function drawStores(stores) {
     let cities = [];
     stores.forEach(item => {
@@ -27,7 +5,6 @@ function drawStores(stores) {
     });
 
     cities.forEach(cityId => {
-        // console.log(cities, stores);
         let storesInCity = [];
         stores.forEach(item => {
             if (item.id == cityId) storesInCity.push(item);
@@ -38,6 +15,8 @@ function drawStores(stores) {
         option.setAttribute("data-stores", JSON.stringify(storesInCity));
         option.innerText = storesInCity[0].title;
         store_cities.appendChild(option);
+
+        if (storesInCity[0].title == currentCity) option.setAttribute("selected", true)
     });
 
     let storesInCity = JSON.parse(store_cities.options[store_cities.selectedIndex].getAttribute("data-stores"));

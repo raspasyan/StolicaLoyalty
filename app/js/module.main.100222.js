@@ -2,10 +2,11 @@ const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
 const LS_LINK = "LS_walletData_081221_01";
-// const API_URL = "https://bonus.stolica-dv.ru/api";
-const API_URL = "/api";
-const TERMS_URL = "/politika-konfidentsialnosti";
-const RULES_URL = "/pravila";
+const DOMAIN = "http://10.100.0.85"
+// const DOMAIN = "https://bonus.stolica-dv.ru";
+const API_URL = DOMAIN + "/api";
+const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
+const RULES_URL = DOMAIN + "/pravila";
 const LS_TOKEN_LINK = "LS_BearerToken";
 
 let lastPhone = "";
@@ -81,6 +82,7 @@ let currentUpdates = {
   lastNews:"",
   lastPurchase:""
 };
+let currentCity = "";
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
@@ -125,8 +127,6 @@ document.addEventListener("DOMContentLoaded", function () {
   reset_phone.addEventListener("change", e => { reg_phone.value = reset_phone.value; auth_phone.value = reset_phone.value; });
   reset_phone.addEventListener("input", e => { reset_button.disabled = (reset_phone.value ? false : true); modifyInput(e.target) });
   reset_confirmation_code.addEventListener("input", e => { reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true); });
-  $('#reset_phone').mask('+7-000-000-00-00');
-  $('#reset_confirmation_code').mask('0000');
 
   auth_pass_toggle.addEventListener("click", e => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
   reg_pass_toggle.addEventListener("click", e => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
@@ -156,9 +156,23 @@ document.addEventListener("DOMContentLoaded", function () {
     drawStoresInCity(stores);
   });
 
-  $('#auth_phone').mask('+7-000-000-00-00');
-  $('#reg_phone').mask('+7-000-000-00-00');
-  $('#reg_birthdate').mask('00-00-0000');
+  let phoneMaskOptions = {
+    mask: '+{7}(000)000-00-00',
+    lazy: false
+  };
+  let feedbackPhoneMask       = IMask(document.getElementById('feedback-phone'), phoneMaskOptions);
+  let authorizationPhoneMask  = IMask(document.getElementById('auth_phone'), phoneMaskOptions);
+  let registrationPhoneMask   = IMask(document.getElementById('reg_phone'), phoneMaskOptions);
+  let resetPhoneMask          = IMask(document.getElementById('reset_phone'), phoneMaskOptions);
+
+  let dateMaskOptions = {
+    mask: '00-00-0000',
+    lazy: false
+  };
+  let registrationBirthdateMask = IMask(document.getElementById('reg_birthdate'), dateMaskOptions); 
+
+  $('#reset_confirmation_code').mask('0000');
+  // var feedbackPhoneMask = IMask(document.getElementById('feedback-phone'), maskOptions);
 
   // Навигация
   let elements = document.getElementsByClassName("bottom-nav-element");
@@ -1109,16 +1123,18 @@ function checkUpdates(lastUpdates, callback) {
         drawNews(result.data.news);
         currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);                
       }
-      if (result.data.storesHash) {
-        drawStores(result.data.stores);
-        currentUpdates.storesHash = result.data.storesHash;
-      }
       if (result.data.personalHash) {
         drawPersonal(result.data.personal);
         currentUpdates.personalHash = result.data.personalHash;
 
         let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
         document.getElementById("feedback-name").value = (userName ? userName : "");
+
+        if (result.data.personal.city) currentCity = result.data.personal.city;
+      }
+      if (result.data.storesHash) {
+        drawStores(result.data.stores);
+        currentUpdates.storesHash = result.data.storesHash;
       }
       if (result.data.walletHash) {
         drawWallet(result.data.wallet);

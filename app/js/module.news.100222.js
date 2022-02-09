@@ -34,7 +34,7 @@ function drawNews(newsList) {
 
         let newsImageElement = document.createElement("img");
         newsImageElement.classList.add("news-image");
-        newsImageElement.src = news.image;
+        newsImageElement.src = DOMAIN + "/" + news.image;
         newsContElement.appendChild(newsImageElement);
 
         let newsDetailsElement = document.createElement("div");
