@@ -2,6 +2,8 @@ function drawNews(newsList) {
     let container = document.getElementById("news").getElementsByClassName("container")[0];
 
     newsList.forEach(news => {
+        let imageSrc = DOMAIN + "/" + news.image;
+
         let dateObj = new Date((news.date).replace(new RegExp("-", 'g'), "/"));
         let date = [
             (String(dateObj.getDate()).length == 1 ? "0" : "") + String(dateObj.getDate()),
@@ -13,7 +15,7 @@ function drawNews(newsList) {
         newsContElement.classList.add("news-cont", "animate__animated", "animate__fadeInLeft");
         newsContElement.addEventListener("click", e => {
             document.getElementById("overlay-news").style.display = "block";
-            document.getElementById("overlay-news-image").src = news.image;
+            document.getElementById("overlay-news-image").src = imageSrc;
             document.getElementById("overlay-news-details-date").innerText = date;
             document.getElementById("overlay-news-details-title").innerText = news.title;
             document.getElementById("overlay-news-details-descpription").innerHTML = news.description;
@@ -34,7 +36,7 @@ function drawNews(newsList) {
 
         let newsImageElement = document.createElement("img");
         newsImageElement.classList.add("news-image");
-        newsImageElement.src = DOMAIN + "/" + news.image;
+        newsImageElement.src = imageSrc;
         newsContElement.appendChild(newsImageElement);
 
         let newsDetailsElement = document.createElement("div");

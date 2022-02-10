@@ -2,7 +2,7 @@ const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
 const LS_LINK = "LS_walletData_081221_01";
-const DOMAIN = "http://10.100.0.85"
+const DOMAIN = "http://10.100.0.85";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Навигация
   let elements = document.getElementsByClassName("bottom-nav-element");
   for (let i = 0; i < elements.length; i++) {
-    elements[i].addEventListener("click", function (e) {
+    elements[i].addEventListener("pointerdown", function (e) {
       if (e.currentTarget.getAttribute("section")) drawSection(e.currentTarget.getAttribute("section"));
       $(".store_map").remove();
     });
