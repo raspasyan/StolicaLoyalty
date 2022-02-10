@@ -82,17 +82,12 @@ class BonusApp {
             }
 
             case "politika-konfidentsialnosti": {
-                require_once 'templates/template_terms-of-use.php';
+                require_once 'templates/template_terms.php';
                 break;
             }
 
             case "pravila": {
                 require_once 'templates/template_rules_191021.php';
-                break;
-            }
-
-            case "pravila-ref": {
-                require_once 'templates/template_rules_ref.php';
                 break;
             }
 
@@ -112,12 +107,12 @@ class BonusApp {
             }
 
             case "pravila-akcii": {
-                require_once 'templates/template_referral_rules.php';
+                require_once 'templates/template_referral.php';
                 break;
             }
 
             case "pravila-rozigrisha": {
-                require_once 'templates/template_drawing_rules.php';
+                require_once 'templates/template_drawing.php';
                 break;
             }
 
@@ -284,112 +279,6 @@ class BonusApp {
                 }
                 header("Location: https://".$_SERVER["HTTP_HOST"]."/");
 
-                break;
-            }
-
-            case "dashboard": {
-                if(isset($_SESSION['authBoard'])){
-                    $auth = $_SESSION['authBoard'];
-                }
-                else{
-                    $auth = $_SESSION['authBoard'] = 'not-login';
-                }
-
-                require_once 'templates/template_dashboard.php';
-                break;
-            }
-
-            case "dashboard-login": {
-                $BoardRequestData = file_get_contents('php://input');
-
-                if (!empty($BoardRequestData)) {
-                    $this->api($BoardRequestData);
-                }
-
-                break;
-            }
-
-            case "dashboard-logout": {
-                $BoardLogoutRequestData = file_get_contents('php://input');
-
-                if (!empty($BoardLogoutRequestData)) {
-                    $this->api($BoardLogoutRequestData);
-                }
-
-                break;
-            }
-
-            case "dashboard-content": {
-                $BoardRequestContent = file_get_contents('php://input');
-
-                if (!empty($BoardRequestContent)) {
-                    $this->api($BoardRequestContent);
-                }
-
-                break;
-            }
-
-            case "dashboard-transaction-details": {
-                $BoardRequestTransactDetails = file_get_contents('php://input');
-
-                if (!empty($BoardRequestTransactDetails)) {
-                    $this->api($BoardRequestTransactDetails);
-                }
-
-                break;
-            }
-
-            case "get-account": {
-                $BoardRequestAccount = file_get_contents('php://input');
-
-                if (!empty($BoardRequestAccount)) {
-                    $this->api($BoardRequestAccount);
-                }
-
-                break;
-            }
-
-            case "update-profile": {
-                $BoardRequestProfileUp = file_get_contents('php://input');
-
-                if (!empty($BoardRequestProfileUp)) {
-                    $this->api($BoardRequestProfileUp);
-                }
-
-                break;
-            }
-
-            case "dashboard-report": {
-                $BoardReport = file_get_contents('php://input');
-
-                if (!empty($BoardReport)) {
-                    $this->api($BoardReport);
-                }
-                exit;
-                break;
-            }
-
-            case "get-balance": {
-                if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
-                
-                $result = $this->initPDO();
-                if (!$result["status"]) {
-                    echo(json_encode($result));
-                    exit;
-                }
-
-                $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
-                $result = $this->getAccountDataByPhone($phone);
-                if ($result["status"]) {
-                    $token = $result["data"]["token"];
-                    $result = $this->API_getWalletData($token);
-                }
-
-                header("Content-type: application/json; charset=utf-8");
-                // header("charset: utf-8");
-
-                echo(utf8_encode(json_encode($result, JSON_UNESCAPED_UNICODE)));
-                    
                 break;
             }
 
