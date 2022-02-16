@@ -226,12 +226,13 @@ class LMX {
         return $result;  
     }
 
-    public function getBalance($personId) {
+    public function getBalance($personId, $debug = false) {
         $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
 
             $methodResult = $this->SAPI_DetailedBalance($personId);
+            if ($debug) debug($methodResult);
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->items)) {
                     $result["status"] = true;
@@ -387,7 +388,7 @@ class LMX {
         return $result;   
     }
 
-    public function getPurchasesFullData($filters) {
+    public function getPurchasesFullData($filters, $debug = false) {
         $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
@@ -395,11 +396,15 @@ class LMX {
             $methodResult = $this->SAPI_Purchases($filters);
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data)) {
+                    if ($debug) debug($methodResult["data"]);
+                    
                     $purchases = [];
 
                     foreach ($methodResult["data"]->data as $key => $purchase) {
                         $chequePositionsResult = $this->SAPI_ChequePositions($purchase->purchaseId);
                         if ($chequePositionsResult["status"] && $chequePositionsResult["data"]->result->state == "Success") {
+                            if ($debug) debug($chequePositionsResult["data"]);
+                            
                             $oper_day = new DateTime($purchase->purchaseTime);
                             $sale_time = new DateTime($purchase->completeTime);
                             $purchase = [
@@ -430,26 +435,38 @@ class LMX {
                                     "amount" => $chequePosition->amount->amount * 100
                                 ];
 
-                                foreach ($chequePosition->discounts as $key => $discount) {
-                                    if (!$discount->amount->amount) continue;
-
-                                    switch ($discount->type) {
-                                        case "CalculatedDiscount": {
-                                            $position["discount_amount"] += $discount->amount->amount * 100;
-                                            $position["amount"] += $discount->amount->amount * 100;
-                                            break;
+                                if (!empty($chequePosition->discounts)) {
+                                    foreach ($chequePosition->discounts as $key => $discount) {
+                                        if (!$discount->amount->amount) continue;
+    
+                                        switch ($discount->type) {
+                                            case "CalculatedDiscount": {
+                                                $position["discount_amount"] += $discount->amount->amount * 100;
+                                                $position["amount"] += $discount->amount->amount * 100;
+                                                break;
+                                            }
+    
+                                            case "CalculatedCashback":{
+                                                $position["cashback_amount"] += $discount->amount->amount * 100;
+                                                break;
+                                            }
+    
+                                            case "CalculatedPayment":{
+                                                $position["payment_amount"] += $discount->amount->amount * 100;
+                                                $position["amount"] += $discount->amount->amount * 100;
+                                                break;
+                                            }
                                         }
+                                    }
+                                }
 
-                                        case "CalculatedCashback":{
-                                            $position["cashback_amount"] += $discount->amount->amount * 100;
-                                            break;
-                                        }
+                                if (!empty($chequePosition->refunds)) {
+                                    $purchase["operation_type"] = 0;
 
-                                        case "CalculatedPayment":{
-                                            $position["payment_amount"] += $discount->amount->amount * 100;
-                                            $position["amount"] += $discount->amount->amount * 100;
-                                            break;
-                                        }
+                                    foreach ($chequePosition->refunds as $key => $refund) {
+                                        if (!$refund->amount->amount) continue;
+    
+                                        $position["cashback_amount"] += $refund->amount->amount * 100;
                                     }
                                 }
 

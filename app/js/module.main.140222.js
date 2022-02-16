@@ -2,12 +2,13 @@ const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
 const LS_LINK = "LS_walletData_081221_01";
-const DOMAIN = "http://10.100.0.85";
+const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
 const RULES_URL = DOMAIN + "/pravila";
 const LS_TOKEN_LINK = "LS_BearerToken";
+const SOURCE = "WEB2";
 
 let lastPhone = "";
 let secondsInterval = null;
@@ -37,44 +38,53 @@ let sections = {
   },
   "personal": {
     title: "Профиль",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "wallet": {
     title: "Кошелек",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "news": {
     title: "Новости",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "refer": {
     title: "Приглашение",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "stores": {
     title: "Магазины",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "reg_success": {
     title: "Профиль"
   },
   "alerts": {
     title: "Подписки и уведомления",
-    showMenu: true
+    showMenu: true,
+    needAuth: true
   },
   "personal_update": {
     title: "Смена данных",
     showMenu: true,
-    prevSection: "personal"
+    prevSection: "personal",
+    needAuth: true
   },
   "set_plastic": {
     title: "Привязка карты",
     showMenu: true,
-    prevSection: "personal_update"
+    prevSection: "personal_update",
+    needAuth: true
   }
 }
+let currentSection = "";
 
-let bearerToken   = null;
+let bearerToken   = "";
 let currentUpdates = {
   personalHash:"",
   walletHash:"",
@@ -83,6 +93,7 @@ let currentUpdates = {
   lastPurchase:""
 };
 let currentCity = "";
+let userActivityTimeout = null;
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
@@ -204,11 +215,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  checkUpdates(currentUpdates, function() {
-    let section = localStorage.getItem("section");
-    drawSection(section);
+  checkUpdates(currentUpdates, () => {
+    drawSection(localStorage.getItem("section"));
+    document.body.addEventListener("pointerover", userActivity);
+    document.body.addEventListener("pointerdown", userActivity)
   });
 });
+
+function userActivity(e) {
+  if (!userActivityTimeout) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates, () => {
+    userActivityTimeout = null;
+  });
+}
 
 function modifyInput(el) {
   if (el.value.length == 1 && +el.value[0] == 8) el.value = "+7-";
@@ -1144,18 +1162,13 @@ function checkUpdates(lastUpdates, callback) {
         drawPurchases(result.data.purchases);
         currentUpdates.lastPurchase = result.data.lastPurchase;
       }
-
-      // if (["wallet", "news", "personal", "stores", "refer"].indexOf(section) == -1) section = "wallet";
-    } 
-    // else {
-    //   section = (section ? section : "adult");
-    // }
+    } else {
+      if (sections[localStorage.getItem("section")] && sections[localStorage.getItem("section")].needAuth) logOff();
+    }
   })
   .finally(() => {
     if (callback) callback();
 
-    let timeout = setTimeout(checkUpdates, 6666, currentUpdates);
-    
     updateWalletData();
   });
 }
@@ -1169,7 +1182,8 @@ function getUpdates(lastUpdates) {
     },
     body: JSON.stringify({
       "method": "getUpdates",
-      "data": lastUpdates
+      "data": lastUpdates,
+      "source": SOURCE
     })
   })
   .then(response => response.json())

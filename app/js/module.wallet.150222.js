@@ -154,7 +154,7 @@ function drawPurchase(purchase) {
 
     spanElement = document.createElement("span");
     spanElement.classList.add("good");
-    spanElement.innerText = "+" + new Intl.NumberFormat('ru-RU').format(Number(purchase.cashback_amount)) + " бонусов"
+    spanElement.innerText = (Number(purchase.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(purchase.cashback_amount)) + " бонусов"
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
@@ -241,7 +241,7 @@ function drawPurchase(purchase) {
             paymentRowElement.appendChild(spanElement);
             paymentRowElement.classList.add("payment-position-amount");
             spanElement = document.createElement("span");
-            spanElement.innerText = "+" + new Intl.NumberFormat('ru-RU').format(Number(position.cashback_amount)) + " бонусов";
+            spanElement.innerText = (Number(position.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(position.cashback_amount)) + " бонусов";
             spanElement.style.fontWeight = "bold";
             paymentRowElement.appendChild(spanElement);
 
