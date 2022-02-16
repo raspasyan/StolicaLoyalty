@@ -155,8 +155,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("transactions-details-button").addEventListener("click", e => {
-    $("#transactions").toggleClass("transactionsOpen");
-    $("#transactions-details-button").text((transactions.classList.contains("transactionsOpen")) ? "скрыть детализацию" : "открыть детализацию");
+    let isOpen = document.getElementById("transactions").style.display == "";
+    document.getElementById("transactions").style.display = (isOpen ? "none" : "");
+    $("#transactions-details-button").text(isOpen ? "открыть детализацию" : "скрыть детализацию");
   });
 
   document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());

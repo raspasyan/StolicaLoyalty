@@ -94,8 +94,6 @@ function drawWallet(walletData) {
 }
 
 function drawPurchases(purchases) {
-    // removeChildrens(transactions);
-
     purchases.forEach(purchase => drawPurchase(purchase));
 }
 
@@ -122,6 +120,17 @@ function drawPurchase(purchase) {
     spanElement.innerText = new Intl.NumberFormat('ru-RU').format(((Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount))) * -1)) + " руб";
     paymentRowElement.appendChild(spanElement);
 
+    if (!purchase.operation_type) {
+        spanElement = document.createElement("span");
+        spanElement.classList.add("bad");
+        spanElement.style.fontWeight = "bold";
+        spanElement.style.textAlign = "right";
+        spanElement.style.fontSize = "12px";
+        spanElement.innerText = "чек возврата";
+        paymentRowElement.appendChild(spanElement);
+    }
+    
+
     paymentElement.appendChild(paymentRowElement);
 
     // Из них бонусами
@@ -137,7 +146,7 @@ function drawPurchase(purchase) {
 
     spanElement = document.createElement("span");
     spanElement.classList.add("bad");
-    spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount)) + " бонусов";
+    spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount));
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
@@ -154,14 +163,14 @@ function drawPurchase(purchase) {
 
     spanElement = document.createElement("span");
     spanElement.classList.add("good");
-    spanElement.innerText = (Number(purchase.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(purchase.cashback_amount)) + " бонусов"
+    spanElement.innerText = (Number(purchase.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(purchase.cashback_amount));
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
 
     // Дата
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row");
+    paymentRowElement.classList.add("payment-row", "payment-row-date");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");
@@ -185,7 +194,7 @@ function drawPurchase(purchase) {
 
     // Источник начисления
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row");
+    paymentRowElement.classList.add("payment-row", "payment-row-date");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");
@@ -208,10 +217,7 @@ function drawPurchase(purchase) {
         paymentElement.appendChild(paymentDetailsElement);
 
         paymentRowElement = document.createElement("div");
-        paymentRowElement.classList.add("payment-row");
-        paymentRowElement.classList.add("neutral");
-        paymentRowElement.classList.add("payment-details");
-        paymentRowElement.classList.add("payment-header");
+        paymentRowElement.classList.add("payment-details", "neutral");
         ["Оплачено", "Скидка", "Начислено"].forEach(element => {
             let spanElement = document.createElement("span");
             spanElement.innerText = element;
@@ -221,14 +227,10 @@ function drawPurchase(purchase) {
 
         purchase.positions.forEach((position) => {
             paymentRowElement = document.createElement("div");
-            paymentRowElement.classList.add("payment-row");
-            paymentRowElement.classList.add("payment-details");
-            paymentRowElement.classList.add("payment-header");
-
+            paymentRowElement.classList.add("payment-details", "important");
             let spanElement = undefined;
             spanElement = document.createElement("span");
             spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(position.cost)) + " руб";
-            spanElement.style.fontWeight = "bold";
             paymentRowElement.appendChild(spanElement);
 
             spanElement = document.createElement("span");
@@ -239,17 +241,14 @@ function drawPurchase(purchase) {
             }
 
             paymentRowElement.appendChild(spanElement);
-            paymentRowElement.classList.add("payment-position-amount");
             spanElement = document.createElement("span");
             spanElement.innerText = (Number(position.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(position.cashback_amount)) + " бонусов";
-            spanElement.style.fontWeight = "bold";
             paymentRowElement.appendChild(spanElement);
 
             paymentDetailsElement.appendChild(paymentRowElement);
 
             paymentRowElement = document.createElement("div");
-            paymentRowElement.classList.add("payment-row");
-            paymentRowElement.classList.add("payment-position");
+            paymentRowElement.classList.add("payment-details", "payment-details-full");
             paymentRowElement.innerText = (position.product_title ? position.product_title : "Загрузка..");
             paymentDetailsElement.appendChild(paymentRowElement);
         });
