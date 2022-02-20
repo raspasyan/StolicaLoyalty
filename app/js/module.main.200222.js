@@ -210,7 +210,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function userActivity(e) {
-  if (!userActivityTimeout) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates, () => {
+  if (!userActivityTimeout && !waitForUpdateWalletData) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates, () => {
+    waitForUpdateWalletData = true;
     userActivityTimeout = null;
   });
 }
@@ -1164,12 +1165,7 @@ function checkUpdates(lastUpdates, callback) {
   })
   .finally(() => {
     if (callback) callback();
-
-    if (!waitForUpdateWalletData) {
-      waitForUpdateWalletData = true;
-
-      updateWalletData();
-    }
+    updateWalletData();
   });
 }
 
