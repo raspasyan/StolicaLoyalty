@@ -21,8 +21,6 @@ function updatePersonalData() {
                 personal_phone.innerText = '+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10];
             }
 
-            if (result.data.card_status !== 1) $("#replace_card").remove();
-
             personalCardType.innerText = (result.data.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
 
             if (result.data.discount != result.data.preferred_discount) {
@@ -57,8 +55,6 @@ function drawPersonal(personal) {
         a = personal.phone.split('');
         personal_phone.innerText = '+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10];
     }
-
-    if (personal.card_status !== 1) $("#replace_card").remove();
 
     personalCardType.innerText = (personal.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
 

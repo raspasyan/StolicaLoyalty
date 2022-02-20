@@ -115,11 +115,13 @@ function drawPurchase(purchase) {
     spanElement.innerText = "Всего скидка: ";
     paymentRowElement.appendChild(spanElement);
 
+    let totalDiscount = Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount));
     spanElement = document.createElement("span");
     spanElement.classList.add("bad");
-    spanElement.innerText = new Intl.NumberFormat('ru-RU').format(((Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount))) * -1)) + " руб";
+    spanElement.innerText = (totalDiscount ? "-" : "") + new Intl.NumberFormat('ru-RU').format(totalDiscount) + " руб";
     paymentRowElement.appendChild(spanElement);
 
+    // Чек-возврата
     if (!purchase.operation_type) {
         spanElement = document.createElement("span");
         spanElement.classList.add("bad");
@@ -129,7 +131,6 @@ function drawPurchase(purchase) {
         spanElement.innerText = "чек возврата";
         paymentRowElement.appendChild(spanElement);
     }
-    
 
     paymentElement.appendChild(paymentRowElement);
 
@@ -161,9 +162,10 @@ function drawPurchase(purchase) {
     spanElement.innerText = "Начислено бонусов: ";
     paymentRowElement.appendChild(spanElement);
 
+    let cashbackAmount = Number(purchase.cashback_amount);
     spanElement = document.createElement("span");
     spanElement.classList.add("good");
-    spanElement.innerText = (Number(purchase.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(purchase.cashback_amount));
+    spanElement.innerText = (cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount);
     paymentRowElement.appendChild(spanElement);
 
     paymentElement.appendChild(paymentRowElement);
@@ -240,9 +242,10 @@ function drawPurchase(purchase) {
                 spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(position.payment_amount)) + " бонусов";
             }
 
+            let positionCashbackAmount = Number(position.cashback_amount)
             paymentRowElement.appendChild(spanElement);
             spanElement = document.createElement("span");
-            spanElement.innerText = (Number(position.cashback_amount) ? "+" : "") + new Intl.NumberFormat('ru-RU').format(Number(position.cashback_amount)) + " бонусов";
+            spanElement.innerText = (positionCashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(positionCashbackAmount) + " бонусов";
             paymentRowElement.appendChild(spanElement);
 
             paymentDetailsElement.appendChild(paymentRowElement);

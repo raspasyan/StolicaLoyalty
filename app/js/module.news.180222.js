@@ -12,7 +12,7 @@ function drawNews(newsList) {
         ].join(".");
 
         let newsContElement = document.createElement("div");
-        newsContElement.classList.add("news-cont", "animate__animated", "animate__fadeInLeft");
+        newsContElement.classList.add("news-cont");
         newsContElement.addEventListener("click", e => {
             document.getElementById("overlay-news").style.display = "block";
             document.getElementById("overlay-news-image").src = imageSrc;
@@ -22,7 +22,7 @@ function drawNews(newsList) {
 
             document.getElementById("overlay-news-image").scrollIntoView();
 
-            document.getElementById("overlay-news").classList.add("animate__animated", "animate__fadeIn");
+            // document.getElementById("overlay-news").classList.add("animate__animated", "animate__fadeIn");
 
             document.body.classList.add("overlay-show");
 

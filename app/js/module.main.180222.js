@@ -1,13 +1,13 @@
 const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
-const LS_LINK = "LS_walletData_081221_01";
 const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
 const RULES_URL = DOMAIN + "/pravila";
-const LS_TOKEN_LINK = "LS_BearerToken";
+const LS_TOKEN = "LS_BearerToken";
+const LS_SECTION = "section";
 const SOURCE = "WEB2";
 
 let lastPhone = "";
@@ -94,6 +94,7 @@ let currentUpdates = {
 };
 let currentCity = "";
 let userActivityTimeout = null;
+let waitForUpdateWalletData = false;
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
@@ -107,20 +108,24 @@ document.addEventListener("DOMContentLoaded", function () {
   // }
   initPopups();
 
-  bearerToken = localStorage.getItem(LS_TOKEN_LINK);
+  bearerToken = localStorage.getItem(LS_TOKEN);
 
-  auth_phone.addEventListener("blur", e => { dropFail(e.target); auth_phone_popup.classList.remove("show"); });
-  auth_phone.addEventListener("change", e => { reg_phone.value = auth_phone.value; reset_phone.value = auth_phone.value; });
-  auth_phone.addEventListener("input", e => modifyInput(e.target));
+  // Применим маску ко всем полям ввода номера телефона
+  setPhoneMask("7", false);
+  document.getElementById("auth-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
+  document.getElementById("auth-phone-mask").addEventListener("blur", e => document.getElementById("auth-phone-popup").classList.remove("show"));
+  document.getElementById("reset-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
+  document.getElementById("reg-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
+  document.getElementById("reg-phone-mask").addEventListener("blur", e => document.getElementById("reg-phone-popup").classList.remove("show"));
 
-  reg_phone.addEventListener("blur", e => { dropFail(e.target); reg_phone_popup.classList.remove("show"); });
-  reg_phone.addEventListener("change", e => { auth_phone.value = reg_phone.value; reset_phone.value = reg_phone.value; });
-  reg_phone.addEventListener("input", e => modifyInput(e.target));
+  document.getElementById("auth-button").addEventListener("click", e => auth());
 
   auth_pass.addEventListener("blur", e => { dropFail(e.target); auth_pass_popup.classList.remove("show"); });
   reg_pass.addEventListener("blur", e => { dropFail(e.target); reg_pass_popup.classList.remove("show"); });
   reg_confirmation_code.addEventListener("blur", e => { dropFail(e.target); reg_confirmation_code_popup.classList.remove("show"); });
-  reg_birthdate.addEventListener("blur", e => { dropFail(e.target); reg_birthdate_popup.classList.remove("show"); });
+  
+  document.getElementById("reg-birthdate").addEventListener("input", e => validateBirthdate(e.target));
+  document.getElementById("reg-birthdate").addEventListener("blur", e => { dropFail(e.target); document.getElementById("reg-birthdate-popup").classList.remove("show"); });
 
   // Переход на пластиковую карту
   personal_changeCard_button.addEventListener("click", () => changeCard());
@@ -135,18 +140,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Вход без пароля
   reset_phone.addEventListener("blur", e => { dropFail(e.target); reset_phone_popup.classList.remove("show"); });
-  reset_phone.addEventListener("change", e => { reg_phone.value = reset_phone.value; auth_phone.value = reset_phone.value; });
   reset_phone.addEventListener("input", e => { reset_button.disabled = (reset_phone.value ? false : true); modifyInput(e.target) });
   reset_confirmation_code.addEventListener("input", e => { reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true); });
 
-  auth_pass_toggle.addEventListener("click", e => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle.addEventListener("click", e => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle_confirm.addEventListener("click", e => { reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6"); });
+  auth_pass_toggle.addEventListener("pointerdown", e => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
+  reg_pass_toggle.addEventListener("pointerdown", e => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
+  reg_pass_toggle_confirm.addEventListener("pointerdown", e => { reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6"); });
 
-  update_pass_toggle.addEventListener("click", e => { personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6"); });
-  update_pass_toggle_confirm.addEventListener("click", e => { personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6"); });
+  update_pass_toggle.addEventListener("pointerdown", e => { personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6"); });
+  update_pass_toggle_confirm.addEventListener("pointerdown", e => { personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6"); });
 
-  reg_button.addEventListener("click", e => {
+  document.getElementById("reg-button").addEventListener("click", e => {
     if (checkReg()) showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
   });
 
@@ -154,10 +158,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (canGetResetConfirmationCode()) showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
   });
 
-  document.getElementById("transactions-details-button").addEventListener("click", e => {
-    let isOpen = document.getElementById("transactions").style.display == "";
-    document.getElementById("transactions").style.display = (isOpen ? "none" : "");
-    $("#transactions-details-button").text(isOpen ? "открыть детализацию" : "скрыть детализацию");
+  document.getElementById("transactions-details-button").addEventListener("pointerdown", e => {
+    let transactionsButtonElement = document.getElementById("transactions");
+    let isOpen = transactionsButtonElement.style.display == "";
+    transactionsButtonElement.style.display = (isOpen ? "none" : "");
+    e.target.innerText = (isOpen ? "открыть детализацию" : "скрыть детализацию");
   });
 
   document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());
@@ -168,35 +173,16 @@ document.addEventListener("DOMContentLoaded", function () {
     drawStoresInCity(stores);
   });
 
-  let phoneMaskOptions = {
-    mask: '+{7}(000)000-00-00',
-    lazy: false
-  };
-  let feedbackPhoneMask       = IMask(document.getElementById('feedback-phone'), phoneMaskOptions);
-  let authorizationPhoneMask  = IMask(document.getElementById('auth_phone'), phoneMaskOptions);
-  let registrationPhoneMask   = IMask(document.getElementById('reg_phone'), phoneMaskOptions);
-  let resetPhoneMask          = IMask(document.getElementById('reset_phone'), phoneMaskOptions);
-
-  let dateMaskOptions = {
-    mask: '00-00-0000',
-    lazy: false
-  };
-  let registrationBirthdateMask = IMask(document.getElementById('reg_birthdate'), dateMaskOptions); 
-
-  $('#reset_confirmation_code').mask('0000');
-  // var feedbackPhoneMask = IMask(document.getElementById('feedback-phone'), maskOptions);
-
   // Навигация
   let elements = document.getElementsByClassName("bottom-nav-element");
   for (let i = 0; i < elements.length; i++) {
     elements[i].addEventListener("pointerdown", function (e) {
       if (e.currentTarget.getAttribute("section")) drawSection(e.currentTarget.getAttribute("section"));
-      $(".store_map").remove();
     });
   }
 
   // Сокрытие всплывающего окна
-  overlay.addEventListener("click", function (e) {
+  overlay.addEventListener("pointerdown", function (e) {
     if (overlay.callback) {
       overlay.style.opacity = 0;
       overlay.style.display = "none";
@@ -217,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   checkUpdates(currentUpdates, () => {
-    drawSection(localStorage.getItem("section"));
+    drawSection(localStorage.getItem(LS_SECTION));
     document.body.addEventListener("pointerover", userActivity);
     document.body.addEventListener("pointerdown", userActivity)
   });
@@ -248,7 +234,7 @@ function removeChildrens(element) {
 }
 
 function routePrevSection() {
-  let section = localStorage.getItem("section");
+  let section = localStorage.getItem(LS_SECTION);
   if (sections[section] && sections[section].prevSection) drawSection(sections[section].prevSection);
 }
 
@@ -335,7 +321,7 @@ function drawSection(section) {
     if (document.getElementById("bottom-nav").children[i].getAttribute("section") == section) document.getElementById("bottom-nav").children[i].classList.add("current-section");
   }
 
-  localStorage.setItem("section", section);
+  localStorage.setItem(LS_SECTION, section);
 }
 
 function renderReferSection() {
@@ -412,16 +398,54 @@ function getGeoMap() {
 }
 
 function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
-  $(".store_map").remove();
-  $("body").append("<div class='store_map'><div class='store_map-bg'></div><div class='store_map-block'><div id='map_city'>" + city + "</div><div id='map_info'><div class='map_info-item'><span class='map_info-item-key'>Адрес:</span><span class='map_info-item-value'>" + title + "</span></div><div class='map_info-item'><span class='map_info-item-key'>Время работы:</span><span class='map_info-item-value'>" + shedule + "</span></div><div class='map_info-item'><span class='map_info-item-key'>Телефон:</span><span class='map_info-item-value'><a href='tel:+7" + phone.slice(1) + "'>" + phone + "</a></span></div></div><div id='map'></div></div>");
+  let storeMap = document.createElement("div");
+  storeMap.classList.add("store_map");
 
+  let storeMapBg = document.createElement("div");
+  storeMapBg.classList.add("store_map-bg");
+  storeMapBg.addEventListener("click", e => document.body.removeChild(storeMap));
+  storeMap.append(storeMapBg);
+
+  let storeMapBlock = document.createElement("div");
+  storeMapBlock.classList.add("store_map-block", "animate__animated","animate__fadeInDown");
+  storeMap.append(storeMapBlock);
+
+  let mapCity = document.createElement("div");
+  mapCity.setAttribute("id", "map_city");
+  mapCity.innerText = city;
+  storeMapBlock.append(mapCity);
+
+  let mapInfo = document.createElement("div");
+  mapInfo.setAttribute("id", "map_info");
+  storeMapBlock.append(mapInfo);
+
+  let mapInfoItem = document.createElement("div");
+  mapInfoItem.classList.add("map_info-item");
+  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Адрес:</span><span class='map_info-item-value'>" + title + "</span>";
+  mapInfo.append(mapInfoItem);
+
+  mapInfoItem = document.createElement("div");
+  mapInfoItem.classList.add("map_info-item");
+  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Время работы:</span><span class='map_info-item-value'>" + shedule + "</span>";
+  mapInfo.append(mapInfoItem);
+
+  mapInfoItem = document.createElement("div");
+  mapInfoItem.classList.add("map_info-item");
+  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Телефон:</span><span class='map_info-item-value'><a href='tel:+7" + phone.slice(1) + "'>" + phone + "</a></span>";
+  mapInfo.append(mapInfoItem);
+
+  let map = document.createElement("div");
+  map.setAttribute("id", "map");
+  storeMapBlock.append(map);
+
+  document.body.append(storeMap);
 
   let x = parseFloat(coordinates.split(',')[0]);
   let y = parseFloat(coordinates.split(',')[1]);
 
   var myMap = new ymaps.Map("map", {
     center: [x, y],
-    zoom: 12
+    zoom: 16
   });
 
   let objectManager = new ymaps.ObjectManager({
@@ -449,23 +473,8 @@ function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
   myMap.geoObjects.add(objectManager);
 }
 
-$(document).on('click', '.store_block', function () {
-  let coordinates = $(this).attr("data-coordinates");
-  let title = $(this).find(".store_block-title").text();
-  let shedule = $(this).find(".store_block-shedule").text();
-  let phone = $(this).attr("data-phone");
-  let city = $(this).attr("data-city");
-  let rsa_id = $(this).attr("data-rsa");
-
-  getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id);
-})
-
-$(document).on("click", ".store_map-bg", function () {
-  $(".store_map").remove();
-})
-
 function confirmAdult() {
-  drawSection(localStorage.getItem("section"));
+  drawSection(localStorage.getItem(LS_SECTION));
 }
 
 function showPopup(title, description, message, buttonText, callback) {
@@ -546,13 +555,23 @@ function checkAuthorization() {
 }
 
 async function auth() {
-  if (auth_phone.value == "") {
-    auth_phone.scrollIntoView();
-    auth_phone.classList.toggle("fail");
-    auth_phone.focus();
-    auth_phone_popup.classList.toggle("show");
+  let authPhoneElement = document.getElementById("auth-phone-mask");
+  let authPhonePopupElement = document.getElementById("auth-phone-popup");
+
+  let phone = getPhoneNumbers(authPhoneElement.value);
+
+  if (!phone || phone.length != 11) {
+    authPhoneElement.scrollIntoView();
+    authPhoneElement.focus();
+    authPhoneElement.classList.add("fail");
+
+    authPhonePopupElement.classList.add("show");
+
     return;
+  } else {
+    authPhoneElement.classList.remove("fail");
   }
+
   if (auth_pass.value == "") {
     auth_pass.scrollIntoView();
     auth_pass.classList.toggle("fail");
@@ -561,52 +580,60 @@ async function auth() {
     return;
   }
 
-  if (auth_phone.value && auth_pass.value) {
-    auth_button.disabled = true;
+  let authButton = document.getElementById("auth-button");
+  authButton.disabled = true;
 
-    let body = {
-      "method": "authorization",
-      "data": {
-        "phone": auth_phone.value,
-        "pass": auth_pass.value
-      }
-    };
-
-    let response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8"
-      },
-      body: JSON.stringify(body)
-    });
-
-    let result = await response.json();
-
-    auth_button.disabled = false;
-
-    if (result.status) {
-      clearLocalStorage();
-
-      localStorage.setItem("section", "wallet");
-      localStorage.setItem(LS_TOKEN_LINK, result.data.token);
-
-      location.reload();
-      // drawSection("wallet");
-    } else {
-      showPopup("", result.description);
+  let body = {
+    "method": "authorization",
+    "data": {
+      "phone": phone,
+      "pass": auth_pass.value
     }
+  };
+
+  let response = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json;charset=utf-8"
+    },
+    body: JSON.stringify(body)
+  });
+
+  let result = await response.json();
+
+  authButton.disabled = false;
+
+  if (result.status) {
+    clearLocalStorage();
+
+    localStorage.setItem(LS_SECTION, "wallet");
+    localStorage.setItem(LS_TOKEN, result.data.token);
+
+    location.reload();
+  } else {
+    showPopup("", result.description);
   }
 }
 
 function checkReg() {
-  if (reg_phone.value.length < 16) {
-    reg_phone.scrollIntoView();
-    reg_phone.classList.add("fail");
-    reg_phone.focus();
-    reg_phone_popup.classList.toggle("show");
+  let regPhoneElement = document.getElementById("reg-phone-mask");
+  let regPhonePopupElement = document.getElementById("reg-phone-popup");
+  let regBirthdateElement = document.getElementById("reg-birthdate");
+
+  let phone = getPhoneNumbers(regPhoneElement.value);
+
+  if (phone.length != 11) {
+    regPhoneElement.scrollIntoView();
+    regPhoneElement.classList.add("fail");
+    regPhoneElement.focus();
+
+    regPhonePopupElement.classList.add("show");
+
     return 0;
+  } else {
+    regPhoneElement.classList.remove("fail");
   }
-  // if (reg_card_type_digital.checked) {
+
   if (reg_pass.value.length < 6) {
     reg_pass.scrollIntoView();
     reg_pass.classList.add("fail");
@@ -614,35 +641,19 @@ function checkReg() {
     reg_pass_popup.classList.toggle("show");
     return 0;
   }
-  // } else {
-  //   if (reg_cardNumber.value.length < 6) {
-  //     reg_cardNumber.scrollIntoView();
-  //     reg_cardNumber.classList.add("fail");
-  //     reg_cardNumber.focus();
-  //     reg_cardNumber_popup.classList.toggle("show");
-  //     return 0;
-  //   }
-  // }
 
   let trueDate = null;
 
-  if (reg_birthdate.value) {
-    let td = reg_birthdate.value.split("-");
-    trueDate = [td[2], td[1], td[0]].join("-");
+  if (regBirthdateElement.value) {
+    let td = regBirthdateElement.value.split("-");
+    trueDate = [td[2], td[1], td[0]].join("/");
 
     let bd = new Date(trueDate);
     let cd = new Date();
-    if (cd.getFullYear() - bd.getFullYear() < 18 || reg_birthdate.value.length !== 10) {
+    if (cd.getFullYear() - bd.getFullYear() < 18) {
       showPopup("Внимание", "Вам должно быть 18 лет!");
       return 0;
     }
-  } else {
-    reg_birthdate.scrollIntoView();
-    reg_birthdate.classList.add("fail");
-    reg_birthdate.focus();
-    reg_birthdate_popup.classList.toggle("show");
-
-    return 0;
   }
 
   if (reg_pass.value != reg_pass_confirm.value) {
@@ -654,16 +665,20 @@ function checkReg() {
 }
 
 async function reg() {
+  let regPhoneElement = document.getElementById("reg-phone-mask");
+  let regBirthdateElement = document.getElementById("reg-birthdate");
+  let regButtonElement = document.getElementById("reg-button");
   let trueDate = null;
 
-  if (reg_birthdate.value) {
-    let td = reg_birthdate.value.split("-");
+  if (regBirthdateElement.value) {
+    let td = regBirthdateElement.value.split("-");
     trueDate = [td[2], td[1], td[0]].join("-");
   }
 
-  lastPhone = reg_phone.value;
+  let phone = getPhoneNumbers(regPhoneElement.value);
+  lastPhone = phone;
 
-  reg_button.disabled = true;
+  regButtonElement.disabled = true;
   showLoader();
 
   let response = await fetch(API_URL, {
@@ -674,7 +689,7 @@ async function reg() {
     body: JSON.stringify({
       "method": "registration",
       "data": {
-        "phone": reg_phone.value,
+        "phone": phone,
         "pass": reg_pass.value,
         "firstname": reg_firstname.value,
         "birthdate": trueDate,
@@ -687,7 +702,7 @@ async function reg() {
 
   let result = await response.json();
 
-  reg_button.disabled = false;
+  regButtonElement.disabled = false;
   hideLoader();
 
   if (result.status) {
@@ -919,7 +934,10 @@ async function checkResetConfirmationCode() {
   reset_confirmation_button.disabled = false;
 
   if (result.status) {
-    drawSection("wallet");
+    localStorage.setItem(LS_SECTION, "wallet");
+    localStorage.setItem(LS_TOKEN, result.data.token);
+
+    location.reload();
   } else {
     showPopup("Внимание", result.description, null, null, function () { reset_confirmation_code.value = ""; reset_confirmation_code.focus(); });
   }
@@ -1007,39 +1025,9 @@ function dropFail(element) {
 }
 
 function clearLocalStorage() {
-  localStorage.removeItem("walletData");
-  localStorage.removeItem("LS_walletData");
-  localStorage.removeItem("LS_walletData_02");
-  localStorage.removeItem("LS_walletData_03");
-  localStorage.removeItem("LS_walletData_04");
-  localStorage.removeItem("LS_walletData_05");
-  localStorage.removeItem("LS_walletData_06");
-  localStorage.removeItem("LS_walletData_081221");
-
-  localStorage.removeItem(LS_LINK);
-  localStorage.removeItem(LS_TOKEN_LINK);
-  localStorage.removeItem("section");
+  localStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_SECTION);
 }
-
-$(".system_tabs-head-item").click(function () {
-  $(this).addClass("tab_h_active");
-  $(this).siblings(".system_tabs-head-item").removeClass("tab_h_active");
-  let tabIndex = $(".system_tabs-head-item").index(this);
-  tabIndex++;
-
-  $(".system_tabs-content-item").removeClass("tab_c_active");
-  $(".system_tabs-content-item:nth-child(" + tabIndex + ")").addClass("tab_c_active");
-})
-
-$(".system_tabs-head-item-change").click(function () {
-  $(this).addClass("tab_h_active");
-  $(this).siblings(".system_tabs-head-item-change").removeClass("tab_h_active");
-  let tabIndex = $(".system_tabs-head-item-change").index(this);
-  tabIndex++;
-
-  $(".system_tabs-content-item-change").removeClass("tab_c_active");
-  $(".system_tabs-content-item-change:nth-child(" + tabIndex + ")").addClass("tab_c_active");
-})
 
 function loadScript(src) {
   return new Promise(function (resolve, reject) {
@@ -1135,8 +1123,11 @@ function onErrorCatch(error) {
   console.warn(error);
 }
 
-function checkUpdates(lastUpdates, callback) {
+function checkUpdates(lastUpdates, callback) {  
+  if (!bearerToken && callback) callback();
+  
   getUpdates(lastUpdates).then(result => {
+    let currentSection = localStorage.getItem(LS_SECTION);
     if (result.status) {
       if (result.data.news.length) {
         drawNews(result.data.news);
@@ -1163,14 +1154,22 @@ function checkUpdates(lastUpdates, callback) {
         drawPurchases(result.data.purchases);
         currentUpdates.lastPurchase = result.data.lastPurchase;
       }
+
+      // Всех авторизованных отправляем на страницу кошелька
+      if (sections[currentSection] && !sections[currentSection].needAuth) localStorage.setItem(LS_SECTION, "wallet");
     } else {
-      if (sections[localStorage.getItem("section")] && sections[localStorage.getItem("section")].needAuth) logOff();
+      // Не авторизованных отправляем на авторизацию
+      if (sections[currentSection] && sections[currentSection].needAuth) logOff();
     }
   })
   .finally(() => {
     if (callback) callback();
 
-    updateWalletData();
+    if (!waitForUpdateWalletData) {
+      waitForUpdateWalletData = true;
+
+      updateWalletData();
+    }
   });
 }
 
@@ -1197,7 +1196,7 @@ function getUpdates(lastUpdates) {
   });
 }
 
-function updateWalletData() {
+async function updateWalletData() {
   return fetch(API_URL, {
     method: "POST",
     headers: {
@@ -1215,5 +1214,59 @@ function updateWalletData() {
       description: error.message,
       error: error
     }
+  })
+  .finally(() => {
+    waitForUpdateWalletData = false;
   });
+}
+
+function setPhoneMask(phone, mask) {
+  if (!mask) mask = "+_(___)___-__-__";
+
+  phone = getPhoneNumbers(phone);
+
+  document.getElementById("auth-phone-mask").value = getValueByMask(phone, mask);
+  document.getElementById("auth-phone").value = getValueByMask(phone, mask, true);
+
+  document.getElementById("reset-phone-mask").value = getValueByMask(phone, mask);
+  document.getElementById("reset_phone").value = getValueByMask(phone, mask, true);
+
+  document.getElementById("reg-phone-mask").value = getValueByMask(phone, mask);
+  document.getElementById("reg_phone").value = getValueByMask(phone, mask, true);
+}
+
+function getPhoneNumbers(value) {
+  let phone = value.replace(/\D/g, "");
+  if (phone) {
+      phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
+  } else {
+    phone = "7";
+  }
+
+  return phone;
+}
+
+function getValueByMask(value, mask, full) {
+  if (!full) full = false;
+
+  let phone = value.match(/\d/g);
+  let newPhone = mask;
+
+  phone.forEach(e => newPhone = newPhone.replace(/_/, e));
+  if (!full) newPhone = newPhone.replace(/\)_|-_|_/g, "");
+
+  return newPhone;
+}
+
+function validateBirthdate(element) {
+  element.value = element.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
+  let td = element.value.split("-");
+  let bd = new Date([td[2], td[1], td[0]].join("/"));
+  let cd = new Date();
+
+  if (cd < bd || bd == "Invalid Date") {
+    document.getElementById("reg-birthdate-popup2").classList.add("show");
+  } else {
+    document.getElementById("reg-birthdate-popup2").classList.remove("show");
+  }
 }

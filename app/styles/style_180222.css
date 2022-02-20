@@ -111,8 +111,7 @@ input.fail {
   width: 100%;
   height: 100%;
   z-index: 7;
-  color: white;
-  background: rgba(0,0,0,.8);
+  background-color: white;
 }
 
 #overlay {
@@ -471,8 +470,8 @@ details[open]>summary.details {
 .lds-rotation {
   width: 48px;
   height: 48px;
-  border: 2px solid #dbdbdb;
-  border-bottom-color: transparent;
+  border: 8px solid #2A4996;
+  border-bottom-color: #28a960;
   border-radius: 50%;
   display: inline-block;
   box-sizing: border-box;
@@ -1739,6 +1738,7 @@ details[open]>summary.details {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 5;
 }
 
 .store_map-block {
@@ -2225,6 +2225,13 @@ details[open]>summary.details {
   background-color: white;
   overflow: hidden;
   margin: 2rem 0;
+}
+
+input.input-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: transparent;
 }
 
 @media(max-width: 440px){
