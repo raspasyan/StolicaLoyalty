@@ -31,7 +31,6 @@ function drawWallet(walletData) {
             cardInfo.innerText = "Ваша скидка";
             currencyType.innerText = "%";
             cardDataDiscount.style.display = "flex";
-            // cardDataBonus.style.display = "none";
             discountBalance = true;
         } else if (!walletData.discount && !walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: бонусы
@@ -39,7 +38,6 @@ function drawWallet(walletData) {
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
             cardDataBonusPreffered.style.display = "none";
-            // cardDataBonus.style.display = "none";
             cardDataDiscount.style.display = "none";
         } else if (!walletData.discount && walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: скидка
@@ -47,14 +45,12 @@ function drawWallet(walletData) {
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
             cardDataBonusPreffered.style.display = "none";
-            // cardDataBonus.style.display = "none";
             cardDataDiscount.style.display = "none";
         } else if (walletData.discount && !walletData.preferredDiscount) {
             // Текущая: скидка, предпочитаемая: бонусы
             cardType.innerText = "Дисконтная карта";
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
-            // cardDataBonus.style.display = "flex";
             cardDataDiscount.style.display = "none";
         }
 
@@ -216,7 +212,18 @@ function drawPurchase(purchase) {
     // Детализация чека
     if (purchase.positions.length) {
         let paymentDetailsElement = document.createElement("details");
+        paymentDetailsElement.addEventListener("click", e => {
+
+        });
         paymentElement.appendChild(paymentDetailsElement);
+
+        let summaryElement = document.createElement("summary");
+        summaryElement.innerText = "Подробнее";
+        paymentDetailsElement.append(summaryElement);
+
+        let detailsDataElement = document.createElement("div");
+        detailsDataElement.classList.add("details-data");
+        paymentDetailsElement.append(detailsDataElement); 
 
         paymentRowElement = document.createElement("div");
         paymentRowElement.classList.add("payment-details", "neutral");
@@ -225,7 +232,7 @@ function drawPurchase(purchase) {
             spanElement.innerText = element;
             paymentRowElement.appendChild(spanElement);
         });
-        paymentDetailsElement.appendChild(paymentRowElement);
+        detailsDataElement.appendChild(paymentRowElement);
 
         purchase.positions.forEach((position) => {
             paymentRowElement = document.createElement("div");
@@ -248,12 +255,12 @@ function drawPurchase(purchase) {
             spanElement.innerText = (positionCashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(positionCashbackAmount) + " бонусов";
             paymentRowElement.appendChild(spanElement);
 
-            paymentDetailsElement.appendChild(paymentRowElement);
+            detailsDataElement.appendChild(paymentRowElement);
 
             paymentRowElement = document.createElement("div");
             paymentRowElement.classList.add("payment-details", "payment-details-full");
             paymentRowElement.innerText = (position.product_title ? position.product_title : "Загрузка..");
-            paymentDetailsElement.appendChild(paymentRowElement);
+            detailsDataElement.appendChild(paymentRowElement);
         });
     }
 

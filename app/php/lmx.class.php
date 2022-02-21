@@ -253,6 +253,30 @@ class LMX {
         return $result;
     }
 
+    public function getBalanceNew($personId) {
+        $result = $this->initSAPIToken();
+        if ($result["status"]) {
+            $result = ["status" => false, "description" => ""];
+
+            $methodResult = $this->SAPI_Balance($personId);
+            if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
+                if (!empty($methodResult["data"]->data)) {
+                    $result["status"] = true;
+                    $result["data"] = [
+                        "name" => $methodResult["data"]->data[0]->currency->name,
+                        "amount" => $methodResult["data"]->data[0]->balance + $methodResult["data"]->data[0]->notActivated
+                    ];
+                } else {
+                    $result["description"] = "Бонусные счета отсутствуют.";
+                }
+            } else {
+                $result["description"] = "Не удалось запросить информацию о балансе.";  
+            }
+        }
+
+        return $result;
+    }
+
     public function getConsumerCards($personId, $debug = false) {
         $result = $this->initSAPIToken();
         if ($result["status"]) {

@@ -94,7 +94,6 @@ let currentUpdates = {
 };
 let currentCity = "";
 let userActivityTimeout = null;
-let waitForUpdateWalletData = false;
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
@@ -210,10 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function userActivity(e) {
-  if (!userActivityTimeout && !waitForUpdateWalletData) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates, () => {
-    waitForUpdateWalletData = true;
-    userActivityTimeout = null;
-  });
+  if (!userActivityTimeout) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates);
 }
 
 function modifyInput(el) {
@@ -381,12 +377,16 @@ function renderReferSection() {
 }
 
 function getGeolink(title, description) {
+  let wrapper = document.createElement("div");
+
   let GeolinkElement = document.createElement("span");
   GeolinkElement.classList.add("ymaps-geolink");
   GeolinkElement.setAttribute("data-description", description);
   GeolinkElement.innerText = title;
 
-  return GeolinkElement;
+  wrapper.append(GeolinkElement);
+
+  return wrapper;
 }
 
 function getGeoMap() {
@@ -1212,7 +1212,7 @@ async function updateWalletData() {
     }
   })
   .finally(() => {
-    waitForUpdateWalletData = false;
+    userActivityTimeout = null
   });
 }
 

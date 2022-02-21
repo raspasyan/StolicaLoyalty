@@ -3910,7 +3910,7 @@ class BonusApp {
         $cd = new DateTime();
 
         $LMX = $this->getLMX();
-        $getBalanceResult = $LMX->getBalance($personId);
+        $getBalanceResult = $LMX->getBalanceNew($personId);
         if ($getBalanceResult["status"]) {
             $this->pdo->beginTransaction();
 
