@@ -62,7 +62,9 @@ let sections = {
     needAuth: true
   },
   "reg_success": {
-    title: "Профиль"
+    title: "Регистрация завершена",
+    showMenu: true,
+    needAuth: true
   },
   "alerts": {
     title: "Подписки и уведомления",
@@ -203,8 +205,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   checkUpdates(currentUpdates, () => {
     drawSection(localStorage.getItem(LS_SECTION));
-    document.body.addEventListener("pointerover", userActivity);
-    document.body.addEventListener("pointerdown", userActivity)
+    if (bearerToken) {
+      document.body.addEventListener("pointerover", userActivity);
+      document.body.addEventListener("pointerdown", userActivity);
+    }
   });
 });
 
@@ -643,19 +647,7 @@ function checkReg() {
     return 0;
   }
 
-  let trueDate = null;
-
-  if (regBirthdateElement.value) {
-    let td = regBirthdateElement.value.split("-");
-    trueDate = [td[2], td[1], td[0]].join("/");
-
-    let bd = new Date(trueDate);
-    let cd = new Date();
-    if (cd.getFullYear() - bd.getFullYear() < 18) {
-      showPopup("Внимание", "Вам должно быть 18 лет!");
-      return 0;
-    }
-  }
+  if (!validateBirthdate(regBirthdateElement)) return 0;
 
   if (reg_pass.value != reg_pass_confirm.value) {
     showPopup("Внимание", "Введенные пароли не совпадают!");
@@ -780,11 +772,17 @@ async function confirmation() {
     hideLoader();
 
     if (result.status) {
-      if (result.data.setNewPassword == undefined) {
-        drawSection("reg_success");
-      } else {
-        drawSection("intro");
-      }
+      clearLocalStorage();
+
+      localStorage.setItem(LS_SECTION, "reg_success");
+      localStorage.setItem(LS_TOKEN, result.data.token);
+
+      location.reload();
+      // if (result.data.setNewPassword == undefined) {
+      //   drawSection("reg_success");
+      // } else {
+      //   drawSection("intro");
+      // }
     } else {
       if (result.description) {
         reg_confirmation_code.value = "";
@@ -1165,7 +1163,7 @@ function checkUpdates(lastUpdates, callback) {
   })
   .finally(() => {
     if (callback) callback();
-    updateWalletData();
+    if (bearerToken) updateWalletData();
   });
 }
 
@@ -1255,14 +1253,19 @@ function getValueByMask(value, mask, full) {
 }
 
 function validateBirthdate(element) {
+  let result = false;
+
   element.value = element.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
   let td = element.value.split("-");
   let bd = new Date([td[2], td[1], td[0]].join("/"));
   let cd = new Date();
 
-  if (cd < bd || bd == "Invalid Date") {
-    document.getElementById("reg-birthdate-popup2").classList.add("show");
+  if (cd.getFullYear() - bd.getFullYear() < 18 || bd == "Invalid Date") {
+    document.getElementById("reg-birthdate-popup").classList.add("show");
   } else {
-    document.getElementById("reg-birthdate-popup2").classList.remove("show");
+    document.getElementById("reg-birthdate-popup").classList.remove("show");
+    result = true;
   }
+
+  return result;
 }
