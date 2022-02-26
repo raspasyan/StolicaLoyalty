@@ -14,6 +14,8 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
+        $this->service_sendFeedbacks();
+
         exit;
     }
 
@@ -877,6 +879,7 @@ class BonusApp {
         $authResult = $this->checkAuthorization();
         if ($authResult["status"]) $phone = $authResult["data"]["phone"];
         $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
+        $data["message"] = preg_replace("/\W/", "", $data["message"]);
         
         return $this->setFeedback($phone, $data);
     }
@@ -1451,6 +1454,87 @@ class BonusApp {
             $result = $setDiscountAttributeValue;
             $this->journal("CRON", __FUNCTION__, "", $setDiscountAttributeValue["status"], json_encode(["f" => "LMX->setDiscountAttributeValue", "a" => [$personId, $preferredDiscount]]), json_encode($setDiscountAttributeValue, JSON_UNESCAPED_UNICODE));
         }
+
+        return $result;
+    }
+
+    public function service_sendFeedbacks() {
+        $getFeedbacksToSendResult = $this->getFeedbacksToSend();
+        if ($getFeedbacksToSendResult["status"]) {
+            foreach ($getFeedbacksToSendResult["data"] as $key => $feedback) {
+                $message = 
+                    "*".$feedback["time"]."*,".
+                    " *".$feedback["name"]."*". 
+                    " (".$feedback["reason"]."):".
+                    " _'".$feedback["message"]."'_,".
+                    " ".$feedback["phone"].",".
+                    " ". $feedback["account_phone"].",".
+                    " ".$feedback["email"];
+
+                $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/"];
+                $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,"];
+                $message = preg_replace($patterns, $replacements, $message);
+                $tgResult = $this->tg($message);
+
+                $newFeedbacksData = [
+                    "sended" => 2,
+                    "ext_id" => null
+                ];
+                if ($tgResult["ok"]) {
+                    $newFeedbacksData["sended"] = 1;
+                    $newFeedbacksData["ext_id"] = $tgResult["result"]["message_id"];
+                }
+                $setFeedbacksDataResult = $this->setFeedbacksData($feedback["id"], $newFeedbacksData);
+
+                array_push($tgResults, $setFeedbacksDataResult);
+            }
+        }
+    }
+
+    private function getFeedbacksToSend() {
+        $result = ["status" => false, "data" => null];
+
+        $query = $this->pdo->prepare("SELECT
+                id,
+                name,
+                account_phone,
+                phone,
+                email,
+                message,
+                time,
+                reason,
+                sended
+            FROM
+                feedbacks
+            WHERE
+                sended = 0
+        ");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $result["status"] = true;
+            $result["data"] = $queryResult;
+        }
+
+        return $result;
+    }
+
+    private function setFeedbacksData($id, $data) {
+        $result = ["status" => false, "data" => null];
+
+        $begin = false;
+        try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
+        foreach ($data as $key => $value) {
+            if (in_array($key, ["sended", "ext_id"])) {
+                $query = $this->pdo->prepare("UPDATE feedbacks SET ".$key." = :value WHERE id = :id");
+                $query->execute(["value" => $value, "id" => $id]);
+
+                $result["status"] = true;
+            } else {
+                $result["description"] = "Поле запрещено к редактированию.";
+            }
+        }
+        if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
 
         return $result;
     }
@@ -4093,13 +4177,7 @@ class BonusApp {
     }
 
     private function tg($message, $status = "info") {
-        $emoji = [
-            "info" => "💬",
-            "sos" => "🆘",
-            "warning" => "⚠️"
-        ];
-
-        return file_get_contents("https://api.telegram.org/bot906763368:AAE1rqS8ooFwOHW00fX7PsOlRIi8c990zAY/sendMessage?chat_id=-550701196&text=" . $emoji[$status] . "\n" . $message);
+        return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
     }
 }
 ?>
