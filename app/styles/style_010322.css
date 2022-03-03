@@ -58,7 +58,7 @@ details > summary {
   top: 0;
   position: sticky;
   z-index: 1;
-  height: 50px;
+  height: 5rem;
   border-bottom: 1px #efefef ridge;
   display: grid;
   grid-template-columns: 1fr 4fr 1fr;
@@ -82,6 +82,14 @@ details > summary {
 #topnav-nav-menu {
   font-size: 32px;
   grid-area: 1/3/1/3;
+}
+.topnav-bottom span {
+  font-size: 20px;
+  padding-top: 10px;
+}
+
+.topnav-bottom {
+  padding-top: 4rem !important;
 }
 
 input.fail {
@@ -182,45 +190,33 @@ details[open]>summary.details {
   display: none;
 }
 
-.overlay {
-  height: 100%;
-  width: 0;
+#topnav {
+  height: 100vh;
+  width: 100vw;
   position: fixed;
-  z-index: 3;
   left: 0;
   top: 0;
   overflow-x: hidden;
-  transition: 0.5s;
   background: url(../assets/backs/bg.png);
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
 
-.overlay-content .bottom-nav-element {
+#topnav .overlay-content .bottom-nav-element {
   border-bottom: 1px solid #fff;
   color: #4062b7 !important;
 }
 
-.overlay-content {
+#topnav .overlay-content {
   position: relative;
   text-align: center;
 }
 
-.overlay div {
-  padding: 8px;
+#topnav div {
   text-decoration: none;
-  font-size: 36px;
-  /*color: #818181;*/
-  display: block;
-  transition: 0.3s;
 }
 
-/*.overlay div:hover,*/
-/*.overlay div:focus {*/
-/*  color: #f1f1f1;*/
-/*}*/
-
-.overlay .closebtn {
+#topnav .closebtn {
   text-decoration: none;
   color: #818181;
   font-size: 34px;
@@ -228,6 +224,20 @@ details[open]>summary.details {
   display: flex;
   align-items: center;
 }
+
+.topnav-bottom {
+  text-align: center;
+  padding-top: 16rem !important;
+  color: #4062b7 !important;
+}
+
+.topnav-bottom-feedback {
+  display: flex !important;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
 
 #reg_firstname, #reg_middlename, #reg_lastname {
   text-transform: capitalize;
@@ -242,16 +252,16 @@ details[open]>summary.details {
   width: 100%;
 }
 
-@media screen and (max-height: 450px) {
-  .overlay div {
+/* @media screen and (max-height: 450px) {
+  #topnav div {
     font-size: 20px;
   }
-  .overlay .closebtn {
+  #topnav .closebtn {
     font-size: 40px;
     top: 15px;
     right: 35px;
   }
-}
+} */
 
 #bottom-nav {
   bottom: 0;
@@ -277,9 +287,7 @@ details[open]>summary.details {
 
 .news {
   text-align: left;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  margin-top: 5rem;
 }
 
 .news-img {
@@ -1689,11 +1697,14 @@ details[open]>summary.details {
   padding-top: 1rem;
 }
 
+.stores {
+  margin-top: 6rem;
+}
+
 #stores iframe {
   width: 100%;
   height: 100%;
 }
-
 .store_block {
   width: 100%;
   text-align: left;
@@ -1702,7 +1713,6 @@ details[open]>summary.details {
   position: relative;
   cursor: pointer;
 }
-
 .show_store {
   position: absolute;
   right: 2%;
@@ -1710,12 +1720,10 @@ details[open]>summary.details {
   color: #999;
   font-weight: 600;
 }
-
 .store_block-shedule {
   color: #999;
   font-size: 13px;
 }
-
 .store_map {
   position: fixed;
   top: 0px;
@@ -1726,13 +1734,11 @@ details[open]>summary.details {
   align-items: center;
   z-index: 5;
 }
-
 .store_map-block {
   background: #fff;
   border-radius: 8px;
   z-index: 999;
 }
-
 .store_map-bg {
   width: 100%;
   height: 100%;
@@ -1767,8 +1773,6 @@ details[open]>summary.details {
 .map_info-item {
   padding: 3px 0px;
 }
-
-
 
 .reg_success-top {
   background: #fff;
@@ -1879,7 +1883,7 @@ details[open]>summary.details {
   font-size: 20px;
 }
 
-.topnav-top {
+/* .topnav-top {
   background: #fff;
   height: 40px;
   display: flex !important;
@@ -1892,7 +1896,7 @@ details[open]>summary.details {
   font-size: 1.5rem;
   color: #222;
   font-weight: bold;
-}
+} */
 
 .reg_inp.required {
   position: relative;
@@ -2005,21 +2009,7 @@ details[open]>summary.details {
 
 .reg_success-top-block img {
   padding-bottom: 2rem;
-}
-
-.topnav-bottom {
-  text-align: center;
-  padding-top: 16rem !important;
-  color: #4062b7 !important;
-}
-
-.topnav-bottom-feedback {
-  display: flex !important;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-}
-
+} 
 .reg_success-top-block p {
   color: #616161;
 }
@@ -2181,10 +2171,10 @@ details[open]>summary.details {
 #overlay-news {
   position: fixed;
   top: 0;
-  width: 100vw;;
+  width: 100vw;
   height: 100vh;
   background-color: rgba(0,0,0,.8);
-  z-index: 3;
+  z-index: 4;
   overflow: auto;
 }
 #overlay-news-cont {
@@ -2192,7 +2182,7 @@ details[open]>summary.details {
   box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
   background-color: white;
   overflow: auto;
-  margin: 10vh 16px;
+  margin: 5rem 16px;
 }
 #overlay-news-image,.news-image {
   width: 100%
@@ -2211,6 +2201,53 @@ details[open]>summary.details {
   background-color: white;
   overflow: hidden;
   margin: 2rem 0;
+}
+
+.overlay-menu {
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,.8);
+  z-index: 4;
+  overflow: auto;
+  background: url(../assets/backs/bg.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.overlay-menu-top {
+  top: 0;
+  position: sticky;
+  z-index: 1;
+  height: 5rem;
+  border-bottom: 1px #efefef ridge;
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+  align-items: center;
+  justify-items: center;
+  background-color: white;
+  width: inherit;
+}
+.overlay-menu-top-title {
+  font-weight: bold;
+}
+.overlay-menu-top-right {
+  font-size: 24px;
+}
+.overlay-menu-content {
+  text-align: center;
+  color: #4062b7;
+  font-size: 2rem;
+}
+.overlay-menu-content-top {
+  
+}
+.overlay-menu-content-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid #fff;
+}
+.overlay-menu-content-bottom {
+  margin-top: 4rem;
 }
 
 input.input-mask {
@@ -2541,11 +2578,6 @@ input.input-mask {
     font-weight: 600;
   }
 
-
-  .overlay {
-    z-index: 4;
-  }
-
   .popup-drawing-block-btn-first {
     font-size: 16px !important;
   }
@@ -2609,6 +2641,10 @@ input.input-mask {
     padding: 20px 12px 0px 12px;
   }
 
+  .refer {
+    margin-top: 6rem;
+  }
+
   .overlay-content .bottom-nav-element {
     font-size: 20px;
   }
@@ -2655,15 +2691,6 @@ input.input-mask {
 
   body {
     background: none;
-  }
-
-  .topnav-bottom span {
-    font-size: 20px;
-    padding-top: 10px;
-  }
-
-  .topnav-bottom {
-    padding-top: 4rem !important;
   }
 
   .system_tabs-content-item span {

@@ -118,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("reset-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
   document.getElementById("reg-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
   document.getElementById("reg-phone-mask").addEventListener("blur", e => document.getElementById("reg-phone-popup").classList.remove("show"));
+  document.getElementById("feedback-phone").addEventListener("input", e => setPhoneMask(e.target.value));
 
   document.getElementById("auth-button").addEventListener("click", e => auth());
 
@@ -221,11 +222,11 @@ function modifyInput(el) {
 }
 
 function openNav() {
-  document.getElementById("topnav").style.width = "100%";
+  document.getElementById("overlay-menu").style.display = "";
 }
 
 function closeNav() {
-  document.getElementById("topnav").style.width = "0%";
+  document.getElementById("overlay-menu").style.display = "none";
 }
 
 function removeChildrens(element) {
@@ -302,7 +303,7 @@ function drawSection(section) {
   for (let i = 0; i < sectionsElements.length; i++) {
     if (sectionsElements[i].id == section) {
       sectionsElements[i].style.display = "";
-      sectionsElements[i].scrollIntoView();
+      document.getElementsByClassName("main-app-space")[0].scrollIntoView();
     } else {
       sectionsElements[i].style.display = "none";
     }
@@ -1227,6 +1228,8 @@ function setPhoneMask(phone, mask) {
 
   document.getElementById("reg-phone-mask").value = getValueByMask(phone, mask);
   document.getElementById("reg_phone").value = getValueByMask(phone, mask, true);
+
+  document.getElementById("feedback-phone").value = getValueByMask(phone, mask);
 }
 
 function getPhoneNumbers(value) {

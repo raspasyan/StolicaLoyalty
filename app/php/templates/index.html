@@ -17,7 +17,7 @@
 
   <link rel="stylesheet" href="app/styles/normalize.css" />
   <link rel="stylesheet" href="app/styles/skeleton_new.css" />
-  <link rel="stylesheet" href="app/styles/style_210222.css" />
+  <link rel="stylesheet" href="app/styles/style_010322.css" />
   <link rel="stylesheet" href="app/styles/popups.css" />
   <link rel="stylesheet" href="app/styles/animate.min.css" />
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
@@ -27,7 +27,7 @@
   <script src="app/js/popups.js"></script>
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-  <script src="app/js/module.main.250222.js" defer></script>
+  <script src="app/js/module.main.010322.js" defer></script>
   <script src="app/js/module.news.180222.js" defer></script>
   <script src="app/js/module.stores.180222.js" defer></script>
   <script src="app/js/module.personal.180222.js" defer></script>
@@ -68,20 +68,47 @@
     </div>
   </div>
 
+  <div id="overlay-menu" class="overlay-menu animate__animated animate__slideInLeft animate__faster" style="display: none;" >
+    <div class="overlay-menu-top">
+      <div class="overlay-menu-top-left"></div>
+      <div class="overlay-menu-top-title"><span>Меню</span></div>
+      <div class="overlay-menu-top-right"><i class="fa fa-close" onclick="closeNav()"></i></div>
+    </div>
+    <div class="overlay-menu-content">
+      <div class="overlay-menu-content-top">
+        <div class="overlay-menu-content-item bottom-nav-element" section="wallet" onclick="closeNav()">Кошелек</div>
+        <div class="overlay-menu-content-item bottom-nav-element" section="news" onclick="closeNav()">Акции</div>
+        <div class="overlay-menu-content-item bottom-nav-element" section="stores" onclick="closeNav()">Магазины</div>
+        <div class="overlay-menu-content-item bottom-nav-element" section="personal" onclick="closeNav()">Профиль</div>
+        <div class="overlay-menu-content-item bottom-nav-element" section="refer" onclick="closeNav()">Пригласить друга</div>
+      </div>
+      <div class="overlay-menu-content-bottom">
+        <div class="topnav-bottom-feedback" onclick="showFeedback(); closeNav();">
+          <i class="fa fa-question" aria-hidden="true" style="color: #bbb; font-size: 3rem;"></i>
+          <span>Задать вопрос</span>
+        </div>
+        <div class="topnav-bottom-feedback" onclick="logOff()">
+          <i class="fa fa-sign-out" aria-hidden="true" style="color: #bbb; font-size: 3rem;"></i>
+          <span>Выход</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="feedback" class="animate__animated animate__slideInDown" style="display: none;">
     <div class="container">
       <div class="row">
         <div class="six columns">
           <label for="feedback-name">Ваше имя</label>
-          <input class="u-full-width" type="text" placeholder="Имя" id="feedback-name">
+          <input id="feedback-name" class="u-full-width" type="text" placeholder="Имя">
           <label for="feedback-email">Email</label>
-          <input class="u-full-width" type="text" placeholder="My@mail.com" id="feedback-email">
+          <input id="feedback-email" class="u-full-width" type="text" placeholder="My@mail.com">
         </div>
         <div class="six columns">
           <label for="feedback-phone">Телефон</label>
-          <input class="u-full-width" type="text" placeholder="+7(___)___-__-__" id="feedback-phone">
+          <input id="feedback-phone" class="u-full-width" type="tel" placeholder="+7(___)___-__-__">
           <label for="feedback-reason">Причина обращения</label>
-          <select class="u-full-width" id="feedback-reason">
+          <select id="feedback-reason" class="u-full-width">
             <option value="Комментарий">Комментарий</option>
             <option value="Вопрос">Вопрос</option>
             <option value="Ошибка">Ошибка</option>
@@ -90,7 +117,7 @@
         </div>
       </div>
       <label for="feedback-message">Сообщение</label>
-      <textarea class="u-full-width" placeholder="Привет! Тут такое дело.." id="feedback-message"></textarea>
+      <textarea class="u-full-width" placeholder="Здравствуйте!" id="feedback-message"></textarea>
       <input id="feedback-account" disabled style="display: none;" />
       <div class="row">
         <div class="six columns">
@@ -107,31 +134,6 @@
     <iframe loading="lazy" src="" frameborder="0"></iframe>
     <div class="commands">
       <button onclick='terms.style.display = "none";'>Принять</button>
-    </div>
-  </div>
-
-  <div id="topnav" class="overlay">
-    <div class="topnav-top">
-      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      <span class="topnav-top-title">Меню</span>
-      <i id="topnav-nav-menu" class="fa fa-bars" onclick="closeNav()"></i>
-    </div>
-    <div class="overlay-content">
-      <div class="bottom-nav-element" section="wallet" onclick="closeNav()">Кошелек</div>
-      <div class="bottom-nav-element" section="news" onclick="closeNav()">Акции</div>
-      <div class="bottom-nav-element" section="stores" onclick="closeNav()">Магазины</div>
-      <div class="bottom-nav-element" section="personal" onclick="closeNav()">Профиль</div>
-      <div class="bottom-nav-element" section="refer" onclick="closeNav()">Пригласить друга</div>
-    </div>
-    <div class="topnav-bottom">
-      <div class="topnav-bottom-feedback" onclick="showFeedback();closeNav();">
-        <i class="fa fa-question" aria-hidden="true" style="color: #bbb;"></i>
-        <span>Задать вопрос</span>
-      </div>
-      <div class="topnav-bottom-feedback" onclick="logOff()">
-        <i class="fa fa-sign-out" aria-hidden="true" style="color: #fff"></i>
-        <span>Выход</span>
-      </div>
     </div>
   </div>
 
