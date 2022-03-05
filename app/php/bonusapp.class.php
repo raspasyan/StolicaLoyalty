@@ -14,7 +14,7 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        $this->service_sendFeedbacks();
+        debug($this->service_sendFeedbacks(true));
 
         exit;
     }
@@ -248,6 +248,10 @@ class BonusApp {
                     }
                     case "changediscountsystem": {
                         print_r($this->sheduler_changeDiscountSystem());
+                        break;
+                    }
+                    case "sendfeedbacks": {
+                        print_r($this->sheduler_sendFeedbacks());
                         break;
                     }
                 }
@@ -879,7 +883,6 @@ class BonusApp {
         $authResult = $this->checkAuthorization();
         if ($authResult["status"]) $phone = $authResult["data"]["phone"];
         $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
-        $data["message"] = preg_replace("/\W/", "", $data["message"]);
         
         return $this->setFeedback($phone, $data);
     }
@@ -1458,40 +1461,78 @@ class BonusApp {
         return $result;
     }
 
-    public function service_sendFeedbacks() {
-        $getFeedbacksToSendResult = $this->getFeedbacksToSend();
-        if ($getFeedbacksToSendResult["status"]) {
-            foreach ($getFeedbacksToSendResult["data"] as $key => $feedback) {
-                $message = 
-                    "*".$feedback["time"]."*,".
-                    " *".$feedback["name"]."*". 
-                    " (".$feedback["reason"]."):".
-                    " _'".$feedback["message"]."'_,".
-                    " ".$feedback["phone"].",".
-                    " ". $feedback["account_phone"].",".
-                    " ".$feedback["email"];
+    private function sheduler_sendFeedbacks() {
+        $operationResult = $this->initPDO();
+        if ($operationResult["status"]) {
+            $start = microtime(true);
 
-                $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/"];
-                $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,"];
-                $message = preg_replace($patterns, $replacements, $message);
-                $tgResult = $this->tg($message);
+            print_r($this->service_sendFeedbacks());
 
-                $newFeedbacksData = [
-                    "sended" => 2,
-                    "ext_id" => null
-                ];
-                if ($tgResult["ok"]) {
-                    $newFeedbacksData["sended"] = 1;
-                    $newFeedbacksData["ext_id"] = $tgResult["result"]["message_id"];
-                }
-                $setFeedbacksDataResult = $this->setFeedbacksData($feedback["id"], $newFeedbacksData);
-
-                array_push($tgResults, $setFeedbacksDataResult);
-            }
+            $cd = new DateTime();
+            $this->journal("CRON", __FUNCTION__, json_encode(["startAt" => $cd->format('Y-m-d H:i:s'), "duration" => round(microtime(true) - $start, 4)], JSON_UNESCAPED_UNICODE), 1);
         }
     }
 
-    private function getFeedbacksToSend() {
+    public function service_sendFeedbacks($debug = false) {
+        $result = ["status" => false, "data" => []];
+
+        $getFeedbacksToSendResult = $this->getFeedbacksToSend();
+        if ($getFeedbacksToSendResult["status"]) {
+            $result["status"] = true;
+
+            foreach ($getFeedbacksToSendResult["data"] as $key => $feedback) {
+                $sendFeedbackResult = $this->service_sendFeedback($feedback, $debug);
+
+                array_push($result["data"], $sendFeedbackResult);
+            }
+        }
+
+        return $result;
+    }
+
+    private function service_sendFeedback($feedback, $debug = false) {
+        $result = ["status" => false, "data" => []];
+
+        $message = 
+            "*".$feedback["time"]."*,".
+            " *".$feedback["name"]."*". 
+            " (".$feedback["reason"]."):".
+            " _'".$feedback["message"]."'_,".
+            " ".$feedback["phone"].",".
+            " ". $feedback["account_phone"].",".
+            " ".$feedback["email"];
+
+        $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/"];
+        $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,"];
+        $message = preg_replace($patterns, $replacements, $message);
+
+        if ($debug) debug($message);
+
+        $tgResult = $this->tg($message);
+
+        $newFeedbacksData = [
+            "sended" => 2,
+            "ext_id" => null
+        ];
+
+        if ($tgResult["ok"]) {
+            $newFeedbacksData["sended"] = 1;
+            $newFeedbacksData["ext_id"] = $tgResult["result"]["message_id"];
+
+            $result["status"] = true;
+        }
+
+        $setFeedbacksDataResult = $this->setFeedbacksData($feedback["id"], $newFeedbacksData);
+
+        $result["data"] = [
+            "tgResult" => $tgResult,
+            "setFeedbacksDataResult" => $setFeedbacksDataResult
+        ];
+
+        return $result;
+    }
+
+    private function getFeedbacksToSend($limit = 10) {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -1508,8 +1549,10 @@ class BonusApp {
                 feedbacks
             WHERE
                 sended = 0
+            LIMIT
+                ?
         ");
-        $query->execute();
+        $query->execute([$limit]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result["status"] = true;
