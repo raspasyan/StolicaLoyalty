@@ -1,3 +1,4 @@
 htaccess
 .idea/
 app/php/const.php
+app/assets/news/*
