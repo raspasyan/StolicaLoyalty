@@ -14,7 +14,12 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        debug($this->service_sendFeedbacks(true));
+        // debug($this->service_sendFeedbacks(true));
+
+        // $LMX = $this->getLMX();
+        // debug($LMX->getBalanceNew("1701"));
+
+        $this->service_getBalance(1);
 
         exit;
     }
@@ -236,10 +241,6 @@ class BonusApp {
                     }
                     case "cron10": {
                         print_r($this->uploadDump());
-                        break;
-                    }
-                    case "processing": {
-                        print_r($this->service_processing());
                         break;
                     }
                     case "syncbonuscards": {
@@ -1061,6 +1062,61 @@ class BonusApp {
 
     /* Сервисные ф-ии */
 
+    private function service_getBalance($limit = 1000) {
+        $query = $this->pdo->prepare("SELECT
+                a.id,
+                p.ext_id,
+                b.card_number
+            FROM
+                accounts a
+                LEFT JOIN profiles p ON a.id = p.account_id
+                LEFT JOIN bonuscards b ON a.id = b.account_id
+            WHERE
+                a.status = 1 AND
+                NOT p.ext_id IS NULL
+                AND b.status = 1
+                AND b.last_sync < DATE_ADD(NOW(), INTERVAL -1 DAY)
+            ORDER BY
+                a.id
+            LIMIT ?
+        ");
+        $query->execute([$limit]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) {
+            $LMX = $this->getLMX();
+            $cd = new DateTime();
+
+            foreach ($queryResult as $key => $value) {
+                $result = null;
+                
+                $getBalanceResult = $LMX->getBalanceNew($value["ext_id"]);
+                if ($getBalanceResult["status"]) {
+                    $newData = [
+                        "last_sync" => $cd->format('Y-m-d H:i:s'),
+                        "balance" => $getBalanceResult["data"]["amount"] * 100
+                    ];
+                    debug($newData);
+
+                    $setBonusCardDataResult = $this->setBonusCardData($value["card_number"], $newData);
+                    $result = $setBonusCardDataResult;
+
+                    if ($setBonusCardDataResult["status"]) {
+                        //
+                    } else {
+                        //
+                    }
+                } else {
+                    $result = $getBalanceResult;
+                }
+
+                debug([
+                    "profile" => $value,
+                    "result" => $result
+                ]);
+            }
+        }
+    }
+
     public function service_completeRegistration() {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
@@ -1109,41 +1165,6 @@ class BonusApp {
             $cd = new DateTime();
             $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron3'");
             $query->execute([$cd->format('Y-m-d H:i:s')]);
-        }
-    }
-
-    public function service_processing() {
-        $operationResult = $this->initPDO();
-        if ($operationResult["status"]) {
-            $start = microtime(true);
-
-            // Получаем список чеков, позиций внутри чеков и сумму к начислению
-            $operationResult = $this->getPurchasesToProcessing();
-            if ($operationResult["status"]) {
-                foreach ($operationResult["data"] as $key => $purchase) {
-                    $chargeOnResult = $this->service_processing_chargeOn($purchase["purchase_id"], $purchase["card_number"], $purchase["cashback_value"], $purchase["shopNum"], $purchase["cashNum"], $purchase["shiftNum"], $purchase["checkNum"]);
-                    $this->journal("APP", "service_processing_chargeOn", json_encode([
-                        "purchaseId" => $purchase["purchase_id"],
-                        "cardNumber" => $purchase["card_number"],
-                        "cashbackValue" => $purchase["cashback_value"],
-                        "shopNum" => $purchase["shopNum"],
-                        "cashNum" => $purchase["cashNum"],
-                        "shiftNum" => $purchase["shiftNum"],
-                        "checkNum" => $purchase["checkNum"],
-                    ], JSON_UNESCAPED_UNICODE), $chargeOnResult["status"]
-                    );
-                }
-            }
-
-            // Фиксация завершения обработки
-            $cd = new DateTime();
-            $this->pdo->beginTransaction();
-            $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron_processing'");
-            $query->execute([$cd->format('Y-m-d H:i:s')]);
-
-            $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'seconds_cron_processing'");
-            $query->execute([round(microtime(true) - $start, 4)]);
-            $this->pdo->commit();
         }
     }
 
@@ -1334,15 +1355,6 @@ class BonusApp {
                 print_r($this->sendMessage($value["phone"], "У Вас уже есть чек от 500 рублей, регистрируйтесь сейчас в розыгрыше от «Столицы» и выигрывайте 4 000 рублей! Переходи " . $value["alias"], DEFAULT_SMS_PROVIDER));
             }
         }
-    }
-
-    public function service_processing_chargeOn($purchaseId, $cardNumber, $totalCashbackValue, $shopNum, $cashNum, $shiftNum, $checkNum) {
-        $result = ["status" => false];
-
-        $result = SRC::chargeOnBonusAccount($cardNumber, $totalCashbackValue, null, $shopNum, $cashNum, $shiftNum, $checkNum);
-        if ($result["status"]) $result = $this->updatePurchase($purchaseId, ["processing_completed" => 1]);
-
-        return $result;
     }
 
     public function service_regPhysCards() {
@@ -2834,49 +2846,6 @@ class BonusApp {
         return $result;
     }
 
-    private function updatePurchase($purchaseId, $data) {
-        $result = ["status" => false, "data" => null];
-
-        $begin = false;
-        try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
-        try {
-            foreach ($data as $key => $value) {
-                if (in_array($key, ["processing_completed"])) {
-                    $query = $this->pdo->prepare("UPDATE purchases SET ".$key." = :value WHERE id = :purchaseId");
-                    $query->execute(["value" => $value, "purchaseId" => $purchaseId]);
-
-                    $result["status"] = true;
-                } else {
-                    $result["description"] = "Поле запрещено к редактированию.";
-                }
-            }
-
-            if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
-        } catch (\Throwable $th) {
-            $result["description"] = $th->getMessage();
-        }
-
-        debug($result);
-
-        return $result;
-    }
-
-    private function getPurchases($date, $rsa_id) {
-        $result = ["status" => false];
-
-        $query = $this->pdo->prepare("SELECT purchases.cash, purchases.shift, purchases.number FROM purchases WHERE rsa_id = ? AND oper_day = ?");
-        $query->execute([$rsa_id, $date]);
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) {
-            $result = [
-                "status" => true,
-                "data" => $queryResult
-            ];
-        }
-
-        return $result;
-    }
-
     private function getPurchasesHash($personId) {
         $result = ["status" => false];
 
@@ -3352,26 +3321,6 @@ class BonusApp {
         return $tmp;
     }
 
-    private function loginBoard($phone, $pass) {
-        $result = $this->checkPassword($phone, $pass);
-        $query = $this->pdo->prepare("SELECT status FROM accounts WHERE phone = ?");
-        $query->execute([$phone]);
-        $accountType = $query->fetch();
-        if ($result["status"] && $accountType["status"] == 4) {
-            $_SESSION['authBoard'] = 'login';
-            $result = [
-                "status" => true,
-            ];
-        }  else{
-            $_SESSION['authBoard'] = 'not-login';
-            $result = [
-                "status" => false,
-            ];
-        }
-
-        return $result;
-    }
-
     public function updateProduct($product) {
         $result = ["status" => false];
 
@@ -3444,7 +3393,7 @@ class BonusApp {
             bd.card_number,
             bd.gift,
             bd.phone,
-            bd.expiration + 14 AS expiration,
+            bd.expiration AS expiration,
             e.ext_id
             FROM
                 (SELECT 
@@ -3749,48 +3698,6 @@ class BonusApp {
         } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
         }
-
-        return $result;
-    }
-
-    private function getPurchasesToProcessing() {
-        $result = ["status" => false, "data" => null];
-
-        $query = $this->pdo->prepare("SELECT
-                    p.discount_card AS card_number,
-                    p.rsa_id AS shopNum,
-                    p.cash AS cashNum,
-                    p.shift AS shiftNum,
-                    p.number AS checkNum,
-                    pp.purchase_id AS purchase_id,
-                    SUM(CASE
-                        WHEN c.type = 'fix' THEN ROUND((pp.count / 1000) * c.value)
-                        WHEN c.type = 'percent' THEN FLOOR((pp.count / 1000) * (pp.cost / 100) * (c.value / 100)) * 100
-                    END) AS cashback_value
-                FROM
-                    purchases p
-                    INNER JOIN positions pp
-                        ON p.id = pp.purchase_id
-                    INNER JOIN cashback c
-                        ON pp.product_id = c.product_id
-                WHERE
-                    p.sale_time > DATE_FORMAT(NOW(), '%Y-%m-%d')
-                    AND p.processing_completed = 0
-                    AND p.operation_type = 1
-                GROUP BY
-                    p.discount_card,
-                    p.rsa_id,
-                    p.cash,
-                    p.shift,
-                    p.number,
-                    pp.purchase_id
-            ");
-        $query->execute();
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) $result = [
-            "status" => true,
-            "data" => $queryResult
-        ];
 
         return $result;
     }
