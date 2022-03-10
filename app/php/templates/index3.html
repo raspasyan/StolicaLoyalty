@@ -17,7 +17,8 @@
 
   <link rel="stylesheet" href="app/styles/normalize.css" />
   <link rel="stylesheet" href="app/styles/skeleton_new.css" />
-  <link rel="stylesheet" href="app/styles/style_010322.css" />
+  <!--<link rel="stylesheet" href="app/styles/style_010322.css" />-->
+  <link rel="stylesheet" href="app/styles/styles.css" />
   <link rel="stylesheet" href="app/styles/popups.css" />
   <link rel="stylesheet" href="app/styles/animate.min.css" />
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
@@ -27,7 +28,7 @@
   <script src="app/js/popups.js"></script>
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-  <script src="app/js/module.main.010322.js" defer></script>
+  <script src="app/js/module.main.010322_1.js" defer></script>
   <script src="app/js/module.news.180222.js" defer></script>
   <script src="app/js/module.stores.180222.js" defer></script>
   <script src="app/js/module.personal.180222.js" defer></script>
@@ -136,43 +137,40 @@
       <button onclick='terms.style.display = "none";'>Принять</button>
     </div>
   </div>
-
   <div class="wrapper">
-    <header id="top-nav">
-      <i id="top-nav-back" class="fa fa-angle-left" onclick="routePrevSection()"></i>
-      <i id="top-nav-close" class="fa fa-close" onclick="routePrevSection()"></i>
-      <i id="top-nav-msg" class="fa fa-envelope-o" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
-      <h6 id="top-nav-title"></h6>
-      <i id="top-nav-menu" class="fa fa-bars" onclick="openNav()"></i>
+    <header class="topNav">
+      <i class="fa fa-angle-left topNav__back" onclick="routePrevSection()"></i>
+      <i class="fa fa-close topNav__close" onclick="routePrevSection()"></i>
+      <i class="fa fa-envelope-o topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
+      <h6>&nbsp;</h6>
+      <i class="fa fa-bars topNav__menu" onclick="openNav()"></i>
       <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
     </header>
 
     <div class="main-app-space">
+        
       <div id="adult" class="section" style="display: none;">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <h5 class="hero-heading">
             Подтвердите, что Вам есть 18 лет
           </h5>
-          <button class="button button-primary" style="width: 100%;" onclick="drawSection('intro')">мне исполнилось 18
+          <button class="button button-primary u-full-width" onclick="drawSection('intro')">мне исполнилось 18
             лет</button>
-          <button class="button button-leave" style="width: 100%;">мне нет 18 лет</button>
+          <button class="button button-leave u-full-width">мне нет 18 лет</button>
         </div>
       </div>
 
       <div id="intro" class="section" style="display: none;">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
-          <button class="button button-primary" style="width: 100%;"
-            onclick="drawSection('authorization')">Войти</button>
-          <div class="gridstone">
-            <hr>
-            </hr>
-            <div>или</div>
-            <hr>
-            </hr>
+          <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
+          <div class="textWings">
+              <span></span>
+              <div>или</div>
+              <span></span>
           </div>
-          <p style="font-size: 1.3rem;"><a href="#" onclick="drawSection('pre-registration')">Зарегистрироваться</a></p>
+          <a href="#" class="link" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
         </div>
       </div>
 
@@ -194,10 +192,10 @@
               style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
           </div>
           <!-- Кнопки -->
-          <p style="text-align: right;"><a style="font-size: 1.3rem;" href="#" onclick="drawSection('reset')">Забыли
+          <p style="text-align: right;"><a class="link" href="#" onclick="drawSection('reset')">Забыли
               пароль?</a></p>
           <button id="auth-button" class="button button-primary u-full-width">Войти</button>
-          <p style="font-size: 1.3rem;">
+          <p  class="link">
             <span>У вас ещё нет аккунта?</span>
             <a href="#" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
           </p>
@@ -220,7 +218,7 @@
             <div id="reset_confirmation_info" style="font-weight: bold;"></div>
             <input class="u-full-width" type="number" placeholder="Код" id="reset_confirmation_code" />
             <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
-            <p style="font-size: 1.3rem;">
+            <p class="link">
               <span>Мне не позвонили,</span>
               <a href="#" onclick="showFeedback()">что мне делать?</a>
             </p>
@@ -234,7 +232,7 @@
             <hr>
             </hr>
           </div>
-          <p style="font-size: 1.3rem;">
+          <p class="link">
             <a href="#" onclick="drawSection('pre-registration')">Создать новый аккаунт</a>
           </p>
         </div>
@@ -246,7 +244,7 @@
           <img src="app/assets/backs/city.png">
           <p>Выберите город</p>
           <select id="city" name="card_discount" class="reg_city"></select>
-          <p style="font-size: 1.3rem;">
+          <p class="link">
             <button class="button button-primary" style="width: 100%;"
               onclick="drawSection('registration')">Готово</button>
           </p>
@@ -329,7 +327,7 @@
               id="confirmation_button_reset">Получить СМС</button>
           </div>
           <!-- Авторизация -->
-          <p class="reg_auth" style="font-size: 1.3rem;">
+          <p class="reg_auth link">
             <span>Постойте, но ведь</span>
             <a href="#" onclick="drawSection('authorization')">я уже зарегистрирован</a>
           </p>
@@ -511,27 +509,10 @@
                 </div>
               </h5>
               <a href="#" data-click="openBalanceView">Подробнее...</a>
-<div class="balance-view">
-                <div><span style="
-    color:  #222;
-">Доступно:</span> <span style="
-    color: #222;
-">1248,52 <span style="
-    color: #222;
-    font-weight: 100;
-">бонусов</span><i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
-                <div><span>Активация:</span> <span style="
-    color: #28a960;
-">+2000 <span style="
-    color: #222;
-    font-weight: 100;
-">бонусов</span><i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
-                <div><span>Скоро сгорит: </span> <span style="
-    color: #9E4E52;
-">-48,52 <span style="
-    color: #222;
-    font-weight: 100;
-">бонусов</span><i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
+                <div class="balance-view">
+                <div><span>Текущий:</span> <span>1248,52 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
+                <div><span>Активация:</span> <span>2000 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
+                <div><span>Сгорания: </span> <span>48,52 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
                 </div>
             </div>
           </div>
@@ -581,7 +562,7 @@
             покупки в магазине «Столица»*</p>
           <p>Количество ссылок не ограничено, больше друзей – больше бонусов!</p>
           <p><small>*Бонусы начисляются после первой совершенной покупки другом.</small></p>
-          <p style="font-size: 1.3rem;">
+          <p class="link">
             <a href="/pravila-akcii">Полные правила акции</a>
           </p>
           <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
@@ -645,6 +626,7 @@
       </div>
     </footer>
   </div>
+
     <!-- Yandex.Metrika counter -->
     <!-- <script type="text/javascript" >
     (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};

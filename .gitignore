@@ -1,3 +1,5 @@
 htaccess
 .idea/
 app/php/const.php
+/nbproject/private/
+/app/php/const.original.php

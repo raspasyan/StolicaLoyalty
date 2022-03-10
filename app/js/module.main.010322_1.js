@@ -318,12 +318,12 @@ function drawSection(section) {
     hideLoader();
   }
 
-  document.getElementById("top-nav").style.display = (sections[section] && sections[section].title ? "" : "none");
-  document.getElementById("top-nav-back").style.display = (sections[section] && sections[section].prevSection ? "" : "none");
-  document.getElementById("top-nav-msg").style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
-  document.getElementById("top-nav-title").innerText = sections[section].title;
-  document.getElementById("top-nav-menu").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
-  document.getElementById("top-nav-close").style.display = (["alerts"].indexOf(section) == -1 ? "none" : "");
+  document.getElementById("topNav").style.display = (sections[section] && sections[section].title ? "" : "none");
+  document.getElementById("topNav__back").style.display = (sections[section] && sections[section].prevSection ? "" : "none");
+  document.getElementById("topNav__msg").style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
+  document.getElementById("topNav__title").innerText = sections[section].title;
+  document.getElementById("topNav__menu").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
+  document.getElementById("topNav__close").style.display = (["alerts"].indexOf(section) == -1 ? "none" : "");
   
   document.getElementById("bottom-nav").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
 

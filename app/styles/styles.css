@@ -1,0 +1,73 @@
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Open Sans", sans-serif;
+    overflow-x: hidden;
+}
+
+header {
+    top: 0;
+    position: sticky;
+    z-index: 1;
+    height: 5rem;
+    border-bottom: 1px #efefef ridge;
+    display: grid;
+    grid-template-columns: 1fr 4fr 1fr;
+    align-items: center;
+    justify-items: center;
+    background-color: white;
+}
+
+header h6 {
+    font-weight: bold;
+    grid-area: 1/2;
+    margin-bottom: 0;
+}
+
+.main-app-space {
+    background: url(../assets/backs/bg.png);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    /*min-height: 100vh;*/
+    width: 100vw;
+    text-align: center;
+}
+
+.main-logo {
+    margin: 15% 0;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+.wrapper {
+  /*display: grid;*/
+  /*grid-template-rows: auto 1fr;*/
+  /*min-height: 100vh;*/
+  width: 100vw;
+}
+
+.textWings {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  align-items: center;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.textWings span {
+    border-top: 1px solid #E1E1E1;
+}
+.link {
+    font-size: 1.3rem;
+}
+
+.hidden {
+    display: none;
+}

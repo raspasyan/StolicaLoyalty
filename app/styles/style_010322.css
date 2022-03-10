@@ -109,6 +109,47 @@ input.fail {
   background-color: white;
 }
 
+/*========*/
+a[data-click="openBalanceView"] {
+    top: -1.5em;
+    position: relative;
+}
+.balance-view.open {
+    max-height: 75px;
+}
+.balance-view {
+    max-height: 0;
+    transition: 0.25s max-height;
+    overflow: hidden;
+    height: 80px;
+    width: 80%;
+    margin: 0 auto;
+    top: -0.75em;
+    position: relative;
+}
+.balance-view>div>span:nth-child(1) {
+    /* text-align: right; */
+}
+.balance-view>div>span {
+    width: 49%;
+    text-align: left;
+    display: inline-block;
+}
+.balance-view>div>span:nth-child(2n) {
+    font-weight: bold;
+    color: rgb(64, 98, 183);
+    opacity: 1;
+}
+.balance-view>div>span>i {
+    display: none;
+}
+@media(max-width: 359px){
+    .balance-view {
+        width: 100%;
+    }    
+}
+/*========*/
+
 #overlay {
   position: fixed;
   left: 0;
