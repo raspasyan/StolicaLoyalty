@@ -29,8 +29,8 @@
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
   <script src="app/js/module.main.010322_1.js" defer></script>
-  <script src="app/js/module.news.180222.js" defer></script>
-  <script src="app/js/module.stores.180222.js" defer></script>
+  <script src="app/js/module.news.180222_1.js" defer></script>
+  <script src="app/js/module.stores.180222_1.js" defer></script>
   <script src="app/js/module.personal.180222.js" defer></script>
   <script src="app/js/module.wallet.210222.js" defer></script>
 </head>
@@ -57,13 +57,13 @@
     </div>
   </div>
 
-  <div id="overlay-news" style="display: none;">
-    <div id="overlay-news-cont" class="animate__animated animate__fadeInDown">
-      <img id="overlay-news-image">
-      <div id="overlay-news-details">
-        <p id="overlay-news-details-date"></p>
-        <h4 id="overlay-news-details-title"></h4>
-        <p id="overlay-news-details-descpription"></p>
+  <div class="newsOverlay" style="display: none;">
+    <div class="newsOverlay__cont" class="animate__animated animate__fadeInDown">
+      <img class="newsOverlay__image">
+      <div class="newsOverlay__details">
+        <p class="newsOverlay__details_date"></p>
+        <h4 class="newsOverlay__details_title"></h4>
+        <p class="newsOverlay__details_descpription"></p>
         <button>Закрыть</button>
       </div>
     </div>
@@ -139,7 +139,7 @@
   </div>
   <div class="wrapper">
     <header class="topNav">
-      <i class="fa fa-angle-left topNav__back" onclick="routePrevSection()"></i>
+      <i class="topNav__back fa fa-angle-left" onclick="routePrevSection()"></i>
       <i class="fa fa-close topNav__close" onclick="routePrevSection()"></i>
       <i class="fa fa-envelope-o topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
       <h6>&nbsp;</h6>
@@ -147,9 +147,9 @@
       <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
     </header>
 
-    <div class="main-app-space">
+    <div class="main">
         
-      <div id="adult" class="section" style="display: none;">
+      <div id="adult" class="section sectionEmpty" style="display: none;">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <h5 class="hero-heading">
@@ -161,7 +161,7 @@
         </div>
       </div>
 
-      <div id="intro" class="section" style="display: none;">
+      <div id="intro" class="section sectionEmpty" style="display: none;">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
@@ -544,12 +544,12 @@
 
       <div id="stores" class="section stores" style="display: none;">
         <div class="container">
-          <div class="storeHead">
+          <div class="main-logo">
             <img src="app/assets/backs/city.png">
             <p>Выберите город</p>
-            <select id="store_cities" name="store_cities" class="reg_city"></select>
+            <select id="store_cities" name="store_cities" class="u-full-width"></select>
           </div>
-          <div id="storesList"></div>
+          <div class="storesList"></div>
         </div>
       </div>
 
@@ -607,20 +607,20 @@
       </div>
     </div>
 
-    <footer id="bottom-nav" style="display: none;">
-      <div class="bottom-nav-element" section="news">
+    <footer class="bottomNav" style="display: none;">
+      <div data-section="news">
         <i class="fa fa-newspaper-o"></i>
         <div>Акции</div>
       </div>
-      <div class="bottom-nav-element" section="stores">
+      <div data-section="stores">
         <i class="fa fa-map-marker"></i>
         <div>Карты</div>
       </div>
-      <div class="bottom-nav-element" section="wallet">
+      <div data-section="wallet">
         <i class="fa fa-credit-card"></i>
         <div>Кошелек</div>
       </div>
-      <div class="bottom-nav-element" section="personal">
+      <div data-section="personal">
         <i class="fa fa-id-card-o"></i>
         <div>Профиль</div>
       </div>

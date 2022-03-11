@@ -63,7 +63,6 @@ function drawWallet(walletData) {
         }
 
         let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
-
         if (balance != undefined) {
             if (bonuses.innerText != balance) {
                 bonuses.classList.remove("load");
@@ -79,9 +78,59 @@ function drawWallet(walletData) {
                     }
                 });
             }
+            
+            var activation = 0;
+
+            if (walletData.activation !== undefined) {
+                document.querySelector(".wallet__balanceDetail").style.display = "block";
+                activation = walletData.activation;
+                
+                var today = new Date();
+                today.setDate(today.getDate()+1);
+                                
+                let blockBalanceEl = document.createElement("div");
+
+                let dateField = document.createElement("span");
+                dateField.innerText = today.toLocaleString('ru-Ru').replace(", ", "\r\n");
+                blockBalanceEl.append(dateField);
+                
+                let amountField = document.createElement("span");
+                amountField.innerText = "+" + activation;
+                
+                let bonusField = document.createElement("span");
+                bonusField.innerText = " бонусов (активация)";
+                amountField.append(bonusField);
+                blockBalanceEl.append(amountField);
+
+                document.querySelector(".balance-view").append(blockBalanceEl);
+            }
+            currentBalance.innerHTML = new Intl.NumberFormat('ru-RU').format(Number(balance - activation));
+            
+            if (walletData.life_times !== undefined) {
+                document.querySelector(".wallet__balanceDetail").style.display = "block";
+
+                walletData.life_times.forEach(el => {
+                    let blockBalanceEl = document.createElement("div");
+
+                    let dateField = document.createElement("span");
+                    dateField.innerText = new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n");
+                    blockBalanceEl.append(dateField);
+
+                    let amountField = document.createElement("span");
+                    amountField.innerText = (el.amount > 0 ? "+" : "") + el.amount;
+
+                    let bonusField = document.createElement("span");
+                    bonusField.innerText = " бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")";
+                    amountField.append(bonusField);
+                    blockBalanceEl.append(amountField);
+
+                    document.querySelector(".balance-view").append(blockBalanceEl);
+                });
+            }
         } else {
             bonuses.innerText = "Не удалось загрузить с сервера.";
         }
+        
     } else {
         document.getElementById("wallet-placeholder").style.display = "";
         document.getElementById("wallet-loader").style.display = "";
