@@ -1711,8 +1711,8 @@ class BonusApp {
 
             $wallet = [
                 "cardNumber"            => $fullAccountData["data"]["card_number"],
-                "balance"               => $fullAccountData["data"]["balance"] + $fullAccountData["data"]["activation"],
-                "activation"            => $fullAccountData["data"]["activation"],
+                "balance"               => floatval($fullAccountData["data"]["balance"] + $fullAccountData["data"]["activation"]),
+                "activation"            => floatval($fullAccountData["data"]["activation"]),
                 "lifeTimes"             => json_decode($fullAccountData["data"]["life_times"], true),
                 "cardStatus"            => $fullAccountData["data"]["card_status"],
                 "discount"              => $fullAccountData["data"]["discount"],
