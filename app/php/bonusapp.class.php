@@ -14,12 +14,8 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        // debug($this->service_sendFeedbacks(true));
-
-        // $LMX = $this->getLMX();
-        // debug($LMX->getBalanceNew("1701"));
-
-        $this->service_getBalance(1);
+        $LMX = $this->getLMX();
+        print_r($LMX->getBalance(288879, 1));
 
         exit;
     }
@@ -1715,7 +1711,9 @@ class BonusApp {
 
             $wallet = [
                 "cardNumber"            => $fullAccountData["data"]["card_number"],
-                "balance"               => $fullAccountData["data"]["balance"],
+                "balance"               => $fullAccountData["data"]["balance"] + $fullAccountData["data"]["activation"],
+                "activation"            => $fullAccountData["data"]["activation"],
+                "lifeTimes"             => json_decode($fullAccountData["data"]["life_times"], true),
                 "cardStatus"            => $fullAccountData["data"]["card_status"],
                 "discount"              => $fullAccountData["data"]["discount"],
                 "discountValue"         => $fullAccountData["data"]["discount_value"],
@@ -2099,6 +2097,8 @@ class BonusApp {
                 p.city,
                 b.card_number,
                 ROUND(b.balance / 100, 2) AS balance,
+                ROUND(b.activation / 100, 2) AS activation,
+                b.life_times,
                 b.status AS card_status
             FROM
                 accounts AS a
@@ -2657,7 +2657,7 @@ class BonusApp {
         $begin = false;
         try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
         foreach ($bonusCardData as $key => $value) {
-            if (in_array($key, ["balance", "status", "last_sync", "account_id"])) {
+            if (in_array($key, ["balance", "activation", "life_times", "status", "last_sync", "account_id"])) {
                 $query = $this->pdo->prepare("UPDATE bonuscards SET ".$key." = :value WHERE card_number = :cardNumber");
                 $query->execute(["value" => $value, "cardNumber" => $cardNumber]);
 
@@ -3944,7 +3944,7 @@ class BonusApp {
         $cd = new DateTime();
 
         $LMX = $this->getLMX();
-        $getBalanceResult = $LMX->getBalanceNew($personId);
+        $getBalanceResult = $LMX->getBalance($personId);
         if ($getBalanceResult["status"]) {
             $this->pdo->beginTransaction();
 
@@ -3966,7 +3966,12 @@ class BonusApp {
             }
             
             // Запись даты синхронизации баланса
-            $setBonusCardDataResult = $this->setBonusCardData($cardNumber, ["last_sync" => $cd->format('Y-m-d H:i:s'), "balance" => $getBalanceResult["data"]["amount"] * 100]);
+            $setBonusCardDataResult = $this->setBonusCardData($cardNumber, [
+                "last_sync"     => $cd->format('Y-m-d H:i:s'),
+                "balance"       => $getBalanceResult["data"]["balance"] * 100,
+                "activation"    => $getBalanceResult["data"]["activation"] * 100,
+                "life_times"    => json_encode($getBalanceResult["data"]["lifeTimes"], JSON_UNESCAPED_UNICODE)
+            ]);
             if ($setBonusCardDataResult["status"]) {
                 $this->pdo->commit();
 

@@ -232,13 +232,23 @@ class LMX {
             $result = ["status" => false, "description" => ""];
 
             $methodResult = $this->SAPI_DetailedBalance($personId);
-            if ($debug) debug($methodResult);
+            if ($debug) $result["debug"] = $methodResult;
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->items)) {
+                    $lifeTimes = [];
+
+                    if (!empty($methodResult["data"]->data->items[0]->lifeTimesByTime))
+                        foreach($methodResult["data"]->data->items[0]->lifeTimesByTime as $value)
+                            array_push($lifeTimes, [
+                                "amount" => $value->amount * 100,
+                                "date" => $value->date
+                            ]);
+
                     $result["status"] = true;
                     $result["data"] = [
-                        "name" => $methodResult["data"]->data->items[0]->currency->name,
-                        "amount" => $methodResult["data"]->data->items[0]->amount + (isset($methodResult["data"]->data->items[0]->notActivatedAmount) ? $methodResult["data"]->data->items[0]->notActivatedAmount : 0)
+                        "balance"       => $methodResult["data"]->data->items[0]->amount,
+                        "activation"    => $methodResult["data"]->data->items[0]->notActivatedAmount,
+                        "lifeTimes"     => $lifeTimes
                     ];
                 } else {
                     $result["description"] = "Бонусные счета отсутствуют.";
@@ -371,34 +381,18 @@ class LMX {
         return $result;
     }
 
-    public function getHistory($phone, $filters) {
-        $result = $this->initPAPIToken($phone);
+    public function getHistory($personId, $filters = null, $debug = false) {
+        $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
 
-            $methodResult = $this->PAPI_History($filters);
+            $methodResult = $this->SAPI_History($personId, $filters, $debug);
+            if ($debug) $result["debug"] = $methodResult["data"];
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->rows)) {
-                    $purchases = [];
+                    $result["data"] = [];
 
-                    foreach ($methodResult["data"]->data->rows as $key => $row) {
-                        // debug($row);
-
-                        // $purchase = [
-                        //     "rsa_id" => $row->merchant->internalName,
-                        //     "operation_type" => 1,
-                        //     "oper_day" => $purchase->purchaseTime,
-                        //     "sale_time" => $purchase->completeTime,
-                        //     "cash" => 0,
-                        //     "shift" => 0,
-                        //     "number" => $purchase->chequeNumber,
-                        //     "amount" => 0,
-                        //     "cashback_amount" => 0,
-                        //     "discount_amount" => 0,
-                        //     "discount_card" => $purchase->personIdentifier,
-                        //     "positions" => []
-                        // ];
-                    }
+                    foreach ($methodResult["data"]->data->rows as $key => $row) array_push($result["data"], $row);
                 } else {
                     $result["description"] = "История покупок за выбранный период пуста.";    
                 }
@@ -1099,6 +1093,29 @@ class LMX {
         $result = $this->SAPI_CheckToken();
         if ($result["status"]) {
             $url = LMX_HOST . "/systemapi/api/Users/" . $personId . "/DetailedBalance" . ($date ? "?date=" . $date : "");
+            $options = array(
+                'http' => array(
+                    'header' => [
+                        "Content-Type: application/json",
+                        "authorization: Bearer " . $this->SAPI_accessToken
+                    ]
+                )
+            );
+            
+            $result = $this->doRequest($url, $options);
+        }
+
+        return $result;
+    }
+
+    private function SAPI_History($personId, $filters = null, $debug = false) {
+        $result = $this->SAPI_CheckToken();
+        if ($result["status"]) {
+            $url = LMX_HOST . "/systemapi/api/Users/" . $personId . "/History";
+            if ($filters) $url .= "?";
+            if (isset($filters["fromDate"])) $url .= "&filter.fromDate=" . $filters["fromDate"];
+            if (isset($filters["count"])) $url .= "&filter.count=" . $filters["count"];
+
             $options = array(
                 'http' => array(
                     'header' => [
@@ -1913,4 +1930,3 @@ class LMX {
         return $result;
     }
 }
-?>
