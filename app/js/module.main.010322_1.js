@@ -373,10 +373,12 @@ function drawSection(section) {
     let sectionsEls = document.querySelectorAll(".section");
     sectionsEls.forEach(function(el) {
         if (el.id === section) {
-            el.style.display = "";
+            if( !el.classList.contains("active")) {
+                el.classList.add("active");
+            }
             document.querySelector(".main").scrollIntoView();
         } else {
-            el.style.display = "none";
+            el.classList.remove("active");
         }
         hideLoader();
     });

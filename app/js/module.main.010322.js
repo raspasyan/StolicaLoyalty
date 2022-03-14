@@ -1078,7 +1078,16 @@ function hideFeedback() {
   document.body.classList.remove("overlay-show");
 }
 
-function setFeedback() {
+function setFeedback() {  
+  if (document.getElementById("feedback-phone").value.length < 16) {
+      showPopup("Ошибка!", "Укажите номер телефона", null, "ОК", null);
+      return;
+  }
+  if (document.getElementById("feedback-message").value === "") {
+      showPopup("Ошибка!", "Заполните поле 'Сообщение'", null, "ОК", null);
+      return;
+  }
+  
   let feedbackSubmitButton = document.getElementById("feedback-submit");
   feedbackSubmitButton.disabled = true;
   showLoader();

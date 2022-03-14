@@ -31,8 +31,8 @@
   <script src="app/js/module.main.010322_1.js" defer></script>
   <script src="app/js/module.news.180222_1.js" defer></script>
   <script src="app/js/module.stores.180222_1.js" defer></script>
-  <script src="app/js/module.personal.180222.js" defer></script>
-  <script src="app/js/module.wallet.210222.js" defer></script>
+  <script src="app/js/module.personal.180222_1.js" defer></script>
+  <script src="app/js/module.wallet.210222_1.js" defer></script>
 </head>
 
 <body>
@@ -149,10 +149,10 @@
 
     <div class="main">
         
-      <div id="adult" class="section sectionEmpty" style="display: none;">
+      <div id="adult" class="section sectionEmpty">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
-          <h5 class="hero-heading">
+          <h5>
             Подтвердите, что Вам есть 18 лет
           </h5>
           <button class="button button-primary u-full-width" onclick="drawSection('intro')">мне исполнилось 18
@@ -161,20 +161,16 @@
         </div>
       </div>
 
-      <div id="intro" class="section sectionEmpty" style="display: none;">
+      <div id="intro" class="section sectionEmpty">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
-          <div class="textWings">
-              <span></span>
-              <div>или</div>
-              <span></span>
-          </div>
+          <div class="textWings">или</div>
           <a href="#" class="link" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
         </div>
       </div>
 
-      <div id="authorization" class="section" style="display: none;">
+      <div id="authorization" class="section">
         <div class="container">
           <p class="hero-heading">Введите ваш номер телефона и пароль</p>
           <!-- Номер телефона -->
@@ -202,7 +198,7 @@
         </div>
       </div>
 
-      <div id="reset" class="section" style="display: none;">
+      <div id="reset" class="section">
         <div class="container">
           <h3>Не удается войти?</h3>
           <i class="fa fa-unlock-alt" style="font-size: 48px"></i>
@@ -238,7 +234,7 @@
         </div>
       </div>
 
-      <div id="pre-registration" class="section" style="display: none;">
+      <div id="pre-registration" class="section">
         <h2 class="main-logo"></h2>
         <div class="container">
           <img src="app/assets/backs/city.png">
@@ -251,7 +247,7 @@
         </div>
       </div>
 
-      <div id="registration" class="section" style="display: none;">
+      <div id="registration" class="section">
         <div class="container">
           <!-- Блок регистрации -->
           <div id="registration_cont" class="row">
@@ -334,7 +330,7 @@
         </div>
       </div>
 
-      <div id="reg_success" class="section" style="display: none;">
+      <div id="reg_success" class="section">
         <div class="reg_success-top">
           <div class="container">
             <div class="reg_success-top-block">
@@ -354,41 +350,33 @@
         </div>
       </div>
 
-      <div id="personal" class="section personal" style="display: none;">
-        <div class="personal__top">
-          <div class="personal__top-avatar">
-            <img src="app/assets/backs/avatar.png">
+      <div class="section personal" id="personal">
+        <div class="personal__head">
+          <div class="personal__head_avatar">
+              <div class="personal__head_avatar_image">
+                <img src="app/assets/backs/avatar.png">
+              </div>
           </div>
-          <div class="personal__top-name">
-            <span id="personal_name" class="neutral" style="color: #616161;">Наш Любимый Покупатель</span>
-          </div>
-          <div class="personal__top-birthdate">
-            <hr class="personal__hr-one">
-            <span id="personal_birthdate" class="neutral"></span>
-            <hr class="personal__hr-two">
-          </div>
-          <div class="personal__top-phone">
-            <span id="personal_phone" class="neutral" style="color: #616161;">+7-___-___-__-__</span>
-          </div>
+          <div class="personal__head_name" id="personal_name">Наш Любимый Покупатель</div>
+          <div class="personal__head_birthday textWings" id="personal_birthdate"></div>
+          <div class="personal__head_phone" id="personal_phone">+7-___-___-__-__</div>
         </div>
-        <div class="container">
-          <div class="personal__bottom">
-            <p class="personal__bottom-level-title">Ваша карта</p>
-            <div class="personal__bottom-level">
-              <img src="app/assets/backs/level-bg.png">
-              <span id="personalCardType" class="level"></span>
-            </div>
-            <div id="notMatchCardType" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
-              Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
-            </div>
-            <div class="personal__bottom-event">
-              <button class="button-white" onclick="drawSection('personal_update')">сменить данные</button>
-            </div>
+        <div class="personal__footer container">
+          <div class="personal__footer_title">Ваша карта</div>
+          <div class="personal__footer_level">
+            <img src="app/assets/backs/level-bg.png">
+            <span class="level" id="personalCardType"></span>
+          </div>
+          <div id="notMatchCardType" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
+            Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
+          </div>
+          <div class="personal__footer-event">
+            <button class="button-white" onclick="drawSection('personal_update')">сменить данные</button>
           </div>
         </div>
       </div>
 
-      <div id="personal_update" class="section personal-update" style="display: none;">
+      <div id="personal_update" class="section personal-update">
         <div class="container">
           <div id="replace_card" style="display: none">
             <p class="hero-heading">Переход на пластиковую карту:</p>
@@ -451,7 +439,7 @@
         </div>
       </div>
 
-      <div id="set_plastic" class="section" style="display: none;">
+      <div id="set_plastic" class="section">
         <div class="container">
           <div class="set_plastic-top">
             <span>Привязать пластиковую карту</span>
@@ -473,11 +461,11 @@
         </div>
       </div>
 
-      <div id="news" class="section news" style="display: none;">
+      <div id="news" class="section news">
         <div class="container"></div>
       </div>
 
-      <div id="wallet" class="section wallet" style="display: none;">
+      <div id="wallet" class="section wallet">
         <div class="wallet__top">
           <div class="container">
             <div id="wallet-placeholder" style="display: none;">
@@ -493,26 +481,24 @@
               </div>
             </div>
             <div id="wallet-data" style="display: none;">
-              <div id="cardType"></div>
-              <div id="qrcode" class="animate__animated animate__fadeIn" style="display: none;"></div>
-              <div style="display: none">Ваш персональный код:</div>
-              <div style="display: none">
-                <span id="cardNumber" class="neutral">Загрузка..</span>
-              </div>
-              <button id="downloadCard" style="display: none">Скачать QR код</button>
-              <h5 class="balance-text">
-                <span class="balance-text-text" id="cardInfo"> БАЛАНС</span>
-                <span class="balance-text-hr"></span>
-                <div class="balance-text-result">
-                  <span id="bonuses" style="font-weight: bold; color: #4062b7;" class="load"></span>
-                  <span id="currencyType">бонусов</span>
+                <div id="cardType"></div>
+                <div id="qrcode" class="animate__animated animate__fadeIn" style="display: none;"></div>
+                <div style="display: none">Ваш персональный код:</div>
+                <div style="display: none">
+                    <span id="cardNumber" class="neutral">Загрузка..</span>
                 </div>
-              </h5>
-              <a href="#" data-click="openBalanceView">Подробнее...</a>
-                <div class="balance-view">
-                <div><span>Текущий:</span> <span>1248,52 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
-                <div><span>Активация:</span> <span>2000 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
-                <div><span>Сгорания: </span> <span>48,52 <i class="fa fa-question-circle" aria-hidden="true"></i></span></div>
+                <button id="downloadCard" style="display: none">Скачать QR код</button>
+                <button class="balance-text button">
+                    <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span id="bonuses" class="load"></span>
+                    <span id="currencyType" class="currencyType">бонусов</span>
+                </button>
+                <div class="currentBalance">
+                    Доступно <span id="currentBalance"></span> <span class="currencyType">бонусов</span>
+                </div>
+                <div class="wallet__balanceDetail">
+                    <a href="#" data-click="openBalanceView">Подробнее...</a>
+                    <div class="balance-view"></div>
                 </div>
             </div>
           </div>
@@ -542,7 +528,7 @@
         </div>
       </div>
 
-      <div id="stores" class="section stores" style="display: none;">
+      <div id="stores" class="section stores">
         <div class="container">
           <div class="main-logo">
             <img src="app/assets/backs/city.png">
@@ -553,7 +539,7 @@
         </div>
       </div>
 
-      <div id="refer" class="section refer" style="display: none;">
+      <div id="refer" class="section refer">
         <div class="container">
           <div id="referQr"></div>
           <h3>Хочешь еще бонусов?</h3>
@@ -580,7 +566,7 @@
         </div>
       </div>
 
-      <div id="alerts" class="section" style="display: none;">
+      <div id="alerts" class="section">
         <div class="alerts_block">
           <div class="alerts_block-item">
             <span>Push-уведомления</span>
