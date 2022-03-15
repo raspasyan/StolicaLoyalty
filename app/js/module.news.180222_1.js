@@ -43,6 +43,7 @@ function drawNews(newsList) {
         newsContEl.appendChild(newsDetailsElement);
 
         let newsDetailsDateElement = document.createElement("p");
+        newsDetailsDateElement.classList.add("news__container_details_date");
         newsDetailsDateElement.innerText = date;
         newsDetailsElement.appendChild(newsDetailsDateElement);
 

@@ -17,15 +17,12 @@
 
   <link rel="stylesheet" href="app/styles/normalize.css" />
   <link rel="stylesheet" href="app/styles/skeleton_new.css" />
-  <!--<link rel="stylesheet" href="app/styles/style_010322.css" />-->
   <link rel="stylesheet" href="app/styles/styles.css" />
-  <link rel="stylesheet" href="app/styles/popups.css" />
   <link rel="stylesheet" href="app/styles/animate.css" />
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
-  <link rel="stylesheet" href="app/styles/font-awesome.min.css" />
+  <link rel="stylesheet" href="app/styles/fontello.css" />
 
   <script src="app/js/animate.js"></script>
-  <script src="app/js/popups.js"></script>
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
   <script src="app/js/module.main.010322_1.js" defer></script>
@@ -66,7 +63,7 @@
     <div class="mainMenu__head">
       <div class="mainMenu__head_left"></div>
       <div class="mainMenu__head_title"><span>Меню</span></div>
-      <div class="mainMenu__head_right"><i class="fa fa-close" onclick="closeNav()"></i></div>
+      <div class="mainMenu__head_right"><i class="icon-cancel" onclick="closeNav()"></i></div>
     </div>
     <div class="mainMenu__content">
       <ul class="mainMenu__content_nav">
@@ -78,11 +75,11 @@
       </ul>
       <ul class="mainMenu__content_bottom">
         <li onclick="showFeedback(); closeNav();">
-          <i class="fa fa-question" aria-hidden="true"></i>
+          <i class="icon-help" aria-hidden="true"></i>
           <div>Задать вопрос</div>
         </li>
         <li onclick="logOff()">
-          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          <i class="icon-logout" aria-hidden="true"></i>
           <div>Выход</div>
         </li>
       </ul>
@@ -135,11 +132,11 @@
     
   <div class="wrapper">
     <header class="topNav">
-      <i class="topNav__back fa fa-angle-left" onclick="routePrevSection()"></i>
-      <i class="fa fa-close topNav__close" onclick="routePrevSection()"></i>
-      <i class="fa fa-envelope-o topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
+      <i class="topNav__back icon-angle-left" onclick="routePrevSection()"></i>
+      <i class="icon-cancel topNav__close" onclick="routePrevSection()"></i>
+      <i class="icon-mail topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
       <h6>&nbsp;</h6>
-      <i class="fa fa-bars topNav__menu" onclick="openNav()"></i>
+      <i class="icon-menu topNav__menu" onclick="openNav()"></i>
       <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
     </header>
 
@@ -180,7 +177,7 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
             <input class="u-full-width" style="grid-area: 1/1/1/4;" type="password" placeholder="Пароль"
               id="auth_pass" />
-            <i id="auth_pass_toggle" class="fa fa-eye-slash"
+            <i id="auth_pass_toggle" class="icon-eye-off"
               style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
           </div>
           <!-- Кнопки -->
@@ -197,7 +194,7 @@
       <div id="reset">
         <div class="container">
           <h3>Не удается войти?</h3>
-          <i class="fa fa-unlock-alt" style="font-size: 48px"></i>
+          <i class="icon-lock-open-alt" style="font-size: 48px"></i>
           <p class="hero-heading">Введите ваш номер мобильного телефона</p>
           <div class="popup"><span class="popup-text" id="reset_phone_popup">Введите номер телефона</span></div>
           <div class="maskedInput">
@@ -271,14 +268,14 @@
               style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
               <input class="u-full-width" style="grid-area: 1/1/1/4;" type="password" placeholder="Пароль"
                 id="reg_pass" />
-              <i id="reg_pass_toggle" class="fa fa-eye-slash"
+              <i id="reg_pass_toggle" class="icon-eye-off"
                 style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
             </div>
             <div id="reg_password_group" class="required"
               style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
               <input class="u-full-width" style="grid-area: 1/1/1/4;" type="password" placeholder="Повторите пароль"
                 id="reg_pass_confirm" />
-              <i id="reg_pass_toggle_confirm" class="fa fa-eye-slash"
+              <i id="reg_pass_toggle_confirm" class="icon-eye-off"
                 style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
             </div>
             <!-- Система скидок -->
@@ -389,14 +386,14 @@
           <div class="personalUpdate__inputPass">
             <input class="u-full-width" type="password" placeholder="введите новый пароль" id="personal_new_pass"
               popup_id="personal_new_pass_popup" />
-            <i id="update_pass_toggle" class="fa fa-eye-slash"></i>
+            <i id="update_pass_toggle" class="icon-eye-off"></i>
           </div>
           <div class="popup"><span class="popup-text" id="personal_new_pass_confirmation_popup">Введенные пароли не
               совпадают</span></div>
           <div class="personalUpdate__inputPass">
             <input class="u-full-width" type="password" placeholder="повторите новый пароль"
               id="personal_new_pass_confirmation" popup_id="personal_new_pass_confirmation_popup" />
-            <i id="update_pass_toggle_confirm" class="fa fa-eye-slash"></i>
+            <i id="update_pass_toggle_confirm" class="icon-eye-off"></i>
           </div>
         </div>
 
@@ -462,7 +459,7 @@
         <div class="wallet__content">
             <div class="container">
             <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
-              <div style="padding: 2rem;"><i class="fa fa-pied-piper" style="font-size: 4rem;"></i></div>
+              <div style="padding: 2rem;"><i class="icon-pied-piper" style="font-size: 4rem;"></i></div>
               <h6>Почти готово! Осуществляется начисление бонусов, в течение минуты всё будет завершено.</h6>
             </div>
             <div class="wallet__content_loader" id="wallet-loader">
@@ -590,19 +587,19 @@
         <nav>
             <ul class="bottomNav">
                 <li data-section="news">
-                  <i class="fa fa-newspaper-o"></i>
+                  <i class="icon-newspaper"></i>
                   <div>Акции</div>
                 </li>
                 <li data-section="stores">
-                  <i class="fa fa-map-marker"></i>
+                  <i class="icon-location"></i>
                   <div>Карты</div>
                 </li>
                 <li data-section="wallet">
-                  <i class="fa fa-credit-card"></i>
+                  <i class="icon-credit-card"></i>
                   <div>Кошелек</div>
                 </li>
                 <li data-section="personal">
-                  <i class="fa fa-id-card-o"></i>
+                  <i class="icon-id-card-o"></i>
                   <div>Профиль</div>
                 </li>
             </ul>

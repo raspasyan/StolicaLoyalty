@@ -144,9 +144,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector('#feedback-message-popup').classList.remove("show");
     });
 
-    document.querySelectorAll(".system_tabsHead > span").forEach(span => {
-        span.addEventListener("pointerdown", function (e) {
-            let el   = e.currentTarget;
+    document.querySelectorAll(".system_tabsHead > span label").forEach(label => {
+        label.addEventListener("pointerdown", function (e) {
+            console.log(e.currentTarget.getAttribute('for'));
+            let el   = e.currentTarget.parentNode;
             let elCs = el.parentNode.parentNode.children[1].children;
             
             let tabHeads = el.parentNode.children;
@@ -295,6 +296,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function initPopups() {
+    let popups = document.getElementsByClassName("popup-text");
+    for (let index = 0; index < popups.length; index++) {
+        const element = popups[index];
+        element.addEventListener("click", function(e) {
+            if (element.classList.contains("show")) element.classList.remove("show");
+        });
+    }
+}
 
 function userActivity(e) {
     if (!userActivityTimeout)
