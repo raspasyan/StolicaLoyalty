@@ -32,7 +32,7 @@ function drawStoresInCity(stores) {
     stores.forEach(city => {
         let blockStoreElement = document.createElement("div");
         blockStoreElement.classList.add("storesList__block", "animate__animated", "animate__fadeInLeft");
-        blockStoreElement.setAttribute("style", "--animate-duration: " + (delay / 5) + "s");
+        blockStoreElement.setAttribute("style", "animation-duration: " + (delay / 5) + "s");
         blockStoreElement.addEventListener("click", e => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
 
         let storeTitle = document.createElement("div");
