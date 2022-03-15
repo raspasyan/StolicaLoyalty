@@ -83,7 +83,8 @@ let sections = {
         prevSection: "personal_update",
         needAuth: true
     }
-}
+};
+
 let currentSection = "";
 
 let bearerToken = "";
@@ -326,8 +327,9 @@ function routePrevSection() {
 }
 
 function drawSection(section) {
-    if (!section)
+    if (!section) {
         section = "adult";
+    }
 
     switch (section) {
         default:
@@ -394,7 +396,7 @@ function drawSection(section) {
         }
     }
 
-    let sectionsEls = document.querySelectorAll(".section");
+    let sectionsEls = document.querySelectorAll(".main > div");
     sectionsEls.forEach(function(el) {
         if (el.id === section) {
             if( !el.classList.contains("active")) {
@@ -661,7 +663,7 @@ function checkAuthorization() {
                     status: false,
                     description: error.message,
                     error: error
-                }
+                };
             });
 }
 
@@ -725,7 +727,7 @@ function checkReg() {
 
     let phone = getPhoneNumbers(regPhoneElement.value);
 
-    if (phone.length != 11) {
+    if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
         return 0;
     } else {
@@ -827,7 +829,7 @@ function setConfirmationTimeout(result) {
 
             confirmation_button_reset.style.display = "";
         }
-    }, 1000)
+    }, 1000);
 }
 
 async function confirmation() {

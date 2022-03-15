@@ -93,7 +93,7 @@ footer {
   width: 100vw;
 }
 
-main > div {
+.main > div {
     text-align: center;
     overflow-x: hidden;
     width: 100%;
@@ -103,7 +103,7 @@ main > div {
     min-height: 100vh;
 }
 
-main > div.active {
+.main > div.active {
     display: block;
 }
 
@@ -815,3 +815,44 @@ input.fail {
     border: 1px solid #e91e63;
 }
 
+.alerts {
+    height: 100%;
+    padding: 0px !important;
+}
+.alerts__block_item {
+    border-bottom: 1px solid #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14rem;
+}
+
+.switcher {
+    width: 64px;
+    height: 30px;
+    background: #D0D0D0;
+    border-radius: 75px;
+    display: flex;
+    align-items: center;
+}
+.switcher input {
+    position: absolute;
+    left: -999em;
+}
+.toggle {
+    margin-bottom: 0px;
+}
+.switcher > * {
+    cursor: pointer;
+}
+.switcher .toggle--handler {
+    background: #E9E9E9;
+    width: 19px;
+    height: 19px;
+    display: block;
+    border-radius: 60px;
+    margin: 7.5px;
+    position: relative;
+    z-index: 2;
+    transition: all 200ms cubic-bezier(0.445, 0.05, 0.55, 0.95);
+}
