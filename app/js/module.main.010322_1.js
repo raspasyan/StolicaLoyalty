@@ -134,6 +134,15 @@ document.addEventListener("DOMContentLoaded", function () {
         dropFail(e.target);
         reg_confirmation_code_popup.classList.remove("show");
     });
+    document.querySelector('#feedback-phone').addEventListener("blur", e => {
+        dropFail(e.target); 
+        document.querySelector('#feedback-phone-popup').classList.remove("show");
+    });
+    document.querySelector('#feedback-message').addEventListener("blur", e => {
+        dropFail(e.target); 
+        document.querySelector('#feedback-message-popup').classList.remove("show");
+    });
+
 
     document.getElementById("reg-birthdate").addEventListener("input", e => validateBirthdate(e.target));
     document.getElementById("reg-birthdate").addEventListener("blur", e => {
@@ -198,31 +207,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("reg-button").addEventListener("click", e => {
-        if (checkReg())
+        if (checkReg()) {
             showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
+        }
     });
     document.querySelector('a[data-click="openBalanceView"]').addEventListener("click", e => {
         let el = document.querySelector('.balance-view').classList;
         el.toggle('open');
-        if (el.contains('open')) {
-            e.target.innerHTML = "Скрыть";
-        } else {
-            e.target.innerHTML = "Подробнее...";
-        }
+        e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
     });
     reset_button.addEventListener("click", e => {
-        if (canGetResetConfirmationCode())
+        if (canGetResetConfirmationCode()) {
             showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
+        }
     });
 
     document.getElementById("transactions-details-button").addEventListener("pointerdown", e => {
-        let transactionsButtonElement = document.getElementById("transactions");
-        let isOpen = transactionsButtonElement.style.display == "";
-        transactionsButtonElement.style.display = (isOpen ? "none" : "");
-        e.target.innerText = (isOpen ? "открыть детализацию" : "скрыть детализацию");
+        let list = document.getElementById("transactions").classList;
+        list.toggle("hidden");
+        e.target.innerText = (list.contains("hidden") ? "открыть детализацию" : "скрыть детализацию");
     });
 
-    document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());
+    document.getElementById("feedback-submit").addEventListener("click", function(){setFeedback();});
 
     // Выбор города
     store_cities.addEventListener("change", e => {
@@ -231,32 +237,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Навигация
-    let elements = document.querySelectorAll(".bottomNav>div");
-    for (let i = 0; i < elements.length; i++) {
-        elements[i].addEventListener("pointerdown", function (e) {
-            let section = e.target.dataset.section;
+    let elements = document.querySelectorAll(".bottomNav>li, .mainMenu__content_nav>li");
+    elements.forEach(el => {
+        el.addEventListener("pointerdown", e => {
+            closeNav();
+            let section = e.currentTarget.dataset.section;
             if (section) {
                 drawSection(section);
             }
         });
-    }
+    });
 
     // Сокрытие всплывающего окна
-    overlay.addEventListener("pointerdown", function (e) {
-        if (overlay.callback) {
-            overlay.style.opacity = 0;
-            overlay.style.display = "none";
+    popupOverlay.addEventListener("pointerdown", function (e) {
+        if (popupOverlay.callback) {
+            popupOverlay.style.opacity = 0;
+            popupOverlay.style.display = "none";
 
-            overlay.callback();
+            popupOverlay.callback();
         } else {
             animate({
                 duration: 333,
                 timing: quad,
                 draw: function (progress, options) {
-                    overlay.style.opacity = 1 - progress;
+                    popupOverlay.style.opacity = 1 - progress;
                 },
                 callback: function (options) {
-                    overlay.style.display = "none";
+                    popupOverlay.style.display = "none";
                 }
             });
         }
@@ -390,10 +397,10 @@ function drawSection(section) {
     document.querySelector(".topNav__menu").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
     document.querySelector(".topNav__close").style.display = (["alerts"].indexOf(section) == -1 ? "none" : "");
     
-    let bottomNav = document.querySelector(".bottomNav");
+    let bottomNav = document.querySelector("footer");
     bottomNav.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
 
-    let bottomNavEls = document.querySelectorAll(".bottomNav > div");
+    let bottomNavEls = document.querySelectorAll(".bottomNav > li");
     bottomNavEls.forEach(el => {
         el.classList.remove("current-section");
         
@@ -569,7 +576,7 @@ function showPopup(title, description, message, buttonText, callback) {
 
     hideLoader();
 
-    overlay.style.display = "";
+    popupOverlay.style.display = "";
 
     popupTitle.style.display = (title ? "" : "none");
     popupTitle.innerText = title;
@@ -582,13 +589,13 @@ function showPopup(title, description, message, buttonText, callback) {
 
     popupButton.innerText = buttonText;
 
-    overlay.callback = callback;
+    popupOverlay.callback = callback;
 
     animate({
         duration: 333,
         timing: quad,
         draw: function (progress, options) {
-            overlay.style.opacity = progress;
+            popupOverlay.style.opacity = progress;
             // popupMessage.innerText = options.fullText.substring(0, options.fullText.length * progress);
         },
         fullText: message
@@ -643,17 +650,9 @@ function checkAuthorization() {
 
 async function auth() {
     let authPhoneElement = document.getElementById("auth-phone-mask");
-    let authPhonePopupElement = document.getElementById("auth-phone-popup");
-
-    let phone = getPhoneNumbers(authPhoneElement.value);
-
+    let phone = getPhoneNumbers(document.getElementById("auth-phone-mask").value);
     if (!phone || phone.length != 11) {
-        authPhoneElement.scrollIntoView();
-        authPhoneElement.focus();
-        authPhoneElement.classList.add("fail");
-
-        authPhonePopupElement.classList.add("show");
-
+        showInputPopup("auth-phone-mask");
         return;
     } else {
         authPhoneElement.classList.remove("fail");
@@ -710,22 +709,14 @@ function checkReg() {
     let phone = getPhoneNumbers(regPhoneElement.value);
 
     if (phone.length != 11) {
-        regPhoneElement.scrollIntoView();
-        regPhoneElement.classList.add("fail");
-        regPhoneElement.focus();
-
-        regPhonePopupElement.classList.add("show");
-
+        showInputPopup("reg-phone-mask");
         return 0;
     } else {
         regPhoneElement.classList.remove("fail");
     }
 
     if (reg_pass.value.length < 6) {
-        reg_pass.scrollIntoView();
-        reg_pass.classList.add("fail");
-        reg_pass.focus();
-        reg_pass_popup.classList.toggle("show");
+        showInputPopup("reg_pass");
         return 0;
     }
 
@@ -1162,7 +1153,26 @@ function hideFeedback() {
     document.body.classList.remove("hideOverflow");
 }
 
+function showInputPopup(id) {
+    let el = document.getElementById(id);
+    el.scrollIntoView();
+    el.classList.add("fail");
+    el.focus();
+    document.getElementById(id + "-popup").classList.add("show");
+}
+
 function setFeedback() {
+    let phoneNumber = document.getElementById("feedback-phone");
+    if (getPhoneNumbers(phoneNumber.value).length !== 11) {
+        showInputPopup("feedback-phone");
+        return;
+    }
+    let messageEl = document.getElementById("feedback-message");
+    if (messageEl.value.length < 3) {
+        showInputPopup("feedback-message");
+        return;
+    }
+
     let feedbackSubmitButton = document.getElementById("feedback-submit");
     feedbackSubmitButton.disabled = true;
     showLoader();

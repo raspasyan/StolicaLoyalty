@@ -145,7 +145,7 @@ function drawPurchases(purchases) {
 function drawPurchase(purchase) {
     // Контейнер
     let paymentElement = document.createElement("div");
-    paymentElement.classList.add("payment", "animate__animated", "animate__fadeIn");
+    paymentElement.classList.add("animate__animated", "animate__fadeIn");
 
     // Бонусы
     let paymentRowElement = null;
@@ -153,7 +153,6 @@ function drawPurchase(purchase) {
 
     // Всего скидка
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row");
 
     spanElement = document.createElement("span");
     spanElement.style.fontWeight = "bold";
@@ -181,7 +180,6 @@ function drawPurchase(purchase) {
 
     // Из них бонусами
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");
@@ -199,7 +197,6 @@ function drawPurchase(purchase) {
 
     // Начислено бонусов
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");
@@ -217,7 +214,7 @@ function drawPurchase(purchase) {
 
     // Дата
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row", "payment-row-date");
+    paymentRowElement.classList.add("payment-row-date");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");
@@ -241,7 +238,7 @@ function drawPurchase(purchase) {
 
     // Источник начисления
     paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row", "payment-row-date");
+    paymentRowElement.classList.add("payment-row-date");
 
     spanElement = document.createElement("span");
     spanElement.classList.add("payment-amount");

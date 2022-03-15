@@ -35,7 +35,6 @@ function drawNews(newsList) {
         });
 
         let newsImageElement = document.createElement("img");
-        newsImageElement.classList.add("news__container_image");
         newsImageElement.src = imageSrc;
         newsContEl.appendChild(newsImageElement);
 
@@ -44,12 +43,10 @@ function drawNews(newsList) {
         newsContEl.appendChild(newsDetailsElement);
 
         let newsDetailsDateElement = document.createElement("p");
-        newsDetailsDateElement.classList.add("nnews__container_details_date");
         newsDetailsDateElement.innerText = date;
         newsDetailsElement.appendChild(newsDetailsDateElement);
 
         let newsDetailsTitleElement = document.createElement("h4");
-        newsDetailsTitleElement.classList.add("news__container_details_title");
         newsDetailsTitleElement.innerText = news.title;
         newsDetailsElement.appendChild(newsDetailsTitleElement);
 

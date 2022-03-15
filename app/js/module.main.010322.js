@@ -125,7 +125,14 @@ document.addEventListener("DOMContentLoaded", function () {
   auth_pass.addEventListener("blur", e => { dropFail(e.target); auth_pass_popup.classList.remove("show"); });
   reg_pass.addEventListener("blur", e => { dropFail(e.target); reg_pass_popup.classList.remove("show"); });
   reg_confirmation_code.addEventListener("blur", e => { dropFail(e.target); reg_confirmation_code_popup.classList.remove("show"); });
-  
+  document.querySelector('#feedback-phone').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-phone-popup').classList.remove("show");
+  });
+  document.querySelector('#feedback-message').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-message-popup').classList.remove("show");
+  });
   document.getElementById("reg-birthdate").addEventListener("input", e => validateBirthdate(e.target));
   document.getElementById("reg-birthdate").addEventListener("blur", e => { dropFail(e.target); document.getElementById("reg-birthdate-popup").classList.remove("show"); });
 
@@ -1078,15 +1085,25 @@ function hideFeedback() {
   document.body.classList.remove("overlay-show");
 }
 
-function setFeedback() {  
-  if (document.getElementById("feedback-phone").value.length < 16) {
-      showPopup("Ошибка!", "Укажите номер телефона", null, "ОК", null);
-      return;
-  }
-  if (document.getElementById("feedback-message").value === "") {
-      showPopup("Ошибка!", "Заполните поле 'Сообщение'", null, "ОК", null);
-      return;
-  }
+function showInputPopup(id) {
+    let el = document.getElementById(id);
+    el.scrollIntoView();
+    el.classList.add("fail");
+    el.focus();
+    document.getElementById(id + "-popup").classList.add("show");
+}
+
+function setFeedback() {
+    let phoneNumber = document.getElementById("feedback-phone");
+    if (getPhoneNumbers(phoneNumber.value).length !== 11) {
+        showInputPopup("feedback-phone");
+        return;
+    }
+    let messageEl = document.getElementById("feedback-message");
+    if (messageEl.value.length < 3) {
+        showInputPopup("feedback-message");
+        return;
+    }
   
   let feedbackSubmitButton = document.getElementById("feedback-submit");
   feedbackSubmitButton.disabled = true;
@@ -1132,7 +1149,7 @@ function API_setFeedback(body) {
         status: false,
         description: error.message,
         error: error
-    }
+    };
   });
 }
 

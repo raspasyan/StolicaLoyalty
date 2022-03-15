@@ -20,7 +20,7 @@
   <!--<link rel="stylesheet" href="app/styles/style_010322.css" />-->
   <link rel="stylesheet" href="app/styles/styles.css" />
   <link rel="stylesheet" href="app/styles/popups.css" />
-  <link rel="stylesheet" href="app/styles/animate.min.css" />
+  <link rel="stylesheet" href="app/styles/animate.css" />
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
   <link rel="stylesheet" href="app/styles/font-awesome.min.css" />
 
@@ -36,21 +36,14 @@
 </head>
 
 <body>
-  <div id="loader">
-    <span class="lds-rotation"></span>
+  <div class="loader" id="loader">
+    <span class="loader__rotation"></span>
   </div>
 
-  <div id="overlay" style="display: none;">
-    <div id="popupCont">
+  <div class="popupOverlay" id="popupOverlay" style="display: none;">
+    <div class="popupCont" id="popupCont">
       <h4 id="popupTitle"></h4>
-      <div class="gridstone">
-        <hr>
-        </hr>
-        <hr>
-        </hr>
-        <hr>
-        </hr>
-      </div>
+      <hr>
       <h6 id="popupDescription"></h6>
       <p id="popupMessage"></p>
       <button id="popupButton" class="button-primary"></button>
@@ -58,8 +51,8 @@
   </div>
 
   <div class="newsOverlay" style="display: none;">
-    <div class="newsOverlay__cont" class="animate__animated animate__fadeInDown">
-      <img class="newsOverlay__image">
+    <div class="newsOverlay__cont animate__animated animate__fadeInDown">
+      <img class="newsOverlay__image" src="" alt="">
       <div class="newsOverlay__details">
         <p class="newsOverlay__details_date"></p>
         <h4 class="newsOverlay__details_title"></h4>
@@ -69,34 +62,34 @@
     </div>
   </div>
 
-  <div id="overlay-menu" class="overlay-menu animate__animated animate__slideInLeft animate__faster" style="display: none;" >
-    <div class="overlay-menu-top">
-      <div class="overlay-menu-top-left"></div>
-      <div class="overlay-menu-top-title"><span>Меню</span></div>
-      <div class="overlay-menu-top-right"><i class="fa fa-close" onclick="closeNav()"></i></div>
+  <div class="mainMenu animate__animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
+    <div class="mainMenu__head">
+      <div class="mainMenu__head_left"></div>
+      <div class="mainMenu__head_title"><span>Меню</span></div>
+      <div class="mainMenu__head_right"><i class="fa fa-close" onclick="closeNav()"></i></div>
     </div>
-    <div class="overlay-menu-content">
-      <div class="overlay-menu-content-top">
-        <div class="overlay-menu-content-item bottom-nav-element" section="wallet" onclick="closeNav()">Кошелек</div>
-        <div class="overlay-menu-content-item bottom-nav-element" section="news" onclick="closeNav()">Акции</div>
-        <div class="overlay-menu-content-item bottom-nav-element" section="stores" onclick="closeNav()">Магазины</div>
-        <div class="overlay-menu-content-item bottom-nav-element" section="personal" onclick="closeNav()">Профиль</div>
-        <div class="overlay-menu-content-item bottom-nav-element" section="refer" onclick="closeNav()">Пригласить друга</div>
-      </div>
-      <div class="overlay-menu-content-bottom">
-        <div class="topnav-bottom-feedback" onclick="showFeedback(); closeNav();">
-          <i class="fa fa-question" aria-hidden="true" style="color: #bbb; font-size: 3rem;"></i>
-          <span>Задать вопрос</span>
-        </div>
-        <div class="topnav-bottom-feedback" onclick="logOff()">
-          <i class="fa fa-sign-out" aria-hidden="true" style="color: #bbb; font-size: 3rem;"></i>
-          <span>Выход</span>
-        </div>
-      </div>
+    <div class="mainMenu__content">
+      <ul class="mainMenu__content_nav">
+        <li data-section="wallet">Кошелек</li>
+        <li data-section="news">Акции</li>
+        <li data-section="stores">Магазины</li>
+        <li data-section="personal">Профиль</li>
+        <li data-section="refer">Пригласить друга</li>
+      </ul>
+      <ul class="mainMenu__content_bottom">
+        <li onclick="showFeedback(); closeNav();">
+          <i class="fa fa-question" aria-hidden="true"></i>
+          <div>Задать вопрос</div>
+        </li>
+        <li onclick="logOff()">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          <div>Выход</div>
+        </li>
+      </ul>
     </div>
   </div>
 
-  <div id="feedback" class="animate__animated animate__slideInDown" style="display: none;">
+  <div class="feedback animate__animated animate__slideInDown" id="feedback" style="display: none;">
     <div class="container">
       <div class="row">
         <div class="six columns">
@@ -106,6 +99,7 @@
           <input id="feedback-email" class="u-full-width" type="text" placeholder="My@mail.com">
         </div>
         <div class="six columns">
+          <div class="popup"><span class="popup-text" id="feedback-phone-popup">Введите номер телефона</span></div>
           <label for="feedback-phone">Телефон</label>
           <input id="feedback-phone" class="u-full-width" type="tel" placeholder="+7(___)___-__-__">
           <label for="feedback-reason">Причина обращения</label>
@@ -117,6 +111,7 @@
           </select>
         </div>
       </div>
+      <div class="popup"><span class="popup-text" id="feedback-message-popup">Введите сообщение</span></div>
       <label for="feedback-message">Сообщение</label>
       <textarea class="u-full-width" placeholder="Здравствуйте!" id="feedback-message"></textarea>
       <input id="feedback-account" disabled style="display: none;" />
@@ -131,12 +126,13 @@
     </div>
   </div>
 
-  <div id="terms" class="terms" style="display: none">
+  <div class="terms" id="terms" style="display: none">
     <iframe loading="lazy" src="" frameborder="0"></iframe>
     <div class="commands">
       <button onclick='terms.style.display = "none";'>Принять</button>
     </div>
   </div>
+    
   <div class="wrapper">
     <header class="topNav">
       <i class="topNav__back fa fa-angle-left" onclick="routePrevSection()"></i>
@@ -147,7 +143,7 @@
       <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
     </header>
 
-    <div class="main">
+    <main class="main">
         
       <div id="adult" class="section sectionEmpty">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
@@ -174,10 +170,10 @@
         <div class="container">
           <p class="hero-heading">Введите ваш номер телефона и пароль</p>
           <!-- Номер телефона -->
-          <div class="popup"><span id="auth-phone-popup" class="popup-text">Введите номер телефона</span></div>
-          <div style="position: relative">
-            <input id="auth-phone" class="u-full-width" type="tel" disabled="" />
-            <input id="auth-phone-mask" class="u-full-width input-mask" type="tel" />
+          <div class="popup"><span id="auth-phone-mask-popup" class="popup-text">Введите номер телефона</span></div>
+          <div class="maskedInput">
+            <input id="auth-phone" type="tel" disabled="" />
+            <input id="auth-phone-mask" type="tel" />
           </div>
           <!-- Пароль -->
           <div class="popup"><span class="popup-text" id="auth_pass_popup">Введите пароль</span></div>
@@ -204,9 +200,9 @@
           <i class="fa fa-unlock-alt" style="font-size: 48px"></i>
           <p class="hero-heading">Введите ваш номер мобильного телефона</p>
           <div class="popup"><span class="popup-text" id="reset_phone_popup">Введите номер телефона</span></div>
-          <div style="position: relative;">
-            <input id="reset_phone" class="u-full-width" type="text" disabled="" />
-            <input id="reset-phone-mask" class="u-full-width input-mask" type="tel" />
+          <div class="maskedInput">
+            <input id="reset_phone" type="text" disabled="" />
+            <input id="reset-phone-mask" type="tel" />
           </div>
           <button class="button button-primary" style="width: 100%;" id="reset_button">Получить код для входа</button>
           <!-- Блок подтверждения входа -->
@@ -234,7 +230,7 @@
         </div>
       </div>
 
-      <div id="pre-registration" class="section">
+      <div id="pre-registration" class="section preRegistration">
         <h2 class="main-logo"></h2>
         <div class="container">
           <img src="app/assets/backs/city.png">
@@ -247,38 +243,38 @@
         </div>
       </div>
 
-      <div id="registration" class="section">
+      <div id="registration" class="section registration">
         <div class="container">
           <!-- Блок регистрации -->
-          <div id="registration_cont" class="row">
+          <div id="registration_cont" class="row registration__cont">
             <p class="hero-heading">Для завершения регистрации укажите свои контактные данные</p>
-            <div class="reg_inp">
+            <div>
               <input class="u-full-width" type="text" placeholder="Имя" id="reg_firstname" />
             </div>
             <!-- Номер телефона -->
-            <div class="popup"><span class="popup-text" id="reg-phone-popup">Введите номер телефона</span></div>
-            <div class="reg_inp required" style="position: relative;">
-              <input id="reg_phone" class="u-full-width required" type="tel" disabled="" />
-              <input id="reg-phone-mask" class="u-full-width input-mask" type="tel" />
+            <div class="popup"><span class="popup-text" id="reg-phone-mask-popup">Введите номер телефона</span></div>
+            <div class="required maskedInput">
+              <input id="reg_phone" class="required" type="tel" disabled="" />
+              <input id="reg-phone-mask" type="tel" />
             </div>
-            <div class="reg_inp">
+            <div>
               <p>Дата рождения:</p>
               <div class="popup"><span class="popup-text" id="reg-birthdate-popup">Вам должно быть 18 лет!</span></div>
               <input id="reg-birthdate" class="u-full-width required" type="tel" placeholder="дд-мм-гггг" />
             </div>
-            <div class="reg_inp">
+            <div>
               <input class="u-full-width" type="email" placeholder="e-mail" id="reg_email" />
             </div>
-            <div class="popup"><span class="popup-text" id="reg_pass_popup">Введите пароль, не менее 6 символов</span>
+            <div class="popup"><span class="popup-text" id="reg_pass-popup">Введите пароль, не менее 6 символов</span>
             </div>
-            <div id="reg_password_group" class="reg_inp required"
+            <div id="reg_password_group" class="required"
               style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
               <input class="u-full-width" style="grid-area: 1/1/1/4;" type="password" placeholder="Пароль"
                 id="reg_pass" />
               <i id="reg_pass_toggle" class="fa fa-eye-slash"
                 style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
             </div>
-            <div id="reg_password_group" class="reg_inp required"
+            <div id="reg_password_group" class="required"
               style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
               <input class="u-full-width" style="grid-area: 1/1/1/4;" type="password" placeholder="Повторите пароль"
                 id="reg_pass_confirm" />
@@ -365,66 +361,64 @@
           <div class="personal__footer_title">Ваша карта</div>
           <div class="personal__footer_level">
             <img src="app/assets/backs/level-bg.png">
-            <span class="level" id="personalCardType"></span>
+            <span class="personal__footer_level_text" id="personalCardType"></span>
           </div>
-          <div id="notMatchCardType" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
+          <div class="personal__footer_type" id="notMatchCardType">
             Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
           </div>
-          <div class="personal__footer-event">
+          <div class="personal__footer_event">
             <button class="button-white" onclick="drawSection('personal_update')">сменить данные</button>
           </div>
         </div>
       </div>
 
-      <div id="personal_update" class="section personal-update">
+      <div id="personal_update" class="personalUpdate section">
         <div class="container">
-          <div id="replace_card" style="display: none">
-            <p class="hero-heading">Переход на пластиковую карту:</p>
+          <div class="personalUpdate__replaceCard" id="replace_card" style="display: none">
+            <p>Переход на пластиковую карту:</p>
             <div class="popup"><span class="popup-text" id="personal_new_card_popup">Введите номер карты</span></div>
             <input class="u-full-width" type="text" placeholder="Номер карты" id="personal_new_card"
               popup_id="personal_new_card_popup" />
             <button id="personal_changeCard_button" class="button-primary">Подтвердить</button>
           </div>
-          <div class="set_plastic-top">
+          <div class="personalUpdate__setPlastic">
             <a href="#" onclick="drawSection('set_plastic')">Привязать пластиковую карту</a>
             <p>Пластиковую карту можно получить в магазине.</p>
             <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
           </div>
-          <p class="hero-heading text-center">Изменить пароль</p>
+          <p class="personalUpdate__h">Изменить пароль</p>
           <div class="popup"><span class="popup-text" id="personal_new_pass_popup">Введите новый пароль</span></div>
-          <div class="update__pass">
+          <div class="personalUpdate__inputPass">
             <input class="u-full-width" type="password" placeholder="введите новый пароль" id="personal_new_pass"
               popup_id="personal_new_pass_popup" />
-            <i id="update_pass_toggle" class="fa fa-eye-slash"
-              style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
+            <i id="update_pass_toggle" class="fa fa-eye-slash"></i>
           </div>
           <div class="popup"><span class="popup-text" id="personal_new_pass_confirmation_popup">Введенные пароли не
               совпадают</span></div>
-          <div class="update__pass">
+          <div class="personalUpdate__inputPass">
             <input class="u-full-width" type="password" placeholder="повторите новый пароль"
               id="personal_new_pass_confirmation" popup_id="personal_new_pass_confirmation_popup" />
-            <i id="update_pass_toggle_confirm" class="fa fa-eye-slash"
-              style="grid-area: 1/3/1/4; align-self: center; justify-self: right; width: 40px; height: 30px;"></i>
+            <i id="update_pass_toggle_confirm" class="fa fa-eye-slash"></i>
           </div>
         </div>
 
-        <div class="personal-update-system">
+        <div class="personalUpdate__system">
           <div class="container">
-            <p class="hero-heading text-center" style="margin-top: 0px;text-transform: uppercase">Выберите тип карты</p>
-            <div class="system system-update">
-              <div class="system_tabs">
-                <div class="system_tabs-head">
-                  <span class="system_tabs-head-item-change tab_h_active"><input id="premChange" type="radio"
-                      name="systemChange" value="0" checked><label for="premChange">Бонусная</label></span>
-                  <span class="system_tabs-head-item-change"><input id="discountChange" type="radio" name="systemChange"
-                      value="1"><label for="discountChange">Дисконтная</label></span>
+            <p class="personalUpdate__h">ВЫБЕРИТЕ ТИП КАРТЫ</p>
+            <div class="personalUpdate__system_update">
+              <div class="personalUpdate__system_tabs">
+                <div class="personalUpdate__system_tabsHead">
+                  <span class="tab_h_active"><input id="premChange" type="radio"
+                      name="systemChange" value="0" checked><label for="premChange">БОНУСНАЯ</label></span>
+                  <span><input id="discountChange" type="radio" name="systemChange"
+                      value="1"><label for="discountChange">ДИСКОНТНАЯ</label></span>
                 </div>
 
-                <div class="system_tabs-content">
-                  <div class="system_tabs-content-item-change tab_c_active"><span>С покупок Вы получаете кэшбек
+                <div class="personalUpdate__system_tabsContent">
+                  <div class="tab_c_active"><span>С покупок Вы получаете кэшбек
                       бонусными
                       рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
-                  <div class="system_tabs-content-item-change"><span>Вы можете получать скидки от 5% до 10% на товар,
+                  <div><span>Вы можете получать скидки от 5% до 10% на товар,
                       который можно приобрести со скидкой.</span></div>
                 </div>
               </div>
@@ -439,24 +433,25 @@
         </div>
       </div>
 
-      <div id="set_plastic" class="section">
+      <div class="setPlastic section" id="set_plastic">
         <div class="container">
-          <div class="set_plastic-top">
+          <div class="setPlastic__head">
             <span>Привязать пластиковую карту</span>
             <p>Пластиковую карту можно получить в магазине.</p>
             <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
           </div>
-          <div class="set_plastic-bottom">
-            <button id="scanerQR"><span class="scan_text">Просканируйте QR-код,<br> Что бы привязать карту</span>
-              <div class="scan_focus">
-                <div class="scan_focus-block"><span class="scan_focus-item1"></span><span
-                    class="scan_focus-item2"></span><span class="scan_focus-item3"></span><span
-                    class="scan_focus-item4"></span><span class="scan_focus-item5"></span></div>
-              </div><span class="scan_border1"></span><span class="scan_border2"></span><span
-                class="scan_border3"></span><span class="scan_border4"></span>
+          <div class="setPlastic__foot">
+            <button id="scanerQR" class="setPlastic__foot_scanerQR">
+                <span class="setPlastic__foot_scanText">Просканируйте QR-код,<br> Что бы привязать карту</span>
+                <div class="scan_focus">
+                  <div class="scan_focus-block"><span class="scan_focus-item1"></span><span
+                      class="scan_focus-item2"></span><span class="scan_focus-item3"></span><span
+                      class="scan_focus-item4"></span><span class="scan_focus-item5"></span></div>
+                </div><span class="scan_border1"></span><span class="scan_border2"></span><span
+                  class="scan_border3"></span><span class="scan_border4"></span>
             </button>
             <input type="text" id="plasticNumber" placeholder="номер карты">
-            <button id="set_card" class="button-primary plastic-add">Добавить</button>
+            <button id="set_card" class="button-primary">Добавить</button>
           </div>
         </div>
       </div>
@@ -466,13 +461,13 @@
       </div>
 
       <div id="wallet" class="section wallet">
-        <div class="wallet__top">
-          <div class="container">
-            <div id="wallet-placeholder" style="display: none;">
+        <div class="wallet__content">
+            <div class="container">
+            <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
               <div style="padding: 2rem;"><i class="fa fa-pied-piper" style="font-size: 4rem;"></i></div>
               <h6>Почти готово! Осуществляется начисление бонусов, в течение минуты всё будет завершено.</h6>
             </div>
-            <div id="wallet-loader">
+            <div class="wallet__content_loader" id="wallet-loader">
               <div class="lds-ellipsis">
                 <div></div>
                 <div></div>
@@ -480,15 +475,15 @@
                 <div></div>
               </div>
             </div>
-            <div id="wallet-data" style="display: none;">
-                <div id="cardType"></div>
-                <div id="qrcode" class="animate__animated animate__fadeIn" style="display: none;"></div>
+            <div class="wallet__content_data" id="wallet-data" style="display: none;">
+                <div class="wallet__content_data_type" id="cardType"></div>
+                <div class="wallet__content_data_qr animate__animated animate__fadeIn" id="qrcode" style="display: none;"></div>
                 <div style="display: none">Ваш персональный код:</div>
                 <div style="display: none">
                     <span id="cardNumber" class="neutral">Загрузка..</span>
                 </div>
                 <button id="downloadCard" style="display: none">Скачать QR код</button>
-                <button class="balance-text button">
+                <button class="wallet__content_data_balance button">
                     <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;&nbsp;
                     <span id="bonuses" class="load"></span>
                     <span id="currencyType" class="currencyType">бонусов</span>
@@ -522,7 +517,7 @@
             <span>Завтра Ваша карта станет <span id="changeDiscountSystemValue"></span>.</span>
           </p>
           <button id="transactions-details-button" class="details button-primary">Открыть детализацию</button>
-          <div id="transactions" style="display: none;">
+          <div class="wallet__bottom_transactions hidden" id="transactions">
             <div class="container"></div>
           </div>
         </div>
@@ -591,25 +586,29 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <footer class="bottomNav" style="display: none;">
-      <div data-section="news">
-        <i class="fa fa-newspaper-o"></i>
-        <div>Акции</div>
-      </div>
-      <div data-section="stores">
-        <i class="fa fa-map-marker"></i>
-        <div>Карты</div>
-      </div>
-      <div data-section="wallet">
-        <i class="fa fa-credit-card"></i>
-        <div>Кошелек</div>
-      </div>
-      <div data-section="personal">
-        <i class="fa fa-id-card-o"></i>
-        <div>Профиль</div>
-      </div>
+    <footer style="display: none;">
+        <nav>
+            <ul class="bottomNav">
+                <li data-section="news">
+                  <i class="fa fa-newspaper-o"></i>
+                  <div>Акции</div>
+                </li>
+                <li data-section="stores">
+                  <i class="fa fa-map-marker"></i>
+                  <div>Карты</div>
+                </li>
+                <li data-section="wallet">
+                  <i class="fa fa-credit-card"></i>
+                  <div>Кошелек</div>
+                </li>
+                <li data-section="personal">
+                  <i class="fa fa-id-card-o"></i>
+                  <div>Профиль</div>
+                </li>
+            </ul>
+        </nav>
     </footer>
   </div>
 
