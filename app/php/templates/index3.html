@@ -145,7 +145,7 @@
 
     <main class="main">
         
-      <div id="adult" class="section sectionEmpty">
+      <div id="adult" class="sectionEmpty">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <h5>
@@ -157,7 +157,7 @@
         </div>
       </div>
 
-      <div id="intro" class="section sectionEmpty">
+      <div id="intro" class="sectionEmpty">
         <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица">
         <div class="container">
           <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
@@ -166,7 +166,7 @@
         </div>
       </div>
 
-      <div id="authorization" class="section">
+      <div id="authorization">
         <div class="container">
           <p class="hero-heading">Введите ваш номер телефона и пароль</p>
           <!-- Номер телефона -->
@@ -194,7 +194,7 @@
         </div>
       </div>
 
-      <div id="reset" class="section">
+      <div id="reset">
         <div class="container">
           <h3>Не удается войти?</h3>
           <i class="fa fa-unlock-alt" style="font-size: 48px"></i>
@@ -230,7 +230,7 @@
         </div>
       </div>
 
-      <div id="pre-registration" class="section preRegistration">
+      <div id="pre-registration" class="preRegistration">
         <h2 class="main-logo"></h2>
         <div class="container">
           <img src="app/assets/backs/city.png">
@@ -243,7 +243,7 @@
         </div>
       </div>
 
-      <div id="registration" class="section registration">
+      <div id="registration" class="registration">
         <div class="container">
           <!-- Блок регистрации -->
           <div id="registration_cont" class="row registration__cont">
@@ -284,19 +284,17 @@
             <!-- Система скидок -->
             <div id="loyalty-system" class="system system-reg">
               <p class="system_title">Выберите систему скидок</p>
+              
               <div class="system_tabs">
-                <div class="system_tabs-head">
-                  <span class="system_tabs-head-item tab_h_active"><input id="prem" type="radio" name="system" value="0"
-                      checked><label for="prem">Бонусная <br> скидки до 50%</label></span>
-                  <span class="system_tabs-head-item"><input id="discount" type="radio" name="system" value="1"><label
-                      for="discount">Дисконтная</label></span>
+                <div class="system_tabsHead">
+                  <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
+                      name="systemChange" value="0" checked><label for="premChange">Бонусная <br> скидки до 50%</label></span>
+                  <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
+                      value="1"><label for="discountChange">Дисконтная</label></span>
                 </div>
-                <div class="system_tabs-content">
-                  <div class="system_tabs-content-item tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок,
-                      2000
-                      бонусов в подарок при регистрации.</span></div>
-                  <div class="system_tabs-content-item"><span>Вы можете получать скидки от 5% до 10% на товар, который
-                      можно приобрести со скидкой.</span></div>
+                <div class="system_tabsContent">
+                  <div class="tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок, 2000 бонусов в подарок при регистрации.</span></div>
+                  <div><span>Вы можете получать скидки от 5% до 10% на товар, который можно приобрести со скидкой.</span></div>
                 </div>
               </div>
             </div>
@@ -326,7 +324,7 @@
         </div>
       </div>
 
-      <div id="reg_success" class="section">
+      <div id="reg_success">
         <div class="reg_success-top">
           <div class="container">
             <div class="reg_success-top-block">
@@ -346,7 +344,7 @@
         </div>
       </div>
 
-      <div class="section personal" id="personal">
+      <div class="personal" id="personal">
         <div class="personal__head">
           <div class="personal__head_avatar">
               <div class="personal__head_avatar_image">
@@ -372,7 +370,7 @@
         </div>
       </div>
 
-      <div id="personal_update" class="personalUpdate section">
+      <div id="personal_update" class="personalUpdate">
         <div class="container">
           <div class="personalUpdate__replaceCard" id="replace_card" style="display: none">
             <p>Переход на пластиковую карту:</p>
@@ -406,15 +404,15 @@
           <div class="container">
             <p class="personalUpdate__h">ВЫБЕРИТЕ ТИП КАРТЫ</p>
             <div class="personalUpdate__system_update">
-              <div class="personalUpdate__system_tabs">
-                <div class="personalUpdate__system_tabsHead">
-                  <span class="tab_h_active"><input id="premChange" type="radio"
+              <div class="system_tabs">
+                <div class="system_tabsHead">
+                  <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
                       name="systemChange" value="0" checked><label for="premChange">БОНУСНАЯ</label></span>
-                  <span><input id="discountChange" type="radio" name="systemChange"
+                  <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
                       value="1"><label for="discountChange">ДИСКОНТНАЯ</label></span>
                 </div>
 
-                <div class="personalUpdate__system_tabsContent">
+                <div class="system_tabsContent">
                   <div class="tab_c_active"><span>С покупок Вы получаете кэшбек
                       бонусными
                       рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
@@ -433,7 +431,7 @@
         </div>
       </div>
 
-      <div class="setPlastic section" id="set_plastic">
+      <div class="setPlastic" id="set_plastic">
         <div class="container">
           <div class="setPlastic__head">
             <span>Привязать пластиковую карту</span>
@@ -456,11 +454,11 @@
         </div>
       </div>
 
-      <div id="news" class="section news">
+      <div id="news" class="news">
         <div class="container"></div>
       </div>
 
-      <div id="wallet" class="section wallet">
+      <div id="wallet" class="wallet">
         <div class="wallet__content">
             <div class="container">
             <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
@@ -523,7 +521,7 @@
         </div>
       </div>
 
-      <div id="stores" class="section stores">
+      <div id="stores" class="stores">
         <div class="container">
           <div class="main-logo">
             <img src="app/assets/backs/city.png">
@@ -534,7 +532,7 @@
         </div>
       </div>
 
-      <div id="refer" class="section refer">
+      <div id="refer" class="refer">
         <div class="container">
           <div id="referQr"></div>
           <h3>Хочешь еще бонусов?</h3>
@@ -561,7 +559,7 @@
         </div>
       </div>
 
-      <div id="alerts" class="section">
+      <div id="alerts">
         <div class="alerts_block">
           <div class="alerts_block-item">
             <span>Push-уведомления</span>

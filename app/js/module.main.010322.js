@@ -197,9 +197,27 @@ document.addEventListener("DOMContentLoaded", function () {
       if (e.currentTarget.getAttribute("section")) drawSection(e.currentTarget.getAttribute("section"));
     });
   }
+  
+    document.querySelectorAll(".system_tabs-head > span").forEach(span => {
+        span.addEventListener("pointerdown", function (e) {
+            let el   = e.currentTarget;
+            let elCs = el.parentNode.parentNode.children[1].children;
+            
+            let tabHeads = el.parentNode.children;
+            for(var i=0; i < tabHeads.length; i++) {
+                tabHeads[i].classList.remove("tab_h_active");
+            };
+            for(var i=0; i < elCs.length; i++) {
+                elCs[i].classList.remove("tab_c_active");
+            };
+
+            el.classList.add("tab_h_active");
+            elCs[el.dataset.tab].classList.add("tab_c_active");
+        });
+    });
 
   // Сокрытие всплывающего окна
-  overlay.addEventListener("pointerdown", function (e) {
+  overlay.addEventListener("pointerdown", function () {
     if (overlay.callback) {
       overlay.style.opacity = 0;
       overlay.style.display = "none";

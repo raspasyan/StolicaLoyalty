@@ -93,7 +93,7 @@ footer {
   width: 100vw;
 }
 
-.section {
+main > div {
     text-align: center;
     overflow-x: hidden;
     width: 100%;
@@ -103,7 +103,7 @@ footer {
     min-height: 100vh;
 }
 
-.section.active {
+main > div.active {
     display: block;
 }
 
@@ -530,33 +530,33 @@ a[data-click="openBalanceView"] {
 .personalUpdate__system_update {
     margin-bottom: 24px;
 }
-.personalUpdate__system_tabsHead {
+.system_tabsHead {
     display: grid;
     grid-template-columns: 1fr 1fr;
 
 }
-.personalUpdate__system_tabsHead label {
+.system_tabsHead label {
     text-transform: uppercase;
     margin: 7px 0 0 30px !important;
     height: 40px !important;
 }
-.personalUpdate__system_tabsHead > span {
+.system_tabsHead > span {
     width: 94%;
     text-align: left;
     padding: 5px;
     height: 40px;
     position: relative;
 }
-.personalUpdate__system_tabsHead .tab_h_active {
+.system_tabsHead .tab_h_active {
     background: #f6f6f6 !important;
 }
-.personalUpdate__system_tabsContent .tab_c_active {
+.system_tabsContent .tab_c_active {
     background: #f6f6f6 !important;
     display: block !important;
     text-align: left;
     padding-left: 10px;
 }
-.personalUpdate__system_tabsContent > div {
+.system_tabsContent > div {
     display: none;
     font-size: 13px;
 }

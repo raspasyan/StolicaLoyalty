@@ -143,6 +143,23 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector('#feedback-message-popup').classList.remove("show");
     });
 
+    document.querySelectorAll(".system_tabsHead > span").forEach(span => {
+        span.addEventListener("pointerdown", function (e) {
+            let el   = e.currentTarget;
+            let elCs = el.parentNode.parentNode.children[1].children;
+            
+            let tabHeads = el.parentNode.children;
+            for(var i=0; i < tabHeads.length; i++) {
+                tabHeads[i].classList.remove("tab_h_active");
+            };
+            for(var i=0; i < elCs.length; i++) {
+                elCs[i].classList.remove("tab_c_active");
+            };
+
+            el.classList.add("tab_h_active");
+            elCs[el.dataset.tab].classList.add("tab_c_active");
+        });
+    });
 
     document.getElementById("reg-birthdate").addEventListener("input", e => validateBirthdate(e.target));
     document.getElementById("reg-birthdate").addEventListener("blur", e => {
