@@ -1,3 +1,5 @@
+/* global Notification */
+
 const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
@@ -100,14 +102,44 @@ let userActivityTimeout = null;
 
 // Инициализация св-в приложения
 document.addEventListener("DOMContentLoaded", function () {
-    // if ('serviceWorker' in navigator) {
-    //   navigator.serviceWorker.register('/sw.js')
-    //     .then((reg) => {
-    //       // регистрация сработала
-    //     }).catch((error) => {
-    //       // регистрация прошла неудачно
-    //     });
-    // }
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    } else {
+        console.log('ServiceWorker do not work');
+    }
+    
+    function notifyMe () {
+        var notification = new Notification ("Все еще работаешь?", {
+            tag : "ache-mail",
+            body : "Пора сделать паузу и отдохнуть"
+            //icon : "https://itproger.com/img/notify.png"
+        });
+    }
+
+    function notifySet () {
+        if (!("Notification" in window)) {
+            console.log("Ваш браузер не поддерживает уведомления.");
+        } else if (Notification.permission === "granted") {
+            //setTimeout(notifyMe, 2000);
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission (function (permission) {
+                if (!('permission' in Notification)) {
+                    Notification.permission = permission;
+                }
+                if (permission === "granted") {
+                    //setTimeout(notifyMe, 2000);
+                }
+            });
+        }
+    }
+    notifySet();
+    
     initPopups();
 
     bearerToken = localStorage.getItem(LS_TOKEN);
@@ -145,11 +177,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.querySelectorAll(".system_tabsHead > span label").forEach(label => {
-        label.addEventListener("pointerdown", function (e) {
-            console.log(e.currentTarget.getAttribute('for'));
-            let el   = e.currentTarget.parentNode;
-            let elCs = el.parentNode.parentNode.children[1].children;
-            
+        label.addEventListener("click", function (e) {
+            let el      = e.currentTarget.parentNode;
+            let elCs    = el.parentNode.parentNode.children[1].children;
+
             let tabHeads = el.parentNode.children;
             for(var i=0; i < tabHeads.length; i++) {
                 tabHeads[i].classList.remove("tab_h_active");
@@ -266,26 +297,19 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-
+    
     // Сокрытие всплывающего окна
     popupOverlay.addEventListener("pointerdown", function (e) {
-        if (popupOverlay.callback) {
-            popupOverlay.style.opacity = 0;
-            popupOverlay.style.display = "none";
+        let el = e.currentTarget.classList;
 
-            popupOverlay.callback();
-        } else {
-            animate({
-                duration: 333,
-                timing: quad,
-                draw: function (progress, options) {
-                    popupOverlay.style.opacity = 1 - progress;
-                },
-                callback: function (options) {
-                    popupOverlay.style.display = "none";
-                }
-            });
+        if (!el.contains("animate__animated") && !e.currentTarget.classList.contains("animate__fadeOut")) {
+            el.add("animate__animated", "animate__fadeOut");
         }
+        
+        promiseTimeout(function(){
+            hide("#popupOverlay");
+            el.remove("animate__fadeOut", "animate__animated");
+        }, 1000);
     });
 
     checkUpdates(currentUpdates, () => {
@@ -296,6 +320,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function hide(selector){
+    document.querySelector(selector).style.display = "none";
+}
+
+function show(selector){
+    document.querySelector(selector).style.display = "";
+}
 
 function initPopups() {
     let popups = document.getElementsByClassName("popup-text");
@@ -318,11 +350,16 @@ function modifyInput(el) {
 }
 
 function openNav() {
-    document.getElementById("overlay-menu").style.display = "";
+    show("#overlay-menu");
 }
 
 function closeNav() {
-    document.getElementById("overlay-menu").style.display = "none";
+    hide("#overlay-menu");
+}
+
+async function promiseTimeout(fn, ms) {
+    await new Promise(resolve => setTimeout(resolve, ms));
+    return fn();
 }
 
 function removeChildrens(element) {
@@ -358,12 +395,16 @@ function drawSection(section) {
         case "registration":
         {
             updateCities().then(result => {
-                registration_cont.style.display = "";
-                reg_confirmation.style.display = "none";
+                show("#registration_cont");
+                hide("#reg_confirmation");
 
                 prem.checked = true;
                 discount.checked = false;
-                document.getElementById("loyalty-system").style.display = (city.options[city.options.selectedIndex].getAttribute("default-discount") == 0 ? "none" : "");
+                if (city.options[city.options.selectedIndex].getAttribute("default-discount") === 0) {
+                    hide("#loyalty-system");
+                } else {
+                    show("#loyalty-system");
+                }
             });
 
             break;
@@ -419,7 +460,7 @@ function drawSection(section) {
         }
         hideLoader();
     });
-
+    
     document.querySelector("header").style.display = (sections[section] && sections[section].title ? "" : "none");
     document.querySelector(".topNav__back").style.display = (sections[section] && sections[section].prevSection ? "" : "none");
     document.querySelector(".topNav__msg").style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
@@ -447,25 +488,16 @@ function renderReferSection() {
         if (response.status) {
             if (!referQr.children.length) {
                 let qrCanvas = document.createElement("canvas");
-                qrCanvas.style.opacity = 0;
                 let qr = new QRious({
                     element: qrCanvas,
                     size: 192,
                     value: response.data.link
                 });
                 referQr.appendChild(qrCanvas);
+                qrCanvas.classList.add("animate__animated", "animate__fadeIn");
 
-                referLink.style.display = "";
-                animate({
-                    duration: 1000,
-                    timing: quad,
-                    draw: function (progress, options) {
-                        qrCanvas.style.opacity = progress;
-                        referLink.style.opacity = progress;
-                    },
-                    callback: function (options) { }
-                });
-
+                show("#referLink");
+                
                 referLinkTG.setAttribute("href", "https://t.me/share/url?url=" + response.data.link + "&text=Столица: бонусы&utm_source=ref_tg");
                 referLinkWA.setAttribute("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + response.data.link + "&utm_source=ref_wa");
             }
@@ -599,6 +631,12 @@ function confirmAdult() {
 }
 
 function showPopup(title, description, message, buttonText, callback) {
+    let popupOverlay     = document.querySelector("#popupOverlay"),
+        popupTitle       = document.querySelector("#popupTitle"),
+        popupDescription = document.querySelector("#popupDescription"),
+        popupMessage     = document.querySelector("#popupMessage"),
+        popupButton      = document.querySelector("#popupButton");
+    
     if (!buttonText)
         buttonText = "Ок";
     if (!callback)
@@ -606,55 +644,48 @@ function showPopup(title, description, message, buttonText, callback) {
 
     hideLoader();
 
-    popupOverlay.style.display = "";
+    show("#popupOverlay");
+    
+    if (title) {
+        show("#popupTitle");
+        popupTitle.innerText = title;
+    } else {
+        hide("#popupTitle");
+    }
+    
+    if (description) {
+        show("#popupDescription");
+    } else {
+        hide("#popupDescription");
+        popupDescription.innerText = description;
+    }
 
-    popupTitle.style.display = (title ? "" : "none");
-    popupTitle.innerText = title;
-
-    popupDescription.style.display = (description ? "" : "none");
-    popupDescription.innerText = description;
-
-    popupMessage.style.display = (message ? "" : "none");
-    popupMessage.innerText = message;
+    if (message) {
+        show("#popupMessage");
+    } else {
+        hide("#popupMessage");
+        popupMessage.innerText = message;
+    }
 
     popupButton.innerText = buttonText;
-
     popupOverlay.callback = callback;
-
-    animate({
-        duration: 333,
-        timing: quad,
-        draw: function (progress, options) {
-            popupOverlay.style.opacity = progress;
-            // popupMessage.innerText = options.fullText.substring(0, options.fullText.length * progress);
-        },
-        fullText: message
-    });
+    
+    if (!popupOverlay.classList.contains("animate__animated") && !popupOverlay.classList.contains("animate__fadeInDown")) {
+        popupOverlay.classList.add("animate__animated", "animate__fadeInDown");
+    }
 }
 
 function showLoader() {
     loader.style.opacity = 1;
-    loader.style.display = "";
+    show("#loader");
 }
 
-function hideLoader(instant) {
-    if (instant == undefined)
-        instant = false;
-
-    if (instant) {
-        loader.style.display = "none";
-    } else {
-        animate({
-            duration: 1000,
-            timing: quad,
-            draw: function (progress, options) {
-                loader.style.opacity = 1 - progress;
-            },
-            callback: function (options) {
-                loader.style.display = "none";
-            }
-        });
-    }
+function hideLoader() {
+    loader.classList.add("animate__fadeOut", "animate__animated");
+    promiseTimeout(function(){
+        hide("#loader");
+        loader.classList.remove("animate__fadeOut", "animate__animated");
+    }, 1000);
 }
 
 function checkAuthorization() {
@@ -805,10 +836,10 @@ async function reg() {
     if (result.status) {
         if (result.data && result.data.need_confirmation) {
             // Скрываем блок регистрации
-            registration_cont.style.display = "none";
+            hide("#registration_cont");
 
             // Демонстрируем блок ввода подтверждения
-            reg_confirmation.style.display = "";
+            show("#reg_confirmation");
             reg_confirmation_code.scrollIntoView();
             reg_confirmation_code.classList.toggle("fail");
             reg_confirmation_code.focus();
@@ -824,7 +855,7 @@ async function reg() {
 }
 
 function setConfirmationTimeout(result) {
-    confirmation_button_reset.style.display = "none";
+    hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
     reg_confirmation_code_popup.innerText = result.description;
     reg_confirmation_info.innerText = result.description;
@@ -838,7 +869,7 @@ function setConfirmationTimeout(result) {
             clearInterval(secondsInterval);
             reg_confirmation_remind.innerText = "";
 
-            confirmation_button_reset.style.display = "";
+            show("#confirmation_button_reset");
         }
     }, 1000);
 }
@@ -960,18 +991,7 @@ async function getResetConfirmationCode() {
         let result = await response.json();
 
         if (result.status) {
-            reset_confirmation.style.opacity = 0;
-            reset_confirmation.style.display = "";
-
-            animate({
-                duration: 1000,
-                timing: quad,
-                draw: function (progress, options) {
-                    reset_confirmation.style.opacity = progress;
-                },
-                callback: function (options) { }
-            });
-
+            show("#reset_confirmation");
             reset_confirmation_info.innerText = result.description;
             if (result.data.seconds_left)
                 restartResetConfirmationTimer(result.data.seconds_left);
@@ -985,19 +1005,19 @@ async function getResetConfirmationCode() {
 function restartResetConfirmationTimer(seconds) {
     resetCodeTimerValue = seconds - 1;
 
-    reset_confirmation_time.style.display = "";
+    show("#reset_confirmation_time");
     reset_confirmation_time.innerText = resetCodeTimerValue + " сек.";
 
     if (resetCodeTimer)
         clearInterval(resetCodeTimer);
     resetCodeTimer = setInterval(() => {
-        reset_confirmation_time.style.display = "";
+        show("#reset_confirmation_time");
         reset_confirmation_time.innerText = resetCodeTimerValue + " сек.";
         resetCodeTimerValue--;
 
         if (!resetCodeTimerValue) {
             reset_button.disabled = false;
-            reset_confirmation_time.style.display = "none";
+            hide("#reset_confirmation_time");
             if (resetCodeTimer)
                 clearInterval(resetCodeTimer);
         }
@@ -1156,30 +1176,30 @@ function loadScript(src) {
 }
 
 function showTerms() {
-    document.getElementById("terms").style.display = "";
+    show("#terms");
     document.getElementById("terms").getElementsByTagName("iframe")[0].src = TERMS_URL;
 }
 
 function showRules() {
-    document.getElementById("terms").style.display = "";
+    show("#terms");
     document.getElementById("terms").getElementsByTagName("iframe")[0].src = RULES_URL;
 }
 
 function showIndicator() {
-    document.getElementById("top-nav-indicator").style.display = "";
+    show("#top-nav-indicator");
 }
 
 function hideIndicator() {
-    document.getElementById("top-nav-indicator").style.display = "none";
+    hide("#top-nav-indicator");
 }
 
 function showFeedback() {
-    document.getElementById("feedback").style.display = "";
+    show("#feedback");
     document.body.classList.add("hideOverflow");
 }
 
 function hideFeedback() {
-    document.getElementById('feedback').style.display = 'none';
+    hide("#feedback");
     document.body.classList.remove("hideOverflow");
 }
 

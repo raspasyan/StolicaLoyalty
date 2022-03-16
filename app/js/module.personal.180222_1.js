@@ -24,10 +24,11 @@ function updatePersonalData() {
             personalCardType.innerText = (result.data.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
 
             if (result.data.discount != result.data.preferred_discount) {
-                notMatchCardType.style.display = "block";
+                //notMatchCardType.style.display = "block";
+                show("#notMatchCardType");
                 notMatchCardTypeValue.innerText = (result.data.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
             } else {
-                notMatchCardType.style.display = "none";
+                hide("#notMatchCardType");
             }
         } else {
             onErrorCatch(result);
@@ -59,10 +60,12 @@ function drawPersonal(personal) {
     personalCardType.innerText = (personal.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
 
     if (personal.discount != personal.preferred_discount) {
-        notMatchCardType.style.display = "block";
+        //notMatchCardType.style.display = "block";
+        show("#notMatchCardType");
         notMatchCardTypeValue.innerText = (personal.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
     } else {
-        notMatchCardType.style.display = "none";
+        //notMatchCardType.style.display = "none";
+        hide("#notMatchCardType");
     }
 }
 

@@ -14,7 +14,8 @@ function drawNews(newsList) {
         let newsContEl = document.createElement("div");
         newsContEl.classList.add("news__container");
         newsContEl.addEventListener("click", e => {
-            document.querySelector(".newsOverlay").style.display = "block";
+            //document.querySelector(".newsOverlay").style.display = "block";
+            show(".newsOverlay");
             document.querySelector(".newsOverlay__image").src = imageSrc;
             document.querySelector(".newsOverlay__details_date").innerText = date;
             document.querySelector(".newsOverlay__details_title").innerText = news.title;
@@ -28,7 +29,7 @@ function drawNews(newsList) {
 
             document.querySelector(".newsOverlay").addEventListener("click", e => {
                 if (e.target === e.currentTarget || e.target.type === "submit") {
-                    e.currentTarget.style.display = "none";
+                    hide(".newsOverlay");
                     document.body.classList.remove("hideOverflow");
                 }
             });

@@ -75,3 +75,17 @@
 .animate__faster {
   animation-duration: 0.5s;
 }
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.animate__fadeOut {
+  animation-name: fadeOut;
+}

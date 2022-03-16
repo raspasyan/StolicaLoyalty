@@ -22,7 +22,6 @@
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
   <link rel="stylesheet" href="app/styles/fontello.css" />
 
-  <script src="app/js/animate.js"></script>
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
   <script src="app/js/module.main.010322_1.js" defer></script>
@@ -203,7 +202,7 @@
           </div>
           <button class="button button-primary" style="width: 100%;" id="reset_button">Получить код для входа</button>
           <!-- Блок подтверждения входа -->
-          <div id="reset_confirmation" style="display: none;">
+          <div id="reset_confirmation" style="display: none;" class="animate__animated animate__fadeIn">
             <div id="reset_confirmation_info" style="font-weight: bold;"></div>
             <input class="u-full-width" type="number" placeholder="Код" id="reset_confirmation_code" />
             <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
@@ -214,13 +213,7 @@
             <button class="button button-primary" style="width: 100%;" onclick="checkResetConfirmationCode()"
               id="reset_confirmation_button" disabled>Войти</button>
           </div>
-          <div class="gridstone">
-            <hr>
-            </hr>
-            <div>или</div>
-            <hr>
-            </hr>
-          </div>
+          <div class="textWings">или</div>
           <p class="link">
             <a href="#" onclick="drawSection('pre-registration')">Создать новый аккаунт</a>
           </p>
@@ -284,10 +277,10 @@
               
               <div class="system_tabs">
                 <div class="system_tabsHead">
-                  <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
-                      name="systemChange" value="0" checked><label for="premChange">Бонусная <br> скидки до 50%</label></span>
-                  <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
-                      value="1"><label for="discountChange">Дисконтная</label></span>
+                  <span class="tab_h_active" data-tab="0"><input id="prem" type="radio"
+                      name="system" value="0" checked><label for="prem">Бонусная <br> скидки до 50%</label></span>
+                  <span data-tab="1"><input id="discount" type="radio" name="system"
+                      value="1"><label for="discount">Дисконтная</label></span>
                 </div>
                 <div class="system_tabsContent">
                   <div class="tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок, 2000 бонусов в подарок при регистрации.</span></div>
@@ -475,9 +468,9 @@
                 <div class="wallet__content_data_qr animate__animated animate__fadeIn" id="qrcode" style="display: none;"></div>
                 <div style="display: none">Ваш персональный код:</div>
                 <div style="display: none">
-                    <span id="cardNumber" class="neutral">Загрузка..</span>
+                    <span class="cardNumber neutral" id="cardNumber">Загрузка...</span>
                 </div>
-                <button id="downloadCard" style="display: none">Скачать QR код</button>
+                <button id="downloadCard" style="display: none" class="animate__animated animate__fadeIn">Скачать QR код</button>
                 <button class="wallet__content_data_balance button">
                     <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;&nbsp;
                     <span id="bonuses" class="load"></span>
@@ -542,7 +535,7 @@
             <a href="/pravila-akcii">Полные правила акции</a>
           </p>
           <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
-          <p id="referLink" style="display: none">
+          <p id="referLink" style="display: none" class="animate__animated animate__fadeIn">
             <a id="referLinkWA" href=""><img style="width: 64px;" loading="lazy"
                 src="app/assets/social/whatsapp-128x128.png" alt="WHATSAPP"></a>
             <a id="referLinkTG" href=""><img style="width: 64px;" loading="lazy"

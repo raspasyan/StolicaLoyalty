@@ -1,21 +1,12 @@
 function drawWallet(walletData) {
     if (walletData.cardNumber) {
-        document.getElementById("wallet-placeholder").style.display = "none";
-        document.getElementById("wallet-loader").style.display = "none";
-        document.getElementById("wallet-data").style.display = "";
+        hide("#wallet-placeholder");
+        hide("#wallet-loader");
+        show("#wallet-data");
 
-        if (walletData.cardNumber && cardNumber.innerText != walletData.cardNumber) {
+        if (walletData.cardNumber && cardNumber.innerText !== walletData.cardNumber) {
             cardNumber.innerText = walletData.cardNumber;
-            animate({
-                duration: 1000,
-                timing: quad,
-                draw: function (progress, options) {
-                    cardNumber.style.opacity = progress;
-                },
-                callback: function () { }
-            });
-
-            if (qrcode.codeNumber != walletData.cardNumber) {
+            if (qrcode.codeNumber !== walletData.cardNumber) {
                 if (qrcode.children.length) removeChildrens(qrcode);
                 drawBonusCard(walletData.cardNumber);
             }
@@ -37,52 +28,51 @@ function drawWallet(walletData) {
             cardType.innerText = "Бонусная карта";
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
-            cardDataBonusPreffered.style.display = "none";
-            cardDataDiscount.style.display = "none";
+            hide("#cardDataBonusPreffered");
+            hide("#cardDataDiscount");
         } else if (!walletData.discount && walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: скидка
             cardType.innerText = "Бонусная карта";
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
-            cardDataBonusPreffered.style.display = "none";
-            cardDataDiscount.style.display = "none";
+            hide("#cardDataBonusPreffered");
+            hide("#cardDataDiscount");
         } else if (walletData.discount && !walletData.preferredDiscount) {
             // Текущая: скидка, предпочитаемая: бонусы
             cardType.innerText = "Дисконтная карта";
             cardInfo.innerText = "Баланс";
             currencyType.innerText = "бонусов";
-            cardDataDiscount.style.display = "none";
+            hide("#cardDataDiscount");
         }
 
-        if (walletData.discount != walletData.preferredDiscount) {
-            changeDiscountSystem.style.display = "";
+        if (walletData.discount !== walletData.preferredDiscount) {
+            show("#changeDiscountSystem");
             changeDiscountSystemValue.innerText = (walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
         } else {
-            changeDiscountSystem.style.display = "none";
+            hide("#changeDiscountSystem");
             changeDiscountSystemValue.innerText = "";
         }
-
+        
         let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
-        if (balance != undefined) {
-            if (bonuses.innerText != balance) {
+        if (balance !== undefined) {
+            if (bonuses.innerText !== balance) {
                 bonuses.classList.remove("load");
-                animate({
-                    duration: 1000,
-                    timing: quad,
-                    draw: function (progress, options) {
-                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * progress)));
-                        bonuses.style.opacity = progress;
-                    },
-                    callback: function (options) {
-                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(balance));
-                    }
-                });
+                
+                for (let i = 1; i < 101; i=i+3) {
+                    promiseTimeout(function(){
+                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * (i/100))));
+                    }, (10*i));
+                }
+                promiseTimeout(function(){
+                    bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(balance));            
+                }, 1000);
             }
             
             var activation = 0;
 
             if (walletData.activation !== undefined) {
-                document.querySelector(".wallet__balanceDetail").style.display = "block";
+                //document.querySelector(".wallet__balanceDetail").style.display = "block";
+                show(".wallet__balanceDetail");
                 activation = walletData.activation;
                 
                 var today = new Date();
@@ -107,7 +97,8 @@ function drawWallet(walletData) {
             currentBalance.innerHTML = new Intl.NumberFormat('ru-RU').format(Number(balance - activation));
             
             if (walletData.life_times !== undefined) {
-                document.querySelector(".wallet__balanceDetail").style.display = "block";
+                //document.querySelector(".wallet__balanceDetail").style.display = "block";
+                show(".wallet__balanceDetail");
 
                 walletData.life_times.forEach(el => {
                     let blockBalanceEl = document.createElement("div");
@@ -132,9 +123,9 @@ function drawWallet(walletData) {
         }
         
     } else {
-        document.getElementById("wallet-placeholder").style.display = "";
-        document.getElementById("wallet-loader").style.display = "";
-        document.getElementById("wallet-data").style.display = "none";
+        show("#wallet-placeholder");
+        show("#wallet-loader");
+        hide("#wallet-data");
     }
 }
 
@@ -329,15 +320,7 @@ function drawBonusCard(cardNumber) {
 
         qrcode.cardNumber = cardNumber;
         qrcode.appendChild(qrCanvas);
-        qrcode.style.display = "";
-        animate({
-            duration: 1000,
-            timing: quad,
-            draw: function (progress, options) {
-                qrcode.style.opacity = progress;
-            },
-            callback: function (options) { }
-        });
+        show("#qrcode");
 
         let cardCanvas = document.createElement("canvas");
         cardCanvas.width = cardImageW;
@@ -352,16 +335,7 @@ function drawBonusCard(cardNumber) {
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
 
-        downloadCard.style.display = "";
-        animate({
-            duration: 1000,
-            timing: quad,
-            draw: function (progress, options) {
-                downloadCard.style.opacity = progress;
-            },
-            callback: function (options) { }
-        });
-
+        show("#downloadCard");
         downloadCard.addEventListener("click", () => {
             var dataURL = cardCanvas.toDataURL("image/jpeg");
             var link = document.createElement("a");
