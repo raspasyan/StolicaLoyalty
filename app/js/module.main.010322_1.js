@@ -147,10 +147,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Применим маску ко всем полям ввода номера телефона
     setPhoneMask("7", false);
     document.getElementById("auth-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
-    document.getElementById("auth-phone-mask").addEventListener("blur", e => document.getElementById("auth-phone-popup").classList.remove("show"));
+    document.getElementById("auth-phone-mask").addEventListener("blur", e => document.getElementById("auth-phone-mask-popup").classList.remove("show"));
     document.getElementById("reset-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
     document.getElementById("reg-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
-    document.getElementById("reg-phone-mask").addEventListener("blur", e => document.getElementById("reg-phone-popup").classList.remove("show"));
+    document.getElementById("reg-phone-mask").addEventListener("blur", e => document.getElementById("reg-phone-mask-popup").classList.remove("show"));
     document.getElementById("feedback-phone").addEventListener("input", e => setPhoneMask(e.target.value));
 
     document.getElementById("auth-button").addEventListener("click", e => auth());
@@ -224,38 +224,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     reset_phone.addEventListener("input", e => {
         reset_button.disabled = (reset_phone.value ? false : true);
-        modifyInput(e.target)
+        modifyInput(e.target);
     });
     reset_confirmation_code.addEventListener("input", e => {
         reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true);
     });
+    
+    let passViewToggles = document.querySelectorAll('input + i[class^="icon-eye"]');
+    passViewToggles.forEach(el => {
+        el.addEventListener("pointerdown", e => {
+            let i      = e.currentTarget,
+                input  = i.parentNode.children[0];
 
-    auth_pass_toggle.addEventListener("pointerdown", e => {
-        auth_pass.type = (auth_pass.type == "password" ? "text" : "password");
-        auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6");
+            input.type = (input.type === "password" ? "text" : "password");
+            if (input.type === "password") {
+                //? "black" : "#4eb5e6"
+                i.classList.remove("icon-eye");
+                i.classList.add("icon-eye-off");
+            } else {
+                i.classList.remove("icon-eye-off");
+                i.classList.add("icon-eye");
+            }
+        });
     });
-    reg_pass_toggle.addEventListener("pointerdown", e => {
-        reg_pass.type = (reg_pass.type == "password" ? "text" : "password");
-        reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password");
-        reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6");
-    });
-    reg_pass_toggle_confirm.addEventListener("pointerdown", e => {
-        reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password");
-        reg_pass.type = (reg_pass.type == "password" ? "text" : "password");
-        reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6");
-    });
-
-    update_pass_toggle.addEventListener("pointerdown", e => {
-        personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password");
-        personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password");
-        update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6");
-    });
-    update_pass_toggle_confirm.addEventListener("pointerdown", e => {
-        personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password");
-        personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password");
-        update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6");
-    });
-
+    
+    
+    
     document.getElementById("reg-button").addEventListener("click", e => {
         if (checkReg()) {
             showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
@@ -388,7 +382,6 @@ function drawSection(section) {
         case "pre-registration":
         {
             updateCities();
-
             break;
         }
 
@@ -406,50 +399,43 @@ function drawSection(section) {
                     show("#loyalty-system");
                 }
             });
-
             break;
         }
 
         case "personal":
         {
-            //
             break;
         }
 
         case "stores":
         {
-            //
             break;
         }
 
         case "wallet":
         {
-            //
             break;
         }
 
         case "refer":
         {
             renderReferSection();
-
             break;
         }
 
         case "reg_success":
         {
-            //
             break;
         }
 
         case "news":
         {
-            //
             break;
         }
     }
 
-    let sectionsEls = document.querySelectorAll(".main > div");
-    sectionsEls.forEach(function(el) {
+    let sectionEls = document.querySelectorAll(".main > div");
+    sectionEls.forEach(function(el) {
         if (el.id === section) {
             if( !el.classList.contains("active")) {
                 el.classList.add("active");
@@ -1098,7 +1084,7 @@ function attentionFocus(element) {
     element.scrollIntoView();
     element.classList.add("fail");
     element.focus();
-    document.getElementById(element.getAttribute("popup_id")).classList.toggle("show");
+    document.getElementById(element.id + "_popup").classList.toggle("show");
 }
 
 async function logOff() {
