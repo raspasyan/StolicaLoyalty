@@ -167,6 +167,15 @@ document.addEventListener("DOMContentLoaded", function () {
     e.target.innerText = (isOpen ? "открыть детализацию" : "скрыть детализацию");
   });
 
+  document.querySelector('#feedback-phone').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-phone-popup').classList.remove("show");
+  });
+  document.querySelector('#feedback-message').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-message-popup').classList.remove("show");
+  });
+
   document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());
 
   // Выбор города
@@ -1069,7 +1078,26 @@ function hideFeedback() {
   document.body.classList.remove("overlay-show");
 }
 
+function showInputPopup(id) {
+    let el = document.getElementById(id);
+    el.scrollIntoView();
+    el.classList.add("fail");
+    el.focus();
+    document.getElementById(id + "-popup").classList.add("show");
+}
+
 function setFeedback() {
+    let phoneNumber = document.getElementById("feedback-phone");
+    if (getPhoneNumbers(phoneNumber.value).length !== 11) {
+        showInputPopup("feedback-phone");
+        return;
+    }
+    let messageEl = document.getElementById("feedback-message");
+    if (messageEl.value.length < 3) {
+        showInputPopup("feedback-message");
+        return;
+    }
+    
   let feedbackSubmitButton = document.getElementById("feedback-submit");
   feedbackSubmitButton.disabled = true;
   showLoader();
