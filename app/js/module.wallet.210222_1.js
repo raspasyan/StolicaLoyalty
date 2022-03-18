@@ -1,76 +1,97 @@
+/* global C, Intl, d, cardImageSRC, cardImageW, cardImageH */
+
 function drawWallet(walletData) {
+    let cardEl   = C("#cardNumber"),
+        qrEl     = C("#qrcode").el,
+        typeEl   = C("#cardType"),
+        infoEl   = C("#cardInfo"),
+        curEl    = C("#currencyType"),
+        bonusEl  = C("#bonuses"),
+        systemEl = C("#changeDiscountSystemValue");
+    
     if (walletData.cardNumber) {
         hide("#wallet-placeholder");
         hide("#wallet-loader");
         show("#wallet-data");
 
-        if (walletData.cardNumber && cardNumber.innerText !== walletData.cardNumber) {
-            cardNumber.innerText = walletData.cardNumber;
-            if (qrcode.codeNumber !== walletData.cardNumber) {
-                if (qrcode.children.length) removeChildrens(qrcode);
+        if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
+            cardEl.text(walletData.cardNumber);
+            if (qrEl.codeNumber !== walletData.cardNumber) {
+                if (qrEl.children.length) {
+                    removeChildrens(qrEl);
+                }
                 drawBonusCard(walletData.cardNumber);
             }
         }
 
-        discountValue.innerText = walletData.discountValue + '%';
+        C("#discountValue").text(walletData.discountValue + '%');
 
         let discountBalance = false;
 
         if (walletData.discount && walletData.preferredDiscount) {
             // Текущая: скидка, предпочитаемая: скидка
-            cardType.innerText = "Дисконтная карта";
-            cardInfo.innerText = "Ваша скидка";
-            currencyType.innerText = "%";
-            cardDataDiscount.style.display = "flex";
+            typeEl.text("Дисконтная карта");
+            infoEl.text("Ваша скидка");
+            curEl.text("%");
+            
+            C("#cardDataDiscount").el.style.display = "flex";
             discountBalance = true;
         } else if (!walletData.discount && !walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: бонусы
-            cardType.innerText = "Бонусная карта";
-            cardInfo.innerText = "Баланс";
-            currencyType.innerText = "бонусов";
+            typeEl.text("Бонусная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
             hide("#cardDataBonusPreffered");
             hide("#cardDataDiscount");
         } else if (!walletData.discount && walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: скидка
-            cardType.innerText = "Бонусная карта";
-            cardInfo.innerText = "Баланс";
-            currencyType.innerText = "бонусов";
+            typeEl.text("Бонусная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
             hide("#cardDataBonusPreffered");
             hide("#cardDataDiscount");
         } else if (walletData.discount && !walletData.preferredDiscount) {
             // Текущая: скидка, предпочитаемая: бонусы
-            cardType.innerText = "Дисконтная карта";
-            cardInfo.innerText = "Баланс";
-            currencyType.innerText = "бонусов";
+            typeEl.text("Дисконтная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
             hide("#cardDataDiscount");
         }
 
         if (walletData.discount !== walletData.preferredDiscount) {
             show("#changeDiscountSystem");
-            changeDiscountSystemValue.innerText = (walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
+            systemEl.text((walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ"));
         } else {
             hide("#changeDiscountSystem");
-            changeDiscountSystemValue.innerText = "";
+            systemEl.text("");
         }
         
         let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
         if (balance !== undefined) {
-            if (bonuses.innerText !== balance) {
-                bonuses.classList.remove("load");
+            if (bonusEl.text !== balance) {
+                bonusEl.el.classList.remove("load");
                 
                 for (let i = 1; i < 101; i=i+3) {
                     promiseTimeout(function(){
-                        bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * (i/100))));
+                        bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * (i/100)))));
                     }, (10*i));
                 }
                 promiseTimeout(function(){
-                    bonuses.innerText = new Intl.NumberFormat('ru-RU').format(Number(balance));            
+                    bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(balance)));
                 }, 1000);
             }
             
             var activation = 0;
 
             if (walletData.activation !== undefined) {
+                let blockBalanceEl = C().create("div"),
+                    dateField      = C().create("span"),
+                    amountField    = C().create("span"),
+                    bonusField     = C().create("span");
+                
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
                 activation = walletData.activation;
@@ -78,48 +99,41 @@ function drawWallet(walletData) {
                 var today = new Date();
                 today.setDate(today.getDate()+1);
                                 
-                let blockBalanceEl = document.createElement("div");
-
-                let dateField = document.createElement("span");
-                dateField.innerText = today.toLocaleString('ru-Ru').replace(", ", "\r\n");
-                blockBalanceEl.append(dateField);
+                dateField.text(today.toLocaleString('ru-Ru').replace(", ", "\r\n"));
+                amountField.text("+" + activation);
+                bonusField.text(" бонусов (активация)");
                 
-                let amountField = document.createElement("span");
-                amountField.innerText = "+" + activation;
-                
-                let bonusField = document.createElement("span");
-                bonusField.innerText = " бонусов (активация)";
-                amountField.append(bonusField);
-                blockBalanceEl.append(amountField);
+                blockBalanceEl.el.append(dateField.el);
+                amountField.el.append(bonusField.el);
+                blockBalanceEl.el.append(amountField.el);
 
-                document.querySelector(".balance-view").append(blockBalanceEl);
+                C(".balance-view").el.append(blockBalanceEl.el);
             }
-            currentBalance.innerHTML = new Intl.NumberFormat('ru-RU').format(Number(balance - activation));
+            C("#currentBalance").html(new Intl.NumberFormat('ru-RU').format(Number(balance - activation)));
             
             if (walletData.life_times !== undefined) {
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
 
                 walletData.life_times.forEach(el => {
-                    let blockBalanceEl = document.createElement("div");
+                    let blockBalanceEl = C().create("div"),
+                        dateField      = C().create("span"),
+                        amountField    = C().create("span"),
+                        bonusField     = C().create("span");
+                    
+                    dateField.text(new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n"));
+                    amountField.text((el.amount > 0 ? "+" : "") + el.amount);
+                    bonusField.text(" бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")");
+                    
+                    blockBalanceEl.el.append(dateField.el);
+                    amountField.el.append(bonusField.el);
+                    blockBalanceEl.el.append(amountField.el);
 
-                    let dateField = document.createElement("span");
-                    dateField.innerText = new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n");
-                    blockBalanceEl.append(dateField);
-
-                    let amountField = document.createElement("span");
-                    amountField.innerText = (el.amount > 0 ? "+" : "") + el.amount;
-
-                    let bonusField = document.createElement("span");
-                    bonusField.innerText = " бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")";
-                    amountField.append(bonusField);
-                    blockBalanceEl.append(amountField);
-
-                    document.querySelector(".balance-view").append(blockBalanceEl);
+                    C(".balance-view").el.append(blockBalanceEl.el);
                 });
             }
         } else {
-            bonuses.innerText = "Не удалось загрузить с сервера.";
+            bonusEl.text("Не удалось загрузить с сервера.");
         }
         
     } else {
@@ -134,211 +148,203 @@ function drawPurchases(purchases) {
 }
 
 function drawPurchase(purchase) {
-    // Контейнер
-    let paymentElement = document.createElement("div");
-    paymentElement.classList.add("animate__animated", "animate__fadeIn");
+    let payEl     = C().create("div"),
+        payRowEl  = C().create("div"),
+        spanEl    = C().create("span"),
+        totalDisc = Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount));
 
-    // Бонусы
-    let paymentRowElement = null;
-    let spanElement = null;
+    payEl.addclass(["animate__animated", "animate__fadeIn"]);
+    spanEl.el.style.fontWeight = "bold";
+    spanEl.text("Всего скидка: ");
+    payRowEl.append(spanEl);
 
-    // Всего скидка
-    paymentRowElement = document.createElement("div");
-
-    spanElement = document.createElement("span");
-    spanElement.style.fontWeight = "bold";
-    spanElement.innerText = "Всего скидка: ";
-    paymentRowElement.appendChild(spanElement);
-
-    let totalDiscount = Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount));
-    spanElement = document.createElement("span");
-    spanElement.classList.add("bad");
-    spanElement.innerText = (totalDiscount ? "-" : "") + new Intl.NumberFormat('ru-RU').format(totalDiscount) + " руб";
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("bad");
+    spanEl.text((totalDisc ? "-" : "") + new Intl.NumberFormat('ru-RU').format(totalDisc) + " руб");
+    payRowEl.append(spanEl);
 
     // Чек-возврата
     if (!purchase.operation_type) {
-        spanElement = document.createElement("span");
-        spanElement.classList.add("bad");
-        spanElement.style.fontWeight = "bold";
-        spanElement.style.textAlign = "right";
-        spanElement.style.fontSize = "12px";
-        spanElement.innerText = "чек возврата";
-        paymentRowElement.appendChild(spanElement);
+        spanEl = C().create("span");
+        spanEl.addclass("bad");
+        spanEl.style("fontWeight", "bold");
+        spanEl.style("textAlign", "right");
+        spanEl.style("fontSize", "12px");
+        spanEl.text("чек возврата");
+        payRowEl.append(spanEl);
     }
 
-    paymentElement.appendChild(paymentRowElement);
+    payEl.append(payRowEl);
 
-    // Из них бонусами
-    paymentRowElement = document.createElement("div");
+    payRowEl = C().create("div");
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.style("fontWeight", "bold");
+    spanEl.style("marginLeft", "20px");
+    spanEl.text("из них бонусами: ");
+    payRowEl.append(spanEl);
 
-    spanElement = document.createElement("span");
-    spanElement.classList.add("payment-amount");
-    spanElement.style.fontWeight = "bold";
-    spanElement.style.marginLeft = "20px";
-    spanElement.innerText = "из них бонусами: ";
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("bad");
+    spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount)));
+    payRowEl.append(spanEl);
 
-    spanElement = document.createElement("span");
-    spanElement.classList.add("bad");
-    spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount));
-    paymentRowElement.appendChild(spanElement);
-
-    paymentElement.appendChild(paymentRowElement);
+    payEl.append(payRowEl);
 
     // Начислено бонусов
-    paymentRowElement = document.createElement("div");
+    payRowEl = C().create("div");
 
-    spanElement = document.createElement("span");
-    spanElement.classList.add("payment-amount");
-    spanElement.style.fontWeight = "bold";
-    spanElement.innerText = "Начислено бонусов: ";
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.style("fontWeight", "bold");
+    spanEl.text("Начислено бонусов: ");
+    payRowEl.append(spanEl);
 
     let cashbackAmount = Number(purchase.cashback_amount);
-    spanElement = document.createElement("span");
-    spanElement.classList.add("good");
-    spanElement.innerText = (cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount);
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("good");
+    spanEl.text((cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount));
+    payRowEl.append(spanEl);
 
-    paymentElement.appendChild(paymentRowElement);
+    payEl.append(payRowEl);
 
     // Дата
-    paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row-date");
+    payRowEl = C().create("div");
+    payRowEl.addclass("payment-row-date");
 
-    spanElement = document.createElement("span");
-    spanElement.classList.add("payment-amount");
-    spanElement.innerText = "Дата: ";
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.text("Дата: ");
+    payRowEl.append(spanEl);
 
     let date = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/"));
 
-    spanElement = document.createElement("span");
-    spanElement.innerText =
+    spanEl = C().create("span");
+    spanEl.text(
         (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
         + String(date.getDate()) + " "
         + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
         + String(date.getFullYear()) + " года, "
         + String(date.getHours()) + ":"
-        + (String(date.getMinutes()).length == 1 ? "0" : "") + String(date.getMinutes()) + ":"
-        + (String(date.getSeconds()).length == 1 ? "0" : "") + String(date.getSeconds());
-    paymentRowElement.appendChild(spanElement);
+        + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
+        + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds()));
+    payRowEl.append(spanEl);
 
-    paymentElement.appendChild(paymentRowElement);
+    payEl.append(payRowEl);
 
     // Источник начисления
-    paymentRowElement = document.createElement("div");
-    paymentRowElement.classList.add("payment-row-date");
+    payRowEl = C().create("div");
+    payRowEl.addclass("payment-row-date");
 
-    spanElement = document.createElement("span");
-    spanElement.classList.add("payment-amount");
-    spanElement.innerText = "Магазин: ";
-    paymentRowElement.appendChild(spanElement);
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.text("Магазин: ");
+    payRowEl.append(spanEl);
 
     if (purchase.store_title && purchase.store_description) {
-        paymentRowElement.appendChild(getGeolink(purchase.store_title, purchase.store_description));
+        payRowEl.append(getGeolink(purchase.store_title, purchase.store_description));
     } else {
-        spanElement = document.createElement("span");
-        spanElement.innerText = purchase.store_title;
-        paymentRowElement.appendChild(spanElement);
+        spanEl = C().create("span");
+        spanEl.text(purchase.store_title);
+        payRowEl.append(spanEl);
     }
 
-    paymentElement.append(paymentRowElement);
+    payEl.append(payRowEl);
 
     // Детализация чека
     if (purchase.positions.length) {
-        let paymentDetailsElement = document.createElement("details");
-        paymentDetailsElement.addEventListener("click", e => {
+        let payDetailsEl = C().create("details"),
+            sumEl        = C().create("summary"),
+            detDataEl    = C().create("div"),
+            payRowEl     = C().create("div");
+        
+        payEl.append(payDetailsEl);
 
-        });
-        paymentElement.appendChild(paymentDetailsElement);
+        sumEl.text("Подробнее");
+        payDetailsEl.append(sumEl);
 
-        let summaryElement = document.createElement("summary");
-        summaryElement.innerText = "Подробнее";
-        paymentDetailsElement.append(summaryElement);
+        detDataEl.addclass("details-data");
+        payDetailsEl.append(detDataEl); 
 
-        let detailsDataElement = document.createElement("div");
-        detailsDataElement.classList.add("details-data");
-        paymentDetailsElement.append(detailsDataElement); 
-
-        paymentRowElement = document.createElement("div");
-        paymentRowElement.classList.add("payment-details", "neutral");
+        payRowEl.addclass(["payment-details", "neutral"]);
+        
         ["Оплачено", "Скидка", "Начислено"].forEach(element => {
-            let spanElement = document.createElement("span");
-            spanElement.innerText = element;
-            paymentRowElement.appendChild(spanElement);
+            let spanEl = C().create("span");
+            spanEl.text(element);
+            payRowEl.append(spanEl);
         });
-        detailsDataElement.appendChild(paymentRowElement);
+        detDataEl.append(payRowEl);
 
         purchase.positions.forEach((position) => {
-            paymentRowElement = document.createElement("div");
-            paymentRowElement.classList.add("payment-details", "important");
-            let spanElement = undefined;
-            spanElement = document.createElement("span");
-            spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(position.cost)) + " руб";
-            paymentRowElement.appendChild(spanElement);
+            let spanEl   = C().create("span"),
+                payRowEl = C().create("div");
+                
+            payRowEl.addclass(["payment-details", "important"]);
+            spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.cost)) + " руб");
+            payRowEl.append(spanEl);
 
-            spanElement = document.createElement("span");
+            spanEl = C().create("span");
             if (Number(position.discount_amount)) {
-                spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(position.discount_amount) * -1) + " руб";
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.discount_amount) * -1) + " руб");
             } else {
-                spanElement.innerText = new Intl.NumberFormat('ru-RU').format(Number(position.payment_amount)) + " бонусов";
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.payment_amount)) + " бонусов");
             }
 
-            let positionCashbackAmount = Number(position.cashback_amount)
-            paymentRowElement.appendChild(spanElement);
-            spanElement = document.createElement("span");
-            spanElement.innerText = (positionCashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(positionCashbackAmount) + " бонусов";
-            paymentRowElement.appendChild(spanElement);
+            let posCashAmount = Number(position.cashback_amount);
+            payRowEl.append(spanEl);
+            spanEl = C().create("span");
+            spanEl.text((posCashAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(posCashAmount) + " бонусов");
+            payRowEl.append(spanEl);
 
-            detailsDataElement.appendChild(paymentRowElement);
+            detDataEl.append(payRowEl);
 
-            paymentRowElement = document.createElement("div");
-            paymentRowElement.classList.add("payment-details", "payment-details-full");
-            paymentRowElement.innerText = (position.product_title ? position.product_title : "Загрузка..");
-            detailsDataElement.appendChild(paymentRowElement);
+            payRowEl = C().create("div");
+            payRowEl.addclass(["payment-details", "payment-details-full"]);
+            payRowEl.text((position.product_title ? position.product_title : "Загрузка.."));
+            detDataEl.append(payRowEl);
         });
     }
 
-    transactions.prepend(paymentElement);
+    C("#transactions").el.prepend(payEl.el);
 }
 
 function drawBonusCard(cardNumber) {
-    let cardImage = new Image();
-    cardImage.loaded = false;
-    cardImage.src = cardImageSRC;
-    cardImage.addEventListener("load", (e) => {
+    let cardImg = new Image(),
+        qrEl    = C("#qrcode");
+    
+    cardImg.loaded = false;
+    cardImg.src = cardImageSRC;
+    cardImg.addEventListener("load", (e) => {
 
-        let qrCanvas = document.createElement("canvas");
+        let qrCanvas = C().create("canvas");
         let qr = new QRious({
-            element: qrCanvas,
+            element: qrCanvas.el,
             size: 128,
             value: cardNumber,
             foreground: "#4062b7"
         });
 
-        qrcode.cardNumber = cardNumber;
-        qrcode.appendChild(qrCanvas);
+        qrEl.el.cardNumber = cardNumber;
+        qrEl.append(qrCanvas);
         show("#qrcode");
 
-        let cardCanvas = document.createElement("canvas");
+        let cardCanvas = d.createElement("canvas");
         cardCanvas.width = cardImageW;
         cardCanvas.height = cardImageH;
 
         let cardCanvasCtx = cardCanvas.getContext("2d");
         cardCanvasCtx.imageSmoothingEnabled = false;
-        cardCanvasCtx.drawImage(cardImage, 0, 0, cardImageW, cardImageH);
-        cardCanvasCtx.drawImage(qrCanvas, 192, 48, 128, 128);
+        cardCanvasCtx.drawImage(cardImg, 0, 0, cardImageW, cardImageH);
+        cardCanvasCtx.drawImage(qrCanvas.el, 192, 48, 128, 128);
 
         cardCanvasCtx.font = '32px sans-serif';
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
 
         show("#downloadCard");
-        downloadCard.addEventListener("click", () => {
-            var dataURL = cardCanvas.toDataURL("image/jpeg");
-            var link = document.createElement("a");
+        C("#downloadCard").el.addEventListener("click", () => {
+            var dataURL = cardCanvas.toDataURL("image/jpeg"),
+                link = d.createElement("a");
             link.href = dataURL;
             link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
             link.click();

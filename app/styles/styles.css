@@ -791,6 +791,9 @@ input[type="radio"]:checked + label:after {
     background-color: white;
     border-radius: 8px;
 }
+.popupCont hr {
+    margin: 0 0 1rem 0;
+}
 
 .maskedInput {
     position: relative;
