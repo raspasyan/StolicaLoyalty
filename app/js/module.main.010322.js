@@ -1,3 +1,5 @@
+/* global Notification, fetch, ymaps, Document, Window, attachEvent */
+
 const cardImageW = 512;
 const cardImageH = 328;
 const cardImageSRC = "app/assets/backs/card_back.jpg";
@@ -13,1315 +15,1678 @@ const SOURCE = "WEB2";
 let lastPhone = "";
 let secondsInterval = null;
 let secondsLeft = 0;
+let d = document;
 
 let resetCodeTimer = null;
 let resetCodeTimerValue = 0;
 
 let sections = {
-  "adult": {},
-  "intro": {},
-  "registration": {
-    title: "Регистрация",
-    prevSection: "pre-registration"
-  },
-  "pre-registration": {
-    title: "Выбор города",
-    prevSection: "intro"
-  },
-  "authorization": {
-    title: "Вход",
-    prevSection: "intro"
-  },
-  "reset": {
-    title: "Сброс пароля",
-    prevSection: "authorization"
-  },
-  "personal": {
-    title: "Профиль",
-    showMenu: true,
-    needAuth: true
-  },
-  "wallet": {
-    title: "Кошелек",
-    showMenu: true,
-    needAuth: true
-  },
-  "news": {
-    title: "Новости",
-    showMenu: true,
-    needAuth: true
-  },
-  "refer": {
-    title: "Приглашение",
-    showMenu: true,
-    needAuth: true
-  },
-  "stores": {
-    title: "Магазины",
-    showMenu: true,
-    needAuth: true
-  },
-  "reg_success": {
-    title: "Регистрация завершена",
-    showMenu: true,
-    needAuth: true
-  },
-  "alerts": {
-    title: "Подписки и уведомления",
-    showMenu: true,
-    needAuth: true
-  },
-  "personal_update": {
-    title: "Смена данных",
-    showMenu: true,
-    prevSection: "personal",
-    needAuth: true
-  },
-  "set_plastic": {
-    title: "Привязка карты",
-    showMenu: true,
-    prevSection: "personal_update",
-    needAuth: true
-  }
-}
-let currentSection = "";
-
-let bearerToken   = "";
-let currentUpdates = {
-  personalHash:"",
-  walletHash:"",
-  storesHash: "",
-  lastNews:"",
-  lastPurchase:""
+    "adult": {},
+    "intro": {},
+    "registration": {
+        title: "Регистрация",
+        prevSection: "pre-registration"
+    },
+    "pre-registration": {
+        title: "Выбор города",
+        prevSection: "intro"
+    },
+    "authorization": {
+        title: "Вход",
+        prevSection: "intro"
+    },
+    "reset": {
+        title: "Сброс пароля",
+        prevSection: "authorization"
+    },
+    "personal": {
+        title: "Профиль",
+        showMenu: true,
+        needAuth: true
+    },
+    "wallet": {
+        title: "Кошелек",
+        showMenu: true,
+        needAuth: true
+    },
+    "news": {
+        title: "Новости",
+        showMenu: true,
+        needAuth: true
+    },
+    "refer": {
+        title: "Приглашение",
+        showMenu: true,
+        needAuth: true
+    },
+    "stores": {
+        title: "Магазины",
+        showMenu: true,
+        needAuth: true
+    },
+    "reg_success": {
+        title: "Регистрация завершена",
+        showMenu: true,
+        needAuth: true
+    },
+    "alerts": {
+        title: "Подписки и уведомления",
+        showMenu: true,
+        needAuth: true
+    },
+    "personal_update": {
+        title: "Смена данных",
+        showMenu: true,
+        prevSection: "personal",
+        needAuth: true
+    },
+    "set_plastic": {
+        title: "Привязка карты",
+        showMenu: true,
+        prevSection: "personal_update",
+        needAuth: true
+    }
 };
-let currentCity = "";
-let userActivityTimeout = null;
+
+let currentSection = "",
+    bearerToken = "",
+    currentUpdates = {
+        personalHash: "",
+        walletHash: "",
+        storesHash: "",
+        lastNews: "",
+        lastPurchase: ""
+    },
+    currentCity = "",
+    userActivityTimeout = null;
 
 // Инициализация св-в приложения
-document.addEventListener("DOMContentLoaded", function () {
-  // if ('serviceWorker' in navigator) {
-  //   navigator.serviceWorker.register('/sw.js')
-  //     .then((reg) => {
-  //       // регистрация сработала
-  //     }).catch((error) => {
-  //       // регистрация прошла неудачно
-  //     });
-  // }
-  initPopups();
+d.addEventListener("DOMContentLoaded", function () {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').then(function (registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function (err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    } else {
+        console.log('ServiceWorker do not work');
+    }
 
-  bearerToken = localStorage.getItem(LS_TOKEN);
+    function notifyMe() {
+        var notification = new Notification("Все еще работаешь?", {
+            tag: "ache-mail",
+            body: "Пора сделать паузу и отдохнуть"
+            //icon : "https://itproger.com/img/notify.png"
+        });
+    }
 
-  // Применим маску ко всем полям ввода номера телефона
-  setPhoneMask("7", false);
-  document.getElementById("auth-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
-  document.getElementById("auth-phone-mask").addEventListener("blur", e => document.getElementById("auth-phone-popup").classList.remove("show"));
-  document.getElementById("reset-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
-  document.getElementById("reg-phone-mask").addEventListener("input", e => setPhoneMask(e.target.value));
-  document.getElementById("reg-phone-mask").addEventListener("blur", e => document.getElementById("reg-phone-popup").classList.remove("show"));
-  document.getElementById("feedback-phone").addEventListener("input", e => setPhoneMask(e.target.value));
+    function notifySet() {
+        if (!("Notification" in window)) {
+            console.log("Ваш браузер не поддерживает уведомления.");
+        } else if (Notification.permission === "granted") {
+            //setTimeout(notifyMe, 2000);
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission(function (permission) {
+                if (!('permission' in Notification)) {
+                    Notification.permission = permission;
+                }
+                if (permission === "granted") {
+                    //setTimeout(notifyMe, 2000);
+                }
+            });
+        }
+    }
+    notifySet();
 
-  document.getElementById("auth-button").addEventListener("click", e => auth());
+    initPopups();
 
-  auth_pass.addEventListener("blur", e => { dropFail(e.target); auth_pass_popup.classList.remove("show"); });
-  reg_pass.addEventListener("blur", e => { dropFail(e.target); reg_pass_popup.classList.remove("show"); });
-  reg_confirmation_code.addEventListener("blur", e => { dropFail(e.target); reg_confirmation_code_popup.classList.remove("show"); });
-  document.querySelector('#feedback-phone').addEventListener("blur", e => {
-      dropFail(e.target); 
-      document.querySelector('#feedback-phone-popup').classList.remove("show");
-  });
-  document.querySelector('#feedback-message').addEventListener("blur", e => {
-      dropFail(e.target); 
-      document.querySelector('#feedback-message-popup').classList.remove("show");
-  });
-  document.getElementById("reg-birthdate").addEventListener("input", e => validateBirthdate(e.target));
-  document.getElementById("reg-birthdate").addEventListener("blur", e => { dropFail(e.target); document.getElementById("reg-birthdate-popup").classList.remove("show"); });
+    bearerToken = localStorage.getItem(LS_TOKEN);
 
-  // Переход на пластиковую карту
-  personal_changeCard_button.addEventListener("click", () => changeCard());
-
-  // Смена пароля
-  personal_new_pass.addEventListener("blur", e => { dropFail(e.target); personal_new_pass_popup.classList.remove("show"); });
-  personal_new_pass_confirmation.addEventListener("blur", e => { dropFail(e.target); personal_new_pass_confirmation_popup.classList.remove("show"); });
-  personal_changePassword_button.addEventListener("click", () => changeProfileData());
-
-  // Привязка пластиковой карты
-  set_card.addEventListener("click", () => setCard());
-
-  // Вход без пароля
-  reset_phone.addEventListener("blur", e => { dropFail(e.target); reset_phone_popup.classList.remove("show"); });
-  reset_phone.addEventListener("input", e => { reset_button.disabled = (reset_phone.value ? false : true); modifyInput(e.target) });
-  reset_confirmation_code.addEventListener("input", e => { reset_confirmation_button.disabled = (reset_confirmation_code.value.length == 4 ? false : true); });
-
-  auth_pass_toggle.addEventListener("pointerdown", e => { auth_pass.type = (auth_pass.type == "password" ? "text" : "password"); auth_pass_toggle.style.color = (auth_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle.addEventListener("pointerdown", e => { reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass_toggle.style.color = (reg_pass.type == "password" ? "black" : "#4eb5e6"); });
-  reg_pass_toggle_confirm.addEventListener("pointerdown", e => { reg_pass_confirm.type = (reg_pass_confirm.type == "password" ? "text" : "password"); reg_pass.type = (reg_pass.type == "password" ? "text" : "password"); reg_pass_toggle_confirm.style.color = (reg_pass_confirm.type == "password" ? "black" : "#4eb5e6"); });
-
-  update_pass_toggle.addEventListener("pointerdown", e => { personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); update_pass_toggle.style.color = (personal_new_pass.type == "password" ? "black" : "#4eb5e6"); });
-  update_pass_toggle_confirm.addEventListener("pointerdown", e => { personal_new_pass_confirmation.type = (personal_new_pass_confirmation.type == "password" ? "text" : "password"); personal_new_pass.type = (personal_new_pass.type == "password" ? "text" : "password"); update_pass_toggle_confirm.style.color = (personal_new_pass_confirmation.type == "password" ? "black" : "#4eb5e6"); });
-
-  document.getElementById("reg-button").addEventListener("click", e => {
-    if (checkReg()) showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
-  });
-  document.querySelector('a[data-click="openBalanceView"]').addEventListener("click", e => {
-      let el = document.querySelector('.balance-view').classList;
-      el.toggle('open');
-      if(el.contains('open')){
-          e.target.innerHTML = "Скрыть";
-      }else{
-          e.target.innerHTML = "Подробнее...";
-      }
-  });
-  reset_button.addEventListener("click", e => {
-    if (canGetResetConfirmationCode()) showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + reg_phone.value, "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
-  });
-
-  document.getElementById("transactions-details-button").addEventListener("pointerdown", e => {
-    let transactionsButtonElement = document.getElementById("transactions");
-    let isOpen = transactionsButtonElement.style.display == "";
-    transactionsButtonElement.style.display = (isOpen ? "none" : "");
-    e.target.innerText = (isOpen ? "открыть детализацию" : "скрыть детализацию");
-  });
-
-  document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());
-
-  // Выбор города
-  store_cities.addEventListener("change", e => {
-    let stores = JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores"));
-    drawStoresInCity(stores);
-  });
-
-  // Навигация
-  let elements = document.getElementsByClassName("bottom-nav-element");
-  for (let i = 0; i < elements.length; i++) {
-    elements[i].addEventListener("pointerdown", function (e) {
-      if (e.currentTarget.getAttribute("section")) drawSection(e.currentTarget.getAttribute("section"));
+    // Применим маску ко всем полям ввода номера телефона
+    C('input[id*="-mask"]').els.forEach(inp => {
+        mask(inp);
     });
-  }
-  
-    document.querySelectorAll(".system_tabs-head > span").forEach(span => {
-        span.addEventListener("pointerdown", function (e) {
-            let el   = e.currentTarget;
-            let elCs = el.parentNode.parentNode.children[1].children;
-            
-            let tabHeads = el.parentNode.children;
-            for(var i=0; i < tabHeads.length; i++) {
+    
+    // Подключаем обработчики для Popup
+    C('input[id*="-popup"]').els.forEach(pop => {
+        C("#" + pop.id.replace("-popup", "")).el.addEventListener("blur", e => {
+            dropFail(e.target);
+            C("#" + e.target.id + "-popup").delclass("show");
+        });
+    });
+
+    C("#auth-button").el.addEventListener("click", e => auth());
+
+    C(".system_tabsHead > span label").els.forEach(label => {
+        label.addEventListener("click", function (e) {
+            let el       = e.currentTarget.parentNode,
+                elCs     = el.parentNode.parentNode.children[1].children,
+                tabHeads = el.parentNode.children;
+
+            for (var i = 0; i < tabHeads.length; i++) {
                 tabHeads[i].classList.remove("tab_h_active");
-            };
-            for(var i=0; i < elCs.length; i++) {
+            }
+            for (var i = 0; i < elCs.length; i++) {
                 elCs[i].classList.remove("tab_c_active");
-            };
+            }
 
             el.classList.add("tab_h_active");
             elCs[el.dataset.tab].classList.add("tab_c_active");
         });
     });
 
-  // Сокрытие всплывающего окна
-  overlay.addEventListener("pointerdown", function () {
-    if (overlay.callback) {
-      overlay.style.opacity = 0;
-      overlay.style.display = "none";
+    C("#reg-birthdate").el.addEventListener("input", e => validateBirthdate(e.target));
 
-      overlay.callback();
-    } else {
-      animate({
-        duration: 333,
-        timing: quad,
-        draw: function (progress, options) {
-          overlay.style.opacity = 1 - progress;
-        },
-        callback: function (options) {
-          overlay.style.display = "none";
+    // Переход на пластиковую карту
+    C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
+
+    C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
+
+    // Привязка пластиковой карты
+    C("#set_card").el.addEventListener("click", () => setCard());
+
+    // Вход без пароля
+    C("#reset_confirmation_code").el.addEventListener("input", e => {
+        C("#reset_confirmation_button").el.disabled = (C("#reset_confirmation_code").val().length === 4 ? false : true);
+    });
+
+    let passViewToggles = C('input + i[class^="icon-eye"]').els;
+    passViewToggles.forEach(el => {
+        el.addEventListener("pointerdown", e => {
+            let i = e.currentTarget,
+                    input = i.parentNode.children[0];
+
+            input.type = (input.type === "password" ? "text" : "password");
+            if (input.type === "password") {
+                //? "black" : "#4eb5e6"
+                i.classList.remove("icon-eye");
+                i.classList.add("icon-eye-off");
+            } else {
+                i.classList.remove("icon-eye-off");
+                i.classList.add("icon-eye");
+            }
+        });
+    });
+
+    C("#reg-button").el.addEventListener("click", e => {
+        if (checkReg()) {
+            showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg_phone").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
         }
-      });
-    }
-  });
+    });
+    
+    C('a[data-click="openBalanceView"]').el.addEventListener("click", e => {
+        let el = C('.balance-view').el.classList;
+        el.toggle('open');
+        e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
+    });
+    
+    C("#reset_button").el.addEventListener("click", e => {
+        if (canGetResetConfirmationCode()) {
+            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reg_phone").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
+        }
+    });
 
-  checkUpdates(currentUpdates, () => {
-    drawSection(localStorage.getItem(LS_SECTION));
-    if (bearerToken) {
-      document.body.addEventListener("pointerover", userActivity);
-      document.body.addEventListener("pointerdown", userActivity);
-    }
-  });
+    C("#transactions-details-button").el.addEventListener("pointerdown", e => {
+        let list = C("#transactions").el.classList;
+        list.toggle("hidden");
+        if (list.contains("hidden")) {
+            e.target.innerText = "открыть детализацию";
+            e.target.style.backgroundColor = "#4062b7";
+            e.target.style.borderColor = "#4062b7";
+        } else {
+            e.target.innerText = "скрыть детализацию";
+            e.target.style.backgroundColor = "#28a960";
+            e.target.style.borderColor = "#28a960";
+        }
+    });
+
+    C("#feedback-submit").el.addEventListener("click", function () {
+        setFeedback();
+    });
+
+    // Выбор города
+    C("#store_cities").el.addEventListener("change", e => {
+        drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores")));
+    });
+
+    // Навигация
+    let els = C(".bottomNav>li, .mainMenu__content_nav>li").els;
+    els.forEach(el => {
+        el.addEventListener("pointerdown", e => {
+            let section = e.currentTarget.dataset.section;
+
+            closeNav();
+            if (section) {
+                drawSection(section);
+            }
+        });
+    });
+
+    // Сокрытие всплывающего окна
+    C("#popupOverlay").el.addEventListener("pointerdown", function (e) {
+        let el = e.currentTarget.classList;
+        
+        el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated");
+        el.add("animate__animated", "animate__fadeOut");
+
+        promiseTimeout(function () {
+            hide("#popupOverlay");
+        }, 1000);
+    });
+
+    checkUpdates(currentUpdates, () => {
+        drawSection(localStorage.getItem(LS_SECTION));
+        if (bearerToken) {
+            d.body.addEventListener("pointerover", userActivity);
+            d.body.addEventListener("pointerdown", userActivity);
+        }
+    });
 });
 
+function hide(selector) {
+    C(selector).el.style.display = "none";
+}
+
+function show(selector) {
+    C(selector).el.style.display = "";
+}
+
+function initPopups() {
+    let popups = C(".popup-text").els;
+    
+    popups.forEach(el => {
+        el.addEventListener("click", function (e) {
+            if (el.classList.contains("show"))
+                el.classList.remove("show");
+        });
+    });
+}
+
 function userActivity(e) {
-  if (!userActivityTimeout) userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates);
+    if (!userActivityTimeout)
+        userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates);
 }
 
 function modifyInput(el) {
-  if (el.value.length == 1 && +el.value[0] == 8) el.value = "+7-";
+    if (el.value.length === 1 && +el.value[0] === 8)
+        el.value = "+7-";
 }
 
 function openNav() {
-  document.getElementById("overlay-menu").style.display = "";
+    show("#overlay-menu");
 }
 
 function closeNav() {
-  document.getElementById("overlay-menu").style.display = "none";
+    hide("#overlay-menu");
 }
 
-function removeChildrens(element) {
-  while (element.firstChild) {
-    element.removeChild(element.firstChild);
-  }
+async function promiseTimeout(fn, ms) {
+    await new Promise(resolve => setTimeout(resolve, ms));
+    return fn();
+}
+
+function removeChildrens(el) {
+    while (el.firstChild) {
+        el.removeChild(el.firstChild);
+    }
 }
 
 function routePrevSection() {
-  let section = localStorage.getItem(LS_SECTION);
-  if (sections[section] && sections[section].prevSection) drawSection(sections[section].prevSection);
+    let section = localStorage.getItem(LS_SECTION);
+
+    if (sections[section] && sections[section].prevSection)
+        drawSection(sections[section].prevSection);
 }
 
 function drawSection(section) {
-  if (!section) section = "adult";
-
-  switch (section) {
-    default: {
-      break;
+    if (!section) {
+        section = "adult";
     }
 
-    case "pre-registration": {
-      updateCities();
+    switch (section) {
+        default:
+        {
+            break;
+        }
 
-      break;
+        case "pre-registration":
+        {
+            updateCities();
+            break;
+        }
+
+        case "registration":
+        {
+            updateCities().then(result => {
+                let city = C("#city").el;
+
+                show("#registration_cont");
+                hide("#reg_confirmation");
+
+                C("#prem").el.checked = true;
+                C("#discount").el.checked = false;
+                if (city.options[city.options.selectedIndex].getAttribute("default-discount") === 0) {
+                    hide("#loyalty-system");
+                } else {
+                    show("#loyalty-system");
+                }
+            });
+            break;
+        }
+
+        case "personal":
+        {
+            break;
+        }
+
+        case "stores":
+        {
+            break;
+        }
+
+        case "wallet":
+        {
+            break;
+        }
+
+        case "refer":
+        {
+            renderReferSection();
+            break;
+        }
+
+        case "reg_success":
+        {
+            break;
+        }
+
+        case "news":
+        {
+            break;
+        }
     }
 
-    case "registration": {
-      updateCities().then(result => {
-        registration_cont.style.display = "";
-        reg_confirmation.style.display = "none";
-  
-        prem.checked = true;
-        discount.checked = false;
-        document.getElementById("loyalty-system").style.display = (city.options[city.options.selectedIndex].getAttribute("default-discount") == 0 ? "none" : "");  
-      });
+    let sectionEls = C(".main > div").els;
+    sectionEls.forEach(function (el) {
+        if (el.id === section) {
+            if (!el.classList.contains("active")) {
+                el.classList.add("active");
+            }
+            C(".main").el.scrollIntoView();
+        } else {
+            el.classList.remove("active");
+        }
+        hideLoader();
+    });
 
-      break;
-    }
+    C("header").el.style.display = (sections[section] && sections[section].title ? "" : "none");
+    C(".topNav__back").el.style.display = (sections[section] && sections[section].prevSection ? "" : "none");
+    C(".topNav__msg").el.style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
+    C("header h6").text(sections[section].title);
+    C(".topNav__menu").el.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
+    C(".topNav__close").el.style.display = (["alerts"].indexOf(section) === -1 ? "none" : "");
 
-    case "personal": {
-      //
-      break;
-    }
+    let bottomNav = C("footer").el;
 
-    case "stores": {
-      //
-      break;
-    }
+    bottomNav.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
 
-    case "wallet": {
-      //
-      break;
-    }
+    let bottomNavEls = C(".bottomNav > li").els;
+    bottomNavEls.forEach(el => {
+        el.classList.remove("current-section");
 
-    case "refer": {
-      renderReferSection();
+        if (el.dataset.section === section) {
+            el.classList.add("current-section");
+        }
+    });
 
-      break;
-    }
-
-    case "reg_success": {
-      //
-      break;
-    }
-
-    case "news": {
-      //
-      break;
-    }
-  }
-
-  let sectionsElements = document.getElementsByClassName("section");
-  for (let i = 0; i < sectionsElements.length; i++) {
-    if (sectionsElements[i].id == section) {
-      sectionsElements[i].style.display = "";
-      document.getElementsByClassName("main-app-space")[0].scrollIntoView();
-    } else {
-      sectionsElements[i].style.display = "none";
-    }
-    hideLoader();
-  }
-
-  document.getElementById("top-nav").style.display = (sections[section] && sections[section].title ? "" : "none");
-  document.getElementById("top-nav-back").style.display = (sections[section] && sections[section].prevSection ? "" : "none");
-  document.getElementById("top-nav-msg").style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
-  document.getElementById("top-nav-title").innerText = sections[section].title;
-  document.getElementById("top-nav-menu").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
-  document.getElementById("top-nav-close").style.display = (["alerts"].indexOf(section) == -1 ? "none" : "");
-  
-  document.getElementById("bottom-nav").style.display = (sections[section] && sections[section].showMenu ? "" : "none");
-
-  for (let i = 0; i < document.getElementById("bottom-nav").children.length; i++) {
-    document.getElementById("bottom-nav").children[i].classList.remove("current-section");
-    if (document.getElementById("bottom-nav").children[i].getAttribute("section") == section) document.getElementById("bottom-nav").children[i].classList.add("current-section");
-  }
-
-  localStorage.setItem(LS_SECTION, section);
+    localStorage.setItem(LS_SECTION, section);
 }
 
 function renderReferSection() {
-  getReferLink().then((response) => {
-    if (response.status) {
-      if (!referQr.children.length) {
-        let qrCanvas = document.createElement("canvas");
-        qrCanvas.style.opacity = 0;
-        let qr = new QRious({
-          element: qrCanvas,
-          size: 192,
-          value: response.data.link
-        });
-        referQr.appendChild(qrCanvas);
+    getReferLink().then((response) => {
+        let referQr = C("#referQr").el;
+        if (response.status) {
+            if (!referQr.children.length) {
+                let qrCanvas = C().create("canvas").el,
+                    qr = new QRious({
+                        element: qrCanvas,
+                        size: 192,
+                        value: response.data.link
+                    });
+                    
+                referQr.appendChild(qrCanvas);
+                qrCanvas.classList.add("animate__animated", "animate__fadeIn");
 
-        referLink.style.display = "";
-        animate({
-          duration: 1000,
-          timing: quad,
-          draw: function (progress, options) {
-            qrCanvas.style.opacity = progress;
-            referLink.style.opacity = progress;
-          },
-          callback: function (options) { }
-        });
+                show("#referLink");
 
-        referLinkTG.setAttribute("href", "https://t.me/share/url?url=" + response.data.link + "&text=Столица: бонусы&utm_source=ref_tg");
-        referLinkWA.setAttribute("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + response.data.link + "&utm_source=ref_wa");
-      }
+                C("#referLinkTG").attr("href", "https://t.me/share/url?url=" + response.data.link + "&text=Столица: бонусы&utm_source=ref_tg");
+                C("#referLinkWA").attr("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + response.data.link + "&utm_source=ref_wa");
+            }
 
-      if (response.data.referrals && response.data.referrals.length) response.data.referrals.forEach((ref_row) => {
-        let tr = document.createElement("tr");
+            if (response.data.referrals && response.data.referrals.length)
+                response.data.referrals.forEach((ref_row) => {
+                    let tr = C().create("tr"),
+                        td = C().create("td");
 
-        let td = document.createElement("td");
-        td.innerText = ref_row.last_sync;
-        tr.appendChild(td);
+                    td.text(ref_row.last_sync);
+                    tr.append(td);
 
-        td = document.createElement("td");
-        td.innerText = "7-***-***-" + ref_row.phone;
-        tr.appendChild(td);
+                    td = C().create("td");
+                    td.text("7-***-***-" + ref_row.phone);
+                    tr.append(td);
 
-        td = document.createElement("td");
-        td.innerText = (ref_row.gifted ? "Совершена покупка" : "Регистрация по приглашению");
-        tr.appendChild(td);
+                    td = C().create("td");
+                    td.text((ref_row.gifted ? "Совершена покупка" : "Регистрация по приглашению"));
+                    tr.append(td);
 
-        td = document.createElement("td");
-        if (ref_row.gifted) td.style.fontWeight = "bold";
-        td.innerText = (ref_row.gifted ? "+" + ref_row.referral_gift : "n/a");
-        td.classList.add(ref_row.gifted ? "good" : "bad");
-        tr.appendChild(td);
+                    td = C().create("td");
+                    if (ref_row.gifted) {
+                        td.style("fontWeight", "bold");
+                    }
+                    td.text((ref_row.gifted ? "+" + ref_row.referral_gift : "n/a"));
+                    td.addclass(ref_row.gifted ? "good" : "bad");
+                    tr.append(td);
 
-        referrals.appendChild(tr);
-      });
-    }
-  });
+                    C("#referrals").append(tr);
+                });
+        }
+    });
 }
 
 function getGeolink(title, description) {
-  let wrapper = document.createElement("div");
+    let wrapper = C().create("div"),
+        GeolinkElement = C().create("span");
 
-  let GeolinkElement = document.createElement("span");
-  GeolinkElement.classList.add("ymaps-geolink");
-  GeolinkElement.setAttribute("data-description", description);
-  GeolinkElement.innerText = title;
+    GeolinkElement.addclass("ymaps-geolink");
+    GeolinkElement.attr("data-description", description);
+    GeolinkElement.text(title);
 
-  wrapper.append(GeolinkElement);
+    wrapper.append(GeolinkElement.el);
 
-  return wrapper;
+    return wrapper;
 }
 
 function getGeoMap() {
-  return new ymaps.Map('map', {
-    center: [48.4827, 135.084],
-    zoom: 10
-  }, {
-    searchControlProvider: 'yandex#search'
-  });
+    return new ymaps.Map('map', {
+        center: [48.4827, 135.084],
+        zoom: 10
+    }, {
+        searchControlProvider: 'yandex#search'
+    });
 }
 
 function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
-  let storeMap = document.createElement("div");
-  storeMap.classList.add("store_map");
+    let storeMap = C().create("div");
+    storeMap.addclass("storeMap");
 
-  let storeMapBg = document.createElement("div");
-  storeMapBg.classList.add("store_map-bg");
-  storeMapBg.addEventListener("click", e => document.body.removeChild(storeMap));
-  storeMap.append(storeMapBg);
+    let storeMapBg = C().create("div");
+    storeMapBg.addclass("storeMap__bg");
+    storeMapBg.el.addEventListener("click", e => d.body.removeChild(storeMap.el));
+    storeMap.append(storeMapBg);
 
-  let storeMapBlock = document.createElement("div");
-  storeMapBlock.classList.add("store_map-block", "animate__animated","animate__fadeInDown");
-  storeMap.append(storeMapBlock);
+    let storeMapBlock = C().create("div");
+    storeMapBlock.addclass(["storeMap__block", "animate__animated", "animate__fadeInDown"]);
+    storeMap.append(storeMapBlock);
 
-  let mapCity = document.createElement("div");
-  mapCity.setAttribute("id", "map_city");
-  mapCity.innerText = city;
-  storeMapBlock.append(mapCity);
+    let mapCity = C().create("div");
+    mapCity.addclass("storeMap__block_city");
+    mapCity.text(city);
+    storeMapBlock.append(mapCity);
 
-  let mapInfo = document.createElement("div");
-  mapInfo.setAttribute("id", "map_info");
-  storeMapBlock.append(mapInfo);
+    let mapInfo = C().create("div");
+    mapInfo.addclass("storeMap__block_info");
+    storeMapBlock.append(mapInfo);
 
-  let mapInfoItem = document.createElement("div");
-  mapInfoItem.classList.add("map_info-item");
-  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Адрес:</span><span class='map_info-item-value'>" + title + "</span>";
-  mapInfo.append(mapInfoItem);
+    let mapInfoItem = C().create("div");
+    mapInfoItem.html("<span>Адрес:</span><span>" + title + "</span>");
+    mapInfo.append(mapInfoItem);
 
-  mapInfoItem = document.createElement("div");
-  mapInfoItem.classList.add("map_info-item");
-  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Время работы:</span><span class='map_info-item-value'>" + shedule + "</span>";
-  mapInfo.append(mapInfoItem);
+    mapInfoItem = C().create("div");
+    mapInfoItem.html("<span>Время работы:</span><span>" + shedule + "</span>");
+    mapInfo.append(mapInfoItem);
 
-  mapInfoItem = document.createElement("div");
-  mapInfoItem.classList.add("map_info-item");
-  mapInfoItem.innerHTML = "<span class='map_info-item-key'>Телефон:</span><span class='map_info-item-value'><a href='tel:+7" + phone.slice(1) + "'>" + phone + "</a></span>";
-  mapInfo.append(mapInfoItem);
+    mapInfoItem = C().create("div");
+    mapInfoItem.html("<span>Телефон:</span><span><a href='tel:+7" + phone.slice(1) + "'>" + phone + "</a></span>");
+    mapInfo.append(mapInfoItem);
 
-  let map = document.createElement("div");
-  map.setAttribute("id", "map");
-  storeMapBlock.append(map);
+    let map = C().create("div");
+    map.attr("id", "map");
+    storeMapBlock.append(map);
 
-  document.body.append(storeMap);
+    d.body.appendChild(storeMap.el);
 
-  let x = parseFloat(coordinates.split(',')[0]);
-  let y = parseFloat(coordinates.split(',')[1]);
+    let x = parseFloat(coordinates.split(',')[0]),
+            y = parseFloat(coordinates.split(',')[1]);
 
-  var myMap = new ymaps.Map("map", {
-    center: [x, y],
-    zoom: 16
-  });
+    var myMap = new ymaps.Map("map", {
+        center: [x, y],
+        zoom: 16
+    });
 
-  let objectManager = new ymaps.ObjectManager({
-    clusterize: true,
-    gridSize: 32,
-    clusterDisableClickZoom: true
-  });
+    let objectManager = new ymaps.ObjectManager({
+        clusterize: true,
+        gridSize: 32,
+        clusterDisableClickZoom: true
+    });
 
-  objectManager.objects.options.set('preset', 'islands#greenDotIcon');
-  objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
+    objectManager.objects.options.set('preset', 'islands#greenDotIcon');
+    objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
 
-  objectManager.add({
-    type: 'Feature',
-    id: rsa_id,
-    geometry: {
-      type: 'Point',
-      coordinates: [x, y]
-    },
-    properties: {
-      hintContent: title,
-      balloonContentHeader: '',
-    }
-  });
+    objectManager.add({
+        type: 'Feature',
+        id: rsa_id,
+        geometry: {
+            type: 'Point',
+            coordinates: [x, y]
+        },
+        properties: {
+            hintContent: title,
+            balloonContentHeader: ''
+        }
+    });
 
-  myMap.geoObjects.add(objectManager);
+    myMap.geoObjects.add(objectManager);
 }
 
 function confirmAdult() {
-  drawSection(localStorage.getItem(LS_SECTION));
+    drawSection(localStorage.getItem(LS_SECTION));
 }
 
-function showPopup(title, description, message, buttonText, callback) {
-  if (!buttonText) buttonText = "Ок";
-  if (!callback) callback = null;
+function showPopup(title, desc, message, buttonText, callback) {
+    let popupOverlay = C("#popupOverlay"),
+        popupTitle   = C("#popupTitle"),
+        popupDesc    = C("#popupDescription"),
+        popupMessage = C("#popupMessage"),
+        popupButton  = C("#popupButton");
 
-  hideLoader();
+    if (!buttonText) {
+        buttonText = "Ок";
+    }
 
-  overlay.style.display = "";
+    if (!callback) {
+        callback = null;
+    }
 
-  popupTitle.style.display = (title ? "" : "none");
-  popupTitle.innerText = title;
+    hideLoader();
 
-  popupDescription.style.display = (description ? "" : "none");
-  popupDescription.innerText = description;
+    show("#popupOverlay");
 
-  popupMessage.style.display = (message ? "" : "none");
-  popupMessage.innerText = message;
+    if (title) {
+        show("#popupTitle");
+        popupTitle.text(title);
+    } else {
+        hide("#popupTitle");
+    }
 
-  popupButton.innerText = buttonText;
+    if (desc) {
+        popupDesc.text(desc);
+        show("#popupDescription");
+    } else {
+        hide("#popupDescription");
+    }
 
-  overlay.callback = callback;
+    if (message) {
+        popupMessage.text(message);
+        show("#popupMessage");
+    } else {
+        hide("#popupMessage");
+    }
 
-  animate({
-    duration: 333,
-    timing: quad,
-    draw: function (progress, options) {
-      overlay.style.opacity = progress;
-      // popupMessage.innerText = options.fullText.substring(0, options.fullText.length * progress);
-    },
-    fullText: message
-  });
+    popupButton.text(buttonText);
+    popupOverlay.el.callback = callback;
+    popupOverlay.el.classList.remove("animate__fadeIn", "animate__fadeOut", "animate__animated");
+    popupOverlay.addclass(["animate__animated", "animate__fadeIn"]);
 }
 
 function showLoader() {
-  loader.style.opacity = 1;
-  loader.style.display = "";
+    let loader = C("#loader");
+
+    loader.style("opacity", 1);
+    show("#loader");
 }
 
-function hideLoader(instant) {
-  if (instant == undefined) instant = false;
+function hideLoader() {
+    let loader = C("#loader");
 
-  if (instant) {
-    loader.style.display = "none";
-  } else {
-    animate({
-      duration: 1000,
-      timing: quad,
-      draw: function (progress, options) {
-        loader.style.opacity = 1 - progress;
-      },
-      callback: function (options) {
-        loader.style.display = "none";
-      }
-    });
-  }
+    loader.addclass(["animate__fadeOut", "animate__animated"]);
+    promiseTimeout(function () {
+        hide("#loader");
+        loader.delclass(["animate__fadeOut", "animate__animated"]);
+    }, 1000);
 }
 
 function checkAuthorization() {
-  return fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8",
-      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-    },
-    body: JSON.stringify({
-      "method": "checkAuthorization"
-    })
-  })
-  .then(response => response.json())
-  .catch(error => {
-    return {
-      status: false,
-      description: error.message,
-      error: error
-    }
-  });
+    return fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "checkAuthorization"
+                })
+            })
+            .then(response => response.json())
+            .catch(error => {
+                return {
+                    status: false,
+                    description: error.message,
+                    error: error
+                };
+            });
 }
 
 async function auth() {
-  let authPhoneElement = document.getElementById("auth-phone-mask");
-  let authPhonePopupElement = document.getElementById("auth-phone-popup");
+    let authPhoneEl = C("#auth-phone-mask"),
+        authPassEl  = C("#auth-pass"),
+        authPassPop = C("#auth-pass-popup"),
+        phone       = getPhoneNumbers(C("#auth-phone-mask").val()),
+        authButton  = C("#auth-button").el;
 
-  let phone = getPhoneNumbers(authPhoneElement.value);
-
-  if (!phone || phone.length != 11) {
-    authPhoneElement.scrollIntoView();
-    authPhoneElement.focus();
-    authPhoneElement.classList.add("fail");
-
-    authPhonePopupElement.classList.add("show");
-
-    return;
-  } else {
-    authPhoneElement.classList.remove("fail");
-  }
-
-  if (auth_pass.value == "") {
-    auth_pass.scrollIntoView();
-    auth_pass.classList.toggle("fail");
-    auth_pass.focus();
-    auth_pass_popup.classList.toggle("show");
-    return;
-  }
-
-  let authButton = document.getElementById("auth-button");
-  authButton.disabled = true;
-
-  let body = {
-    "method": "authorization",
-    "data": {
-      "phone": phone,
-      "pass": auth_pass.value
+    if (!phone || phone.length !== 11) {
+        showInputPopup("auth-phone-mask");
+        return;
+    } else {
+        authPhoneEl.delclass("fail");
     }
-  };
 
-  let response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8"
-    },
-    body: JSON.stringify(body)
-  });
+    if (authPassEl.val() === "") {
+        authPassEl.el.scrollIntoView();
+        authPassEl.togclass("fail");
+        authPassEl.el.focus();
+        authPassPop.togclass("show");
+        return;
+    }
 
-  let result = await response.json();
+    authButton.disabled = true;
 
-  authButton.disabled = false;
+    let body = {
+        "method": "authorization",
+        "data": {
+            "phone": phone,
+            "pass": authPassEl.val()
+        }
+    };
 
-  if (result.status) {
-    clearLocalStorage();
+    let response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(body)
+    });
 
-    localStorage.setItem(LS_SECTION, "wallet");
-    localStorage.setItem(LS_TOKEN, result.data.token);
+    let result = await response.json();
 
-    location.reload();
-  } else {
-    showPopup("", result.description);
-  }
+    authButton.disabled = false;
+
+    if (result.status) {
+        clearLocalStorage();
+
+        localStorage.setItem(LS_SECTION, "wallet");
+        localStorage.setItem(LS_TOKEN, result.data.token);
+
+        location.reload();
+    } else {
+        showPopup("", result.description);
+    }
 }
 
 function checkReg() {
-  let regPhoneElement = document.getElementById("reg-phone-mask");
-  let regPhonePopupElement = document.getElementById("reg-phone-popup");
-  let regBirthdateElement = document.getElementById("reg-birthdate");
+    let regPhoneEl    = C("#reg-phone-mask"),
+        regBdEl       = C("#reg-birthdate").el,
+        regPassEl     = C("#reg-pass"),
+        regPassConfEl = C("#reg-pass-confirm"),
+        phone         = getPhoneNumbers(regPhoneEl.val());
 
-  let phone = getPhoneNumbers(regPhoneElement.value);
+    if (phone.length !== 11) {
+        showInputPopup("reg-phone-mask");
+        return 0;
+    } else {
+        regPhoneEl.delclass("fail");
+    }
 
-  if (phone.length != 11) {
-    regPhoneElement.scrollIntoView();
-    regPhoneElement.classList.add("fail");
-    regPhoneElement.focus();
+    if (regPassEl.val().length < 6) {
+        showInputPopup("reg-pass");
+        return 0;
+    }
 
-    regPhonePopupElement.classList.add("show");
+    if (!validateBirthdate(regBdEl)) {
+        return 0;
+    }
 
-    return 0;
-  } else {
-    regPhoneElement.classList.remove("fail");
-  }
+    if (regPassEl.val() !== regPassConfEl.val()) {
+        showPopup("Внимание", "Введенные пароли не совпадают!");
+        return 0;
+    }
 
-  if (reg_pass.value.length < 6) {
-    reg_pass.scrollIntoView();
-    reg_pass.classList.add("fail");
-    reg_pass.focus();
-    reg_pass_popup.classList.toggle("show");
-    return 0;
-  }
-
-  if (!validateBirthdate(regBirthdateElement)) return 0;
-
-  if (reg_pass.value != reg_pass_confirm.value) {
-    showPopup("Внимание", "Введенные пароли не совпадают!");
-    return 0;
-  }
-
-  return 1;
+    return 1;
 }
 
 async function reg() {
-  let regPhoneElement = document.getElementById("reg-phone-mask");
-  let regBirthdateElement = document.getElementById("reg-birthdate");
-  let regButtonElement = document.getElementById("reg-button");
-  let trueDate = null;
+    let regPhoneEl  = C("#reg-phone-mask").el,
+        regBdEl     = C("#reg-birthdate"),
+        regButtonEl = C("#reg-button").el,
+        trueDate    = null,
+        phone       = getPhoneNumbers(regPhoneEl.val());
 
-  if (regBirthdateElement.value) {
-    let td = regBirthdateElement.value.split("-");
-    trueDate = [td[2], td[1], td[0]].join("-");
-  }
-
-  let phone = getPhoneNumbers(regPhoneElement.value);
-  lastPhone = phone;
-
-  regButtonElement.disabled = true;
-  showLoader();
-
-  let response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8"
-    },
-    body: JSON.stringify({
-      "method": "registration",
-      "data": {
-        "phone": phone,
-        "pass": reg_pass.value,
-        "firstname": reg_firstname.value,
-        "birthdate": trueDate,
-        "discount": (discount.checked ? 1 : 0),
-        "email": reg_email.value,
-        "city": city.value
-      }
-    })
-  });
-
-  let result = await response.json();
-
-  regButtonElement.disabled = false;
-  hideLoader();
-
-  if (result.status) {
-    if (result.data && result.data.need_confirmation) {
-      // Скрываем блок регистрации
-      registration_cont.style.display = "none";
-
-      // Демонстрируем блок ввода подтверждения
-      reg_confirmation.style.display = "";
-      reg_confirmation_code.scrollIntoView();
-      reg_confirmation_code.classList.toggle("fail");
-      reg_confirmation_code.focus();
-      reg_confirmation_code_popup.classList.toggle("show");
-
-      // Запускаем таймер отсчета для повторной отправки
-      setConfirmationTimeout(result);
+    if (regBdEl.val()) {
+        let td = regBdEl.val().split("-");
+        trueDate = [td[2], td[1], td[0]].join("-");
     }
-  } else {
-    if (result.description) showPopup("", result.description);
-  }
+
+    lastPhone = phone;
+
+    regButtonEl.disabled = true;
+    showLoader();
+
+    let response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify({
+            "method": "registration",
+            "data": {
+                "phone": phone,
+                "pass": C("#reg-pass").val(),
+                "firstname": C("#reg_firstname").val(),
+                "birthdate": trueDate,
+                "discount": (C("#discount").el.checked ? 1 : 0),
+                "email": C("#reg_email").val(),
+                "city": C("#city").val()
+            }
+        })
+    });
+
+    let result = await response.json();
+
+    regButtonEl.disabled = false;
+    hideLoader();
+
+    if (result.status) {
+        if (result.data && result.data.need_confirmation) {
+            let regConfCode = C("#reg-confirmation-code");
+            hide("#registration_cont");
+            show("#reg_confirmation");
+            regConfCode.el.scrollIntoView();
+            regConfCode.togclass("fail");
+            regConfCode.el.focus();
+            C("#reg-confirmation-code-popup").togclass("show");
+
+            // Запускаем таймер отсчета для повторной отправки
+            setConfirmationTimeout(result);
+        }
+    } else {
+        if (result.description)
+            showPopup("", result.description);
+    }
 }
 
 function setConfirmationTimeout(result) {
-  confirmation_button_reset.style.display = "none";
-  secondsLeft = result.data.seconds_left;
-  reg_confirmation_code_popup.innerText = result.description;
-  reg_confirmation_info.innerText = result.description;
-  reg_confirmation_remind.innerText = "Повторная отправка будет доступна через " + secondsLeft + " сек.";
-  if (secondsInterval) clearInterval(secondsInterval);
-  secondsInterval = setInterval(() => {
-    secondsLeft--;
-    reg_confirmation_remind.innerText = "Повторная отправка будет доступна через " + secondsLeft + " сек.";
-    if (secondsLeft <= 0) {
-      clearInterval(secondsInterval);
-      reg_confirmation_remind.innerText = "";
+    let regConfRemindEl    = C("#reg_confirmation_remind"),
+        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+        regConfInfoEl      = C("#reg_confirmation_info");
+    
+    hide("#confirmation_button_reset");
+    secondsLeft = result.data.seconds_left;
+    regConfCodePopupEl.text(result.description);
+    regConfInfoEl.text(result.description);
+    regConfRemindEl.text("Повторная отправка будет доступна через " + secondsLeft + " сек.");
 
-      confirmation_button_reset.style.display = "";
+    if (secondsInterval) {
+        clearInterval(secondsInterval);
     }
-  }, 1000)
+
+    secondsInterval = setInterval(() => {
+        secondsLeft--;
+        regConfRemindEl.text("Повторная отправка будет доступна через " + secondsLeft + " сек.");
+        if (secondsLeft <= 0) {
+            clearInterval(secondsInterval);
+            regConfRemindEl.text("");
+            show("#confirmation_button_reset");
+        }
+    }, 1000);
 }
 
 async function confirmation() {
-  if (reg_confirmation_code.value.length < 4) {
-    reg_confirmation_code.scrollIntoView();
-    reg_confirmation_code.classList.add("fail");
-    reg_confirmation_code.focus();
-    reg_confirmation_code_popup.classList.toggle("show");
-    return;
-  }
+    let regConfCodeEl      = C("#reg-confirmation-code"),
+        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+        confButtonEl       = C("#confirmation_button");
 
-  if (lastPhone && reg_confirmation_code.value) {
-    confirmation_button.disabled = true;
-    showLoader();
-
-    let body = {
-      "method": "confirmation",
-      "data": {
-        "phone": lastPhone,
-        "code": reg_confirmation_code.value
-      }
-    };
-
-    let response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8"
-      },
-      body: JSON.stringify(body)
-    });
-
-    let result = await response.json();
-
-    confirmation_button.disabled = false;
-    hideLoader();
-
-    if (result.status) {
-      clearLocalStorage();
-
-      localStorage.setItem(LS_SECTION, "reg_success");
-      localStorage.setItem(LS_TOKEN, result.data.token);
-
-      location.reload();
-      // if (result.data.setNewPassword == undefined) {
-      //   drawSection("reg_success");
-      // } else {
-      //   drawSection("intro");
-      // }
-    } else {
-      if (result.description) {
-        reg_confirmation_code.value = "";
-        showPopup("Внимание", result.description);
-      }
+    if (regConfCodeEl.val().length < 4) {
+        regConfCodeEl.el.scrollIntoView();
+        regConfCodeEl.addclass("fail");
+        regConfCodeEl.el.focus();
+        regConfCodePopupEl.togclass("show");
+        return;
     }
-  }
+
+    if (lastPhone && regConfCodeEl.val()) {
+        confButtonEl.el.disabled = true;
+        showLoader();
+
+        let body = {
+            "method": "confirmation",
+            "data": {
+                "phone": lastPhone,
+                "code": regConfCodeEl.val()
+            }
+        },
+                response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    body: JSON.stringify(body)
+                }),
+                result = await response.json();
+
+        confButtonEl.el.disabled = false;
+        hideLoader();
+
+        if (result.status) {
+            clearLocalStorage();
+
+            localStorage.setItem(LS_SECTION, "reg_success");
+            localStorage.setItem(LS_TOKEN, result.data.token);
+
+            location.reload();
+            // if (result.data.setNewPassword == undefined) {
+            //   drawSection("reg_success");
+            // } else {
+            //   drawSection("intro");
+            // }
+        } else {
+            if (result.description) {
+                regConfCodeEl.val("");
+                showPopup("Внимание", result.description);
+            }
+        }
+    }
 }
 
 async function confirmationReset() {
-  if (lastPhone) {
-    confirmation_button_reset.disabled = true;
+    let confButtonReset = C("#confirmation_button_reset").el;
+    if (lastPhone) {
+        confButtonReset.disabled = true;
 
-    let body = {
-      "method": "confirmationReset",
-      "data": {
-        "phone": lastPhone
-      }
-    };
+        let body = {
+            "method": "confirmationReset",
+            "data": {
+                "phone": lastPhone
+            }
+        };
 
-    let response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8"
-      },
-      body: JSON.stringify(body)
-    });
+        let response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        });
 
-    let result = await response.json();
+        let result = await response.json();
 
-    confirmation_button_reset.disabled = false;
+        confButtonReset.disabled = false;
 
-    if (result.status) setConfirmationTimeout(result);
-  }
+        if (result.status)
+            setConfirmationTimeout(result);
+    }
 }
 
 function canGetResetConfirmationCode() {
-  if (reset_phone.value.length < 16) {
-    reset_phone.scrollIntoView();
-    reset_phone.classList.add("fail");
-    reset_phone.focus();
-    reset_phone_popup.classList.toggle("show");
-    return 0;
-  }
+    let resetPhoneEl    = C("#reset-phone-mask").el,
+        resetPhonePopEl = C("#reset-phone-popup");
+    
+    if (resetPhoneEl.val().length < 16) {
+        resetPhoneEl.el.scrollIntoView();
+        resetPhoneEl.addclass("fail");
+        resetPhoneEl.el.focus();
+        resetPhonePopEl.togclass("show");
+        return 0;
+    }
 
-  return 1;
+    return 1;
 }
 
 async function getResetConfirmationCode() {
-  if (reset_phone.value) {
-    reset_button.disabled = true;
+    let resPhoneEl    = C("#reset_phone"),
+        resButtonEl   = C("#reset_button"),
+        resConfInfoEl = C("#reset_confirmation_info");
 
-    let body = {
-      "method": "getResetConfirmationCode",
-      "data": {
-        "phone": reset_phone.value
-      }
-    };
+    if (resPhoneEl.val()) {
+        resButtonEl.disabled = true;
 
-    let response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8"
-      },
-      body: JSON.stringify(body)
-    });
+        let body = {
+            "method": "getResetConfirmationCode",
+            "data": {
+                "phone": resPhoneEl.val()
+            }
+        };
 
-    let result = await response.json();
+        let response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        });
 
-    if (result.status) {
-      reset_confirmation.style.opacity = 0;
-      reset_confirmation.style.display = "";
+        let result = await response.json();
 
-      animate({
-        duration: 1000,
-        timing: quad,
-        draw: function (progress, options) {
-          reset_confirmation.style.opacity = progress;
-        },
-        callback: function (options) { }
-      });
-
-      reset_confirmation_info.innerText = result.description;
-      if (result.data.seconds_left) restartResetConfirmationTimer(result.data.seconds_left);
-    } else {
-      reset_button.disabled = false;
-      showPopup("Внимание", result.description);
+        if (result.status) {
+            show("#reset_confirmation");
+            resConfInfoEl.text(result.description);
+            if (result.data.seconds_left)
+                restartResetConfirmationTimer(result.data.seconds_left);
+        } else {
+            resButtonEl.disabled = false;
+            showPopup("Внимание", result.description);
+        }
     }
-  }
 }
 
 function restartResetConfirmationTimer(seconds) {
-  resetCodeTimerValue = seconds - 1;
+    let resConfTimeEl = C("#reset_confirmation_time");
 
-  reset_confirmation_time.style.display = "";
-  reset_confirmation_time.innerText = resetCodeTimerValue + " сек.";
+    resetCodeTimerValue = seconds - 1;
 
-  if (resetCodeTimer) clearInterval(resetCodeTimer);
-  resetCodeTimer = setInterval(() => {
-    reset_confirmation_time.style.display = "";
-    reset_confirmation_time.innerText = resetCodeTimerValue + " сек.";
-    resetCodeTimerValue--;
+    show("#reset_confirmation_time");
+    resConfTimeEl.text(resetCodeTimerValue + " сек.");
 
-    if (!resetCodeTimerValue) {
-      reset_button.disabled = false;
-      reset_confirmation_time.style.display = "none";
-      if (resetCodeTimer) clearInterval(resetCodeTimer);
+    if (resetCodeTimer) {
+        clearInterval(resetCodeTimer);
     }
-  }, 1000);
+    
+    resetCodeTimer = setInterval(() => {
+        show("#reset_confirmation_time");
+        resConfTimeEl.text(resetCodeTimerValue + " сек.");
+        resetCodeTimerValue--;
+
+        if (!resetCodeTimerValue) {
+            C("#reset_button").el.disabled = false;
+            hide("#reset_confirmation_time");
+            if (resetCodeTimer)
+                clearInterval(resetCodeTimer);
+        }
+    }, 1000);
 }
 
 async function checkResetConfirmationCode() {
-  if (reset_phone.value.length < 16) {
-    reset_phone.scrollIntoView();
-    reset_phone.classList.add("fail");
-    reset_phone.focus();
-    reset_phone_popup.classList.toggle("show");
-    return;
-  }
+    let resPhoneEl    = C("#reset-phone"),
+        resConfCodeEl = C("#reset_confirmation_code"),
+        resPhonePopEl = C("#reset-phone-popup"),
+        resConfButEl  = C("#reset_confirmation_button");
 
-  if (reset_confirmation_code.value.length < 4) {
-    reset_confirmation_code.scrollIntoView();
-    reset_confirmation_code.classList.add("fail");
-    reset_confirmation_code.focus();
-    return;
-  }
-
-  reset_confirmation_button.disabled = true;
-
-  let body = {
-    "method": "checkResetConfirmationCode",
-    "data": {
-      "phone": reset_phone.value,
-      "code": reset_confirmation_code.value
+    if (resPhoneEl.val().length < 16) {
+        resPhoneEl.el.scrollIntoView();
+        resPhoneEl.addclass("fail");
+        resPhoneEl.el.focus();
+        resPhonePopEl.togclass("show");
+        return;
     }
-  };
 
-  let response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8"
-    },
-    body: JSON.stringify(body)
-  });
+    if (resConfCodeEl.val().length < 4) {
+        resConfCodeEl.el.scrollIntoView();
+        resConfCodeEl.addclass("fail");
+        resConfCodeEl.el.focus();
+        return;
+    }
 
-  let result = await response.json();
+    resConfButEl.el.disabled = true;
 
-  reset_confirmation_button.disabled = false;
+    let body = {
+        "method": "checkResetConfirmationCode",
+        "data": {
+            "phone": resPhoneEl.val(),
+            "code": resConfCodeEl.val()
+        }
+    };
 
-  if (result.status) {
-    localStorage.setItem(LS_SECTION, "wallet");
-    localStorage.setItem(LS_TOKEN, result.data.token);
-
-    location.reload();
-  } else {
-    showPopup("Внимание", result.description, null, null, function () { reset_confirmation_code.value = ""; reset_confirmation_code.focus(); });
-  }
-}
-
-async function getReferLink() {
-  let body = {
-    "method": "getReferLink"
-  };
-
-  let response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8",
-      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-    },
-    body: JSON.stringify(body)
-  });
-
-  let result = await response.json();
-
-  return result;
-}
-
-function attentionFocus(element) {
-  element.scrollIntoView();
-  element.classList.add("fail");
-  element.focus();
-  document.getElementById(element.getAttribute("popup_id")).classList.toggle("show");
-}
-
-async function logOff() {
-  let body = {
-    "method": "logOff"
-  };
-
-  let response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8"
-    },
-    body: JSON.stringify(body)
-  });
-
-  let result = await response.json();
-
-  if (result.status) {
-    clearLocalStorage();
-
-    location.reload();
-  }
-
-  return result;
-}
-
-async function updateCities() {
-  if (!city.children.length) {
     let response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8"
-      },
-      body: JSON.stringify({
-        "method": "getCities"
-      })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(body)
     });
 
     let result = await response.json();
 
+    resConfButEl.el.disabled = false;
+
     if (result.status) {
-      result.data.forEach(element => {
-        let option = document.createElement("option");
-        option.value = element.id;
-        option.innerText = element.title;
-        option.setAttribute("default-discount", element.default_discount);
-        if (element.status == 2) option.selected = "selected";
-        city.appendChild(option);
-      });
+        localStorage.setItem(LS_SECTION, "wallet");
+        localStorage.setItem(LS_TOKEN, result.data.token);
+
+        location.reload();
+    } else {
+        showPopup("Внимание", result.description, null, null, function () {
+            resConfCodeEl.val("");
+            resConfCodeEl.el.focus();
+        });
     }
-  }
 }
 
-function dropFail(element) {
-  if (element.value && element.classList.contains("fail")) element.classList.remove("fail");
+async function getReferLink() {
+    let body = {
+        "method": "getReferLink"
+    };
+
+    let response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify(body)
+    });
+
+    let result = await response.json();
+
+    return result;
 }
 
-function clearLocalStorage() {
-  localStorage.removeItem(LS_TOKEN);
-  localStorage.removeItem(LS_SECTION);
-}
-
-function loadScript(src) {
-  return new Promise(function (resolve, reject) {
-    let script = document.createElement('script');
-    script.src = src;
-
-    script.onload = () => resolve(script);
-    script.onerror = () => reject(new Error(`Ошибка загрузки скрипта ${src}`));
-
-    document.head.append(script);
-  });
-}
-
-function showTerms() {
-  document.getElementById("terms").style.display = "";
-  document.getElementById("terms").getElementsByTagName("iframe")[0].src = TERMS_URL;
-}
-
-function showRules() {
-  document.getElementById("terms").style.display = "";
-  document.getElementById("terms").getElementsByTagName("iframe")[0].src = RULES_URL;
-}
-
-function showIndicator() {
-  document.getElementById("top-nav-indicator").style.display = "";
-}
-
-function hideIndicator() {
-  document.getElementById("top-nav-indicator").style.display = "none";
-}
-
-function showFeedback() {
-  document.getElementById("feedback").style.display = "";
-  document.body.classList.add("overlay-show");
-}
-
-function hideFeedback() {
-  document.getElementById('feedback').style.display='none';
-  document.body.classList.remove("overlay-show");
-}
-
-function showInputPopup(id) {
-    let el = document.getElementById(id);
+function attentionFocus(el) {
     el.scrollIntoView();
     el.classList.add("fail");
     el.focus();
-    document.getElementById(id + "-popup").classList.add("show");
+    C("#" + el.id + "-popup").togclass("show");
+}
+
+async function logOff() {
+    let body = {
+            "method": "logOff"
+        },
+        response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        }),
+        result = await response.json();
+
+    if (result.status) {
+        clearLocalStorage();
+
+        location.reload();
+    }
+
+    return result;
+}
+
+async function updateCities() {
+    let city = C("#city");
+
+    if (!city.el.children.length) {
+        let response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    "method": "getCities"
+                })
+            }),
+            result = await response.json();
+
+        if (result.status) {
+            result.data.forEach(el => {
+                let option = C().create("option");
+                
+                option.val(el.id);
+                option.text(el.title);
+                option.attr("default-discount", el.default_discount);
+                
+                if (el.status === 2)
+                    option.el.selected = "selected";
+                city.append(option);
+            });
+        }
+    }
+}
+
+function dropFail(element) {
+    if (element.value && element.classList.contains("fail")) {
+        element.classList.remove("fail");
+    }
+}
+
+function clearLocalStorage() {
+    localStorage.removeItem(LS_TOKEN);
+    localStorage.removeItem(LS_SECTION);
+}
+
+function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+        let script = d.createElement('script');
+        
+        script.src = src;
+        script.onload = () => resolve(script);
+        script.onerror = () => reject(new Error(`Ошибка загрузки скрипта ${src}`));
+        d.head.append(script);
+    });
+}
+
+function showTerms() {
+    show("#terms");
+    C("#terms").el.getElementsByTagName("iframe")[0].src = TERMS_URL;
+}
+
+function showRules() {
+    show("#terms");
+    C("#terms").el.getElementsByTagName("iframe")[0].src = RULES_URL;
+}
+
+function showIndicator() {
+    show("#top-nav-indicator");
+}
+
+function hideIndicator() {
+    hide("#top-nav-indicator");
+}
+
+function showFeedback() {
+    show("#feedback");
+    d.body.classList.add("hideOverflow");
+}
+
+function hideFeedback() {
+    hide("#feedback");
+    d.body.classList.remove("hideOverflow");
+}
+
+function showInputPopup(id) {
+    let et = C("#" + id);
+    
+    et.el.scrollIntoView();
+    et.addclass("fail");
+    et.el.focus();
+    
+    C("#" + id + "-popup").addclass("show");
 }
 
 function setFeedback() {
-    let phoneNumber = document.getElementById("feedback-phone");
-    if (getPhoneNumbers(phoneNumber.value).length !== 11) {
-        showInputPopup("feedback-phone");
+    let phone       = C("#feedback-phone-mask").val(),
+        message     = C("#feedback-message").val(),
+        fbSubmitBut = C("#feedback-submit").el;
+    
+    if (getPhoneNumbers(phone).length !== 11) {
+        showInputPopup("feedback-phone-mask");
         return;
     }
-    let messageEl = document.getElementById("feedback-message");
-    if (messageEl.value.length < 3) {
+    
+    if (message.length < 3) {
         showInputPopup("feedback-message");
         return;
     }
-  
-  let feedbackSubmitButton = document.getElementById("feedback-submit");
-  feedbackSubmitButton.disabled = true;
-  showLoader();
 
-  API_setFeedback(JSON.stringify({
-    "method": "setFeedback",
-    "data": {
-      "name": document.getElementById("feedback-name").value,
-      "phone": document.getElementById("feedback-phone").value,
-      "email": document.getElementById("feedback-email").value,
-      "reason": document.getElementById("feedback-reason").value,
-      "message": document.getElementById("feedback-message").value
-    }
-  }))
-  .then(result => {
-    console.log(result);
-    if (result.status) {
-      showPopup("Готово", "Ваше сообщение передано оператору");
-      hideFeedback();
-      document.getElementById("feedback-message").value = "";
-    } else {
-      onErrorCatch(result);
-    }
-  })
-  .finally(() => {
-    feedbackSubmitButton.disabled = false;
-    hideLoader();
-  });
+    fbSubmitBut.disabled = true;
+    showLoader();
+
+    API_setFeedback(JSON.stringify({
+                "method": "setFeedback",
+                "data": {
+                    "name": C("#feedback-name").val(),
+                    "phone": C("#feedback-phone-mask").val(),
+                    "email": C("#feedback-email").val(),
+                    "reason": C("#feedback-reason").val(),
+                    "message": C("#feedback-message").val()
+                }
+            }))
+            .then(result => {
+                console.log(result);
+                if (result.status) {
+                    showPopup("Готово", "Ваше сообщение передано оператору");
+                    hideFeedback();
+                    C("#feedback-message").val("");
+                } else {
+                    onErrorCatch(result);
+                }
+            })
+            .finally(() => {
+                fbSubmitBut.disabled = false;
+                hideLoader();
+            });
 }
 
 function API_setFeedback(body) {
-  return fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8"
-    },
-    body: body
-  })
-  .then(response => response.json())
-  .catch(error => {
-    return {
-        status: false,
-        description: error.message,
-        error: error
-    };
-  });
+    return fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                body: body
+            })
+            .then(response => response.json())
+            .catch(error => {
+                return {
+                    status: false,
+                    description: error.message,
+                    error: error
+                };
+            });
 }
 
 function onErrorCatch(error) {
-  showPopup("Внимание", error.description);
-  console.warn(error);
+    showPopup("Внимание", error.description);
+    console.warn(error);
 }
 
-function checkUpdates(lastUpdates, callback) {  
-  if (!bearerToken && callback) callback();
-  
-  getUpdates(lastUpdates).then(result => {
-    let currentSection = localStorage.getItem(LS_SECTION);
-    if (result.status) {
-      if (result.data.news.length) {
-        drawNews(result.data.news);
-        currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);                
-      }
-      if (result.data.personalHash) {
-        drawPersonal(result.data.personal);
-        currentUpdates.personalHash = result.data.personalHash;
-
-        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
-        document.getElementById("feedback-name").value = (userName ? userName : "");
-
-        if (result.data.personal.city) currentCity = result.data.personal.city;
-      }
-      if (result.data.storesHash) {
-        drawStores(result.data.stores);
-        currentUpdates.storesHash = result.data.storesHash;
-      }
-      if (result.data.walletHash) {
-        drawWallet(result.data.wallet);
-        currentUpdates.walletHash = result.data.walletHash;
-      }
-      if (result.data.lastPurchase) {
-        drawPurchases(result.data.purchases);
-        currentUpdates.lastPurchase = result.data.lastPurchase;
-      }
-
-      // Всех авторизованных отправляем на страницу кошелька
-      if (sections[currentSection] && !sections[currentSection].needAuth) localStorage.setItem(LS_SECTION, "wallet");
-    } else {
-      // Не авторизованных отправляем на авторизацию
-      if (sections[currentSection] && sections[currentSection].needAuth) logOff();
+function checkUpdates(lastUpdates, callback) {
+    if (!bearerToken && callback) {
+        callback();
     }
-  })
-  .finally(() => {
-    if (callback) callback();
-    if (bearerToken) updateWalletData();
-  });
+
+    getUpdates(lastUpdates).then(result => {
+                let currentSection = localStorage.getItem(LS_SECTION);
+                
+                if (result.status) {
+                    if (result.data.news.length) {
+                        drawNews(result.data.news);
+                        currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);
+                    }
+                    if (result.data.personalHash) {
+                        drawPersonal(result.data.personal);
+                        currentUpdates.personalHash = result.data.personalHash;
+
+                        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
+                        C("#feedback-name").val((userName ? userName : ""));
+
+                        if (result.data.personal.city) {
+                            currentCity = result.data.personal.city;
+                        }
+                    }
+                    if (result.data.storesHash) {
+                        drawStores(result.data.stores);
+                        currentUpdates.storesHash = result.data.storesHash;
+                    }
+                    if (result.data.walletHash) {
+                        drawWallet(result.data.wallet);
+                        currentUpdates.walletHash = result.data.walletHash;
+                    }
+                    if (result.data.lastPurchase) {
+                        drawPurchases(result.data.purchases);
+                        currentUpdates.lastPurchase = result.data.lastPurchase;
+                    }
+
+                    // Всех авторизованных отправляем на страницу кошелька
+                    if (sections[currentSection] && !sections[currentSection].needAuth) {
+                        localStorage.setItem(LS_SECTION, "wallet");
+                    }
+                } else {
+                    // Не авторизованных отправляем на авторизацию
+                    if (sections[currentSection] && sections[currentSection].needAuth) {
+                        logOff();
+                    }
+                }
+            })
+            .finally(() => {
+                if (callback) {
+                    callback();
+                }
+                if (bearerToken) {
+                    updateWalletData();
+                }
+            });
 }
 
 function getUpdates(lastUpdates) {
-  return fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8",
-      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-    },
-    body: JSON.stringify({
-      "method": "getUpdates",
-      "data": lastUpdates,
-      "source": SOURCE
-    })
-  })
-  .then(response => response.json())
-  .catch(error => {
-    return {
-      status: false,
-      description: error.message,
-      error: error
-    }
-  });
+    return fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "getUpdates",
+                    "data": lastUpdates,
+                    "source": SOURCE
+                })
+            })
+            .then(response => response.json())
+            .catch(error => {
+                return {
+                    status: false,
+                    description: error.message,
+                    error: error
+                };
+            });
 }
 
 async function updateWalletData() {
-  return fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8",
-      "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-    },
-    body: JSON.stringify({
-      "method": "updateWalletData"
-    })
-  })
-  .then(response => response.json())
-  .catch(error => {
-    return {
-      status: false,
-      description: error.message,
-      error: error
-    }
-  })
-  .finally(() => {
-    userActivityTimeout = null
-  });
+    return fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "updateWalletData"
+                })
+            })
+            .then(response => response.json())
+            .catch(error => {
+                return {
+                    status: false,
+                    description: error.message,
+                    error: error
+                };
+            })
+            .finally(() => {
+                userActivityTimeout = null;
+            });
 }
 
-function setPhoneMask(phone, mask) {
-  if (!mask) mask = "+_(___)___-__-__";
+function mask(input) {
+    let underlay = document.createElement('input'),
+        attr     = {};
+    
+    attr.id = input.id.replace("-mask", "");
+    attr.disabled = "disabled";
+    attr.type = input.getAttribute("type");
+    
+    for (let key in attr) {
+        underlay.setAttribute(key, attr[key]);
+    }
+    
+    input.parentNode.insertBefore(underlay, input);
+    setPhoneMask(input, false);
+    input.addEventListener("input", e => setPhoneMask(e.target));
+}
 
-  phone = getPhoneNumbers(phone);
+function setPhoneMask(inp, mask) {
+    let id     = inp.id,
+        phone  = inp.value,
+        hideId = "#" + id.replace("-mask", "");
+    
+    if (phone === "") {
+        phone = "7";
+    }
+    if (!mask) {
+        mask = "+_(___)___-__-__";
+    }
 
-  document.getElementById("auth-phone-mask").value = getValueByMask(phone, mask);
-  document.getElementById("auth-phone").value = getValueByMask(phone, mask, true);
+    phone = getPhoneNumbers(phone);
 
-  document.getElementById("reset-phone-mask").value = getValueByMask(phone, mask);
-  document.getElementById("reset_phone").value = getValueByMask(phone, mask, true);
-
-  document.getElementById("reg-phone-mask").value = getValueByMask(phone, mask);
-  document.getElementById("reg_phone").value = getValueByMask(phone, mask, true);
-
-  document.getElementById("feedback-phone").value = getValueByMask(phone, mask);
+    C(inp).val(getValueByMask(phone, mask));
+    C(hideId).val(getValueByMask(phone, mask, true));
 }
 
 function getPhoneNumbers(value) {
-  let phone = value.replace(/\D/g, "");
-  if (phone) {
-      phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
-  } else {
-    phone = "7";
-  }
+    let phone = value.replace(/\D/g, "");
+    
+    if (phone) {
+        phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
+    } else {
+        phone = "7";
+    }
 
-  return phone;
+    return phone;
 }
 
 function getValueByMask(value, mask, full) {
-  if (!full) full = false;
+    let phone    = value.match(/\d/g),
+        newPhone = mask;
 
-  let phone = value.match(/\d/g);
-  let newPhone = mask;
+    if (!full) {
+        full = false;
+    }
 
-  phone.forEach(e => newPhone = newPhone.replace(/_/, e));
-  if (!full) newPhone = newPhone.replace(/\)_|-_|_/g, "");
+    phone.forEach(e => newPhone = newPhone.replace(/_/, e));
+    
+    if (!full) {
+        newPhone = newPhone.replace(/\)_|-_|_/g, "");
+    }
 
-  return newPhone;
+    return newPhone;
 }
 
-function validateBirthdate(element) {
-  let result = false;
+function validateBirthdate(el) {
+    let result = false,
+        popup  = C("#reg-birthdate-popup");
 
-  element.value = element.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
-  let td = element.value.split("-");
-  let bd = new Date([td[2], td[1], td[0]].join("/"));
-  let cd = new Date();
+    el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
+    
+    let td = el.value.split("-"),
+        bd = new Date([td[2], td[1], td[0]].join("/")),
+        cd = new Date();
 
-  if (cd.getFullYear() - bd.getFullYear() < 18 || bd == "Invalid Date") {
-    document.getElementById("reg-birthdate-popup").classList.add("show");
-  } else {
-    document.getElementById("reg-birthdate-popup").classList.remove("show");
-    result = true;
-  }
+    if (cd.getFullYear() - bd.getFullYear() < 18 || bd === "Invalid Date") {
+        popup.addclass("show");
+    } else {
+        popup.delclass("show");
+        result = true;
+    }
 
-  return result;
+    return result;
 }
+
+var C = function (s, p) {
+
+    this.isC = true;
+
+    this.isNodeList = function (nodes) {
+        var stringRepr = Object.prototype.toString.call(nodes);
+
+        return typeof nodes === 'object' &&
+                /^\[object (HTMLCollection|NodeList|Object)\]$/.test(stringRepr) &&
+                (typeof nodes.length === 'number') &&
+                (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
+    },
+    this.isNode = function (obj) {
+        //return obj instanceof HTMLElement;
+        if (obj && obj.nodeType) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    this.isDocument = function (obj) {
+        return obj instanceof Document || obj instanceof Window;
+    },
+    this.isclass = function (cl) {
+        return this.els[0].classList.contains(cl);
+    },
+    this.defineEls = function () {
+        if (this.isNode(s) || this.isDocument(s)) {
+            return [s];
+        } else if (this.isNodeList(s)) {
+            return s;
+        } else {
+            if (p && p.isC) {
+                p = p.els[0];
+            }
+
+            return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
+        }
+    },
+    this.defineEl = function () {
+        return this.els[0];
+    },
+    this.els  = this.defineEls(),
+    this.el   = this.defineEl(),
+    this.on   = function (type, s, fn, except) {
+        var p = this;
+
+        this.bind(type, function (e) {
+            var el;
+
+            if (p.isNode(s) || p.isNodeList(s)) {
+                el = s;
+            } else {
+                el = C(s).els;
+            }
+
+            var t = e.target,
+                    ex = except || false;
+
+            while (t && t !== this) {
+                if (ex) {
+                    var goto = false;
+                    C(ex).els.forEach(function (item, index, array) {
+                        if (item === t) {
+                            goto = true;
+                        }
+                    });
+                    if (goto) {
+                        break;
+                    }
+                }
+
+                for (var i = 0; i < el.length; i++) {
+                    if (t === el[i]) {
+                        fn(e, t);
+                        break;
+                    }
+                }
+
+                if (t) {
+                    t = t.parentNode;
+                } else {
+                    break;
+                }
+            }
+        });
+
+        return this;
+    },
+    this.attr = function (attr, value) {
+        if (value === "undefined") {
+            return this.el.getAttribute(attr);
+        }
+        
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].setAttribute(attr, value);
+        }
+        
+        return this;
+    },
+    this.create = function (tag) {
+        var el   = document.createElement(tag);
+        this.els = [el];
+        this.el  = el;
+        
+        return this;
+    },
+    this.append = function (el) {
+        this.el.append(el.el);
+    },
+    this.style = function (st, val) {
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].style[st] = val;
+        }
+        
+        return this;
+    },
+    this.addclass = function (cl) {
+        if (!Array.isArray(cl)) {
+            cl = [cl];
+        }
+        
+        for (var i = 0; i < this.els.length; i++) {
+            for (var y = 0; y < cl.length; y++) {
+                this.els[i].classList.add(cl[y]);
+            }
+        }
+        
+        return this;
+    },
+    this.togclass = function (cl) {
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].classList.toggle(cl);
+        }
+        
+        return this;
+    },
+    this.delclass = function (cl) {
+        if (!Array.isArray(cl)) {
+            cl = [cl];
+        }
+        
+        for (var i = 0; i < this.els.length; i++) {
+            for (var y = 0; y < cl.length; y++) {
+                this.els[i].classList.remove(cl[y]);
+            }
+        }
+        
+        return this;
+    },
+    this.bind = function (type, fn) {
+        var addEvent, z;
+
+        if (!type || !fn) {
+            return this;
+        }
+
+        if (typeof addEventListener === "function") {
+            addEvent = function (el, type, fn) {
+                el.addEventListener(type, fn, false);
+            };
+        } else if (typeof attachEvent === "function") {
+            addEvent = function (el, type, fn) {
+                el.attachEvent("on" + type, fn);
+            };
+        } else {
+            return this;
+        }
+
+        if (this.isNodeList(this.els)) {
+            for (z = 0; z < this.els.length; z++) {
+                addEvent(this.els[z], type, fn);
+            }
+        } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
+            addEvent(this.els[0], type, fn);
+        } else if (this.els.length > 0) {
+            for (z = 0; z < this.els.length; z++) {
+                addEvent(this.els[z], type, fn);
+            }
+        }
+
+        return this;
+    },
+    this.html = function (text) {
+        if (!arguments.length && text !== '') {
+            return this.els[0].innerHTML;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].innerHTML = text;
+        }
+
+        return this;
+    },
+    this.text = function (text) {
+        if (!arguments.length && text !== '') {
+            return this.els[0].innerText;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].innerText = text;
+        }
+
+        return this;
+    },
+    this.val = function (value) {
+        if (!arguments.length && value !== '') {
+            return this.els[0].value;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].value = value;
+        }
+
+        return this;
+    };
+
+    if (this instanceof C) {
+        return this.C;
+    } else {
+        return new C(s, p);
+    }
+
+};

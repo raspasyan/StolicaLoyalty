@@ -1,7 +1,11 @@
+/* global C, fetch, API_URL, bearerToken */
+
 function updatePersonalData() {
     getProfileData().then(result => {
         if (result.status) {
-            if (result.data.firstname || result.data.middlename || result.data.lastname) personal_name.innerText = [result.data.firstname, result.data.middlename, result.data.lastname].join(" ");
+            if (result.data.firstname || result.data.middlename || result.data.lastname) {
+                C("#personal_name").text([result.data.firstname, result.data.middlename, result.data.lastname].join(" "));
+            }
 
             if (result.data.birthdate) {
                 let date = new Date((result.data.birthdate).replace(new RegExp("-", 'g'), "/"));
@@ -13,21 +17,22 @@ function updatePersonalData() {
                     timezone: 'UTC'
                 };
 
-                personal_birthdate.innerText = date.toLocaleString("ru", options);
+                C("#personal_birthdate").text(date.toLocaleString("ru", options));
             }
 
             if (result.data.phone) {
-                a = result.data.phone.split('');
-                personal_phone.innerText = '+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10];
+                let a = result.data.phone.split('');
+                C("#personal_phone").text('+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10]);
             }
 
-            personalCardType.innerText = (result.data.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
+            C("#personalCardType").text((result.data.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ");
 
-            if (result.data.discount != result.data.preferred_discount) {
-                notMatchCardType.style.display = "block";
-                notMatchCardTypeValue.innerText = (result.data.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
+            if (result.data.discount !== result.data.preferred_discount) {
+                //notMatchCardType.style.display = "block";
+                show("#notMatchCardType");
+                C("#notMatchCardTypeValue").text((result.data.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ"));
             } else {
-                notMatchCardType.style.display = "none";
+                hide("#notMatchCardType");
             }
         } else {
             onErrorCatch(result);
@@ -36,7 +41,9 @@ function updatePersonalData() {
 }
 
 function drawPersonal(personal) {
-    if (personal.firstname || personal.middlename || personal.lastname) personal_name.innerText = [personal.firstname, personal.middlename, personal.lastname].join(" ");
+    if (personal.firstname || personal.middlename || personal.lastname) {
+        C("#personal_name").text([personal.firstname, personal.middlename, personal.lastname].join(" "));
+    }
 
     if (personal.birthdate) {
         let date = new Date((personal.birthdate).replace(new RegExp("-", 'g'), "/"));
@@ -48,21 +55,23 @@ function drawPersonal(personal) {
             timezone: 'UTC'
         };
 
-        personal_birthdate.innerText = date.toLocaleString("ru", options);
+        C("#personal_birthdate").text(date.toLocaleString("ru", options));
     }
 
     if (personal.phone) {
         a = personal.phone.split('');
-        personal_phone.innerText = '+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10];
+        C("#personal_phone").text('+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10]);
     }
 
-    personalCardType.innerText = (personal.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ";
+    C("#personalCardType").text((personal.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ");
 
-    if (personal.discount != personal.preferred_discount) {
-        notMatchCardType.style.display = "block";
-        notMatchCardTypeValue.innerText = (personal.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ");
+    if (personal.discount !== personal.preferred_discount) {
+        //notMatchCardType.style.display = "block";
+        show("#notMatchCardType");
+        C("#notMatchCardTypeValue").text((personal.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ"));
     } else {
-        notMatchCardType.style.display = "none";
+        //notMatchCardType.style.display = "none";
+        hide("#notMatchCardType");
     }
 }
 
@@ -83,26 +92,26 @@ function getProfileData() {
             status: false,
             description: error.message,
             error: error
-        }
+        };
     });
 }
 
 async function changePassword() {
     let result = false;
-    if (personal_new_pass.value.length == 0) {
+    if (C("#personal_new_pass").val().length === 0) {
         return result;
     }
-    if (personal_new_pass.value.length > 0 && personal_new_pass.value.length < 6) {
-        attentionFocus(personal_new_pass);
-        return result;
-    }
-
-    if (personal_new_pass.value != personal_new_pass_confirmation.value) {
-        attentionFocus(personal_new_pass_confirmation);
+    if (C("#personal_new_pass").val().length > 0 && C("#personal_new_pass").val().length < 6) {
+        attentionFocus(C("#personal_new_pass").el);
         return result;
     }
 
-    personal_changePassword_button.disabled = true;
+    if (C("#personal_new_pass").val() !== C("#personal_new_pass_confirmation").val()) {
+        attentionFocus(C("#personal_new_pass_confirmation").el);
+        return result;
+    }
+
+    C("#personal_changePassword_button").el.disabled = true;
 
     let response = await fetch(API_URL, {
         method: "POST",
@@ -113,25 +122,25 @@ async function changePassword() {
         body: JSON.stringify({
             "method": "changePassword",
             "data": {
-                "new_password": personal_new_pass.value,
+                "new_password": C("#personal_new_pass").val()
             }
         })
     });
 
     result = await response.json();
 
-    personal_changePassword_button.disabled = false;
+    C("#personal_changePassword_button").el.disabled = false;
 
     return result;
 }
 
 async function changeCard() {
-    if (personal_new_card.value.length < 14) {
-        attentionFocus(personal_new_card);
+    if (C("#personal_new_card").val().length < 14) {
+        attentionFocus(C("#personal_new_card").el);
         return;
     }
 
-    personal_changeCard_button.disabled = true;
+    C("#personal_changeCard_button").el.disabled = true;
 
     let response = await fetch(API_URL, {
         method: "POST",
@@ -142,19 +151,19 @@ async function changeCard() {
         body: JSON.stringify({
             "method": "changeCard",
             "data": {
-                "new_card": personal_new_card.value
+                "new_card": C("#personal_new_card").val()
             }
         })
     });
 
     let result = await response.json();
 
-    personal_changeCard_button.disabled = false;
+    C("#personal_changeCard_button").el.disabled = false;
 
     if (result.status) {
         if (result.description) showPopup("", result.description);
-        personal_new_pass.value = "";
-        personal_new_pass_confirmation.value = "";
+        C("#personal_new_pass").val("");
+        C("#personal_new_pass_confirmation").val("");
     } else {
         if (result.description) showPopup("Внимание", result.description);
     }
@@ -170,7 +179,7 @@ function changeCardType() {
         body: JSON.stringify({
             "method": "changeCardType",
             "data": {
-                "discount": document.querySelector('input[name="systemChange"]:checked').value,
+                "discount": C('input[name="systemChange"]:checked').val()
             }
         })
     }).then(response => response.json()).catch(error => {
@@ -178,13 +187,13 @@ function changeCardType() {
             status: false,
             description: error.message,
             error: error
-        }
+        };
     });
 }
 
 function changeProfileData() {
     let changePass = false;
-    if (personal_new_pass.value.length > 0) {
+    if (C("#personal_new_pass").val().length > 0) {
         changePassword().then(result => {
             if (result) {
                 if (result.status) {
@@ -203,8 +212,7 @@ function changeProfileData() {
                 });
             }
         }, 500);
-    }
-    else {
+    } else {
         changeCardType().then(result => {
             if (result.status) {
                 showPopup("", "Тип карты изменен!");
@@ -215,18 +223,18 @@ function changeProfileData() {
 }
 
 async function setCard() {
-    if (plasticNumber.value.length < 10) {
+    if (C("#plasticNumber").val().length < 10) {
         showPopup("Внимание", "Не указан номер карты!");
         return;
     }
 
     showLoader();
-    set_card.disabled = true;
+    C("#set_card").el.disabled = true;
 
     let body = {
         "method": "setCard",
         "data": {
-            "card_number": plasticNumber.value,
+            "card_number": C("#plasticNumber").val()
         }
     };
 
@@ -241,11 +249,11 @@ async function setCard() {
 
     let result = await response.json();
 
-    personal_changePassword_button.disabled = false;
+    C("#personal_changePassword_button").el.disabled = false;
 
     hideLoader();
-    set_card.disabled = false;
-    plasticNumber.value = "";
+    C("#set_card").el.disabled = false;
+    C("#plasticNumber").val("");
 
     if (result.status) {
         if (result.description) showPopup("", result.description);

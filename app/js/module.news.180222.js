@@ -1,63 +1,63 @@
+/* global C, d, DOMAIN */
+
 function drawNews(newsList) {
-    let container = document.getElementById("news").getElementsByClassName("container")[0];
+    let container = C(".news>div.container").el;
 
     newsList.forEach(news => {
-        let imageSrc = DOMAIN + "/" + news.image;
+        let imageSrc = DOMAIN + "/" + news.image,
+            dateObj = new Date((news.date).replace(new RegExp("-", 'g'), "/")),
+            date = [
+                    (String(dateObj.getDate()).length === 1 ? "0" : "") + String(dateObj.getDate()),
+                    (String(dateObj.getMonth() + 1).length === 1 ? "0" : "") + String(dateObj.getMonth() + 1),
+                    String(dateObj.getFullYear())
+                ].join("."),
+            newsContEl = C().create("div");
+        
+        newsContEl.addclass("news__container");
+        newsContEl.el.addEventListener("click", e => {
+            //C(".newsOverlay").el.style.display = "block";
+            show(".newsOverlay");
+            C(".newsOverlay__image").el.src = imageSrc;
+            C(".newsOverlay__details_date").text(date);
+            C(".newsOverlay__details_title").text(news.title);
+            C(".newsOverlay__details_descpription").html(news.description);
 
-        let dateObj = new Date((news.date).replace(new RegExp("-", 'g'), "/"));
-        let date = [
-            (String(dateObj.getDate()).length == 1 ? "0" : "") + String(dateObj.getDate()),
-            (String(dateObj.getMonth() + 1).length == 1 ? "0" : "") + String(dateObj.getMonth() + 1),
-            String(dateObj.getFullYear())
-        ].join(".");
+            C(".newsOverlay__image").el.scrollIntoView();
 
-        let newsContElement = document.createElement("div");
-        newsContElement.classList.add("news-cont");
-        newsContElement.addEventListener("click", e => {
-            document.getElementById("overlay-news").style.display = "block";
-            document.getElementById("overlay-news-image").src = imageSrc;
-            document.getElementById("overlay-news-details-date").innerText = date;
-            document.getElementById("overlay-news-details-title").innerText = news.title;
-            document.getElementById("overlay-news-details-descpription").innerHTML = news.description;
+            // C(".newsOverlay").addclass(["animate__animated", "animate__fadeIn"]);
 
-            document.getElementById("overlay-news-image").scrollIntoView();
+            d.body.classList.add("hideOverflow");
 
-            // document.getElementById("overlay-news").classList.add("animate__animated", "animate__fadeIn");
-
-            document.body.classList.add("overlay-show");
-
-            document.getElementById("overlay-news").addEventListener("click", e => {
-                if (e.target == e.currentTarget || e.target.type == "submit") {
-                    e.currentTarget.style.display = "none";
-                    document.body.classList.remove("overlay-show");
+            C(".newsOverlay").el.addEventListener("click", e => {
+                if (e.target === e.currentTarget || e.target.type === "submit") {
+                    hide(".newsOverlay");
+                    d.body.classList.remove("hideOverflow");
                 }
-            })
+            });
         });
 
-        let newsImageElement = document.createElement("img");
-        newsImageElement.classList.add("news-image");
-        newsImageElement.src = imageSrc;
-        newsContElement.appendChild(newsImageElement);
+        let newsImageElement = C().create("img");
+        newsImageElement.el.src = imageSrc;
+        newsContEl.append(newsImageElement);
 
-        let newsDetailsElement = document.createElement("div");
-        newsDetailsElement.classList.add("news-details");
-        newsContElement.appendChild(newsDetailsElement);
+        let newsDetailsElement = C().create("div");
+        newsDetailsElement.addclass("news__container_details");
+        newsContEl.append(newsDetailsElement);
 
-        let newsDetailsDateElement = document.createElement("p");
-        newsDetailsDateElement.classList.add("news-details-date");
-        newsDetailsDateElement.innerText = date;
-        newsDetailsElement.appendChild(newsDetailsDateElement);
+        let newsDetailsDateElement = C().create("p");
+        newsDetailsDateElement.addclass("news__container_details_date");
+        newsDetailsDateElement.text(date);
+        newsDetailsElement.append(newsDetailsDateElement);
 
-        let newsDetailsTitleElement = document.createElement("h4");
-        newsDetailsTitleElement.classList.add("news-details-title");
-        newsDetailsTitleElement.innerText = news.title;
-        newsDetailsElement.appendChild(newsDetailsTitleElement);
+        let newsDetailsTitleElement = C().create("h4");
+        newsDetailsTitleElement.text(news.title);
+        newsDetailsElement.append(newsDetailsTitleElement);
 
-        let newsButton = document.createElement("button");
-        newsButton.classList.add("button-primary");
-        newsButton.innerText = "Подробнее";
-        newsDetailsElement.appendChild(newsButton);
+        let newsButton = C().create("button");
+        newsButton.addclass("button-primary");
+        newsButton.text("Подробнее");
+        newsDetailsElement.append(newsButton);
 
-        container.prepend(newsContElement);
+        container.prepend(newsContEl.el);
     });
 }
