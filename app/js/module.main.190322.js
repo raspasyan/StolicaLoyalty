@@ -161,10 +161,29 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("transactions-details-button").addEventListener("pointerdown", e => {
-    let transactionsButtonElement = document.getElementById("transactions");
-    let isOpen = transactionsButtonElement.style.display == "";
-    transactionsButtonElement.style.display = (isOpen ? "none" : "");
-    e.target.innerText = (isOpen ? "открыть детализацию" : "скрыть детализацию");
+      let transactionsButtonElement = document.getElementById("transactions");
+      let isOpen = transactionsButtonElement.style.display === "";
+      
+      if (isOpen) {
+          e.target.innerText = "открыть детализацию";
+          transactionsButtonElement.style.display = "none";
+          e.target.style.backgroundColor = "#4062b7";
+          e.target.style.borderColor = "#4062b7";
+      } else {
+          e.target.innerText = "скрыть детализацию";
+          transactionsButtonElement.style.display = "";
+          e.target.style.backgroundColor = "#28a960";
+          e.target.style.borderColor = "#28a960";
+      }
+  });
+
+  document.querySelector('#feedback-phone').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-phone-popup').classList.remove("show");
+  });
+  document.querySelector('#feedback-message').addEventListener("blur", e => {
+      dropFail(e.target); 
+      document.querySelector('#feedback-message-popup').classList.remove("show");
   });
 
   document.getElementById("feedback-submit").addEventListener("click", e => setFeedback());
@@ -1069,7 +1088,26 @@ function hideFeedback() {
   document.body.classList.remove("overlay-show");
 }
 
+function showInputPopup(id) {
+    let el = document.getElementById(id);
+    el.scrollIntoView();
+    el.classList.add("fail");
+    el.focus();
+    document.getElementById(id + "-popup").classList.add("show");
+}
+
 function setFeedback() {
+    let phoneNumber = document.getElementById("feedback-phone");
+    if (getPhoneNumbers(phoneNumber.value).length !== 11) {
+        showInputPopup("feedback-phone");
+        return;
+    }
+    let messageEl = document.getElementById("feedback-message");
+    if (messageEl.value.length < 3) {
+        showInputPopup("feedback-message");
+        return;
+    }
+    
   let feedbackSubmitButton = document.getElementById("feedback-submit");
   feedbackSubmitButton.disabled = true;
   showLoader();
