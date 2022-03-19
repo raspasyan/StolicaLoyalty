@@ -1159,7 +1159,8 @@ function checkUpdates(lastUpdates, callback) {
       if (sections[currentSection] && !sections[currentSection].needAuth) localStorage.setItem(LS_SECTION, "wallet");
     } else {
       // Не авторизованных отправляем на авторизацию
-      if (sections[currentSection] && sections[currentSection].needAuth) logOff();
+      // !!! Есть предположение, что иногда флуктуации на сервере возвращают ложь, что приводит к ложному выходу из приложения !!!
+      // if (sections[currentSection] && sections[currentSection].needAuth) logOff();
     }
   })
   .finally(() => {

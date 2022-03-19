@@ -382,6 +382,12 @@ class LMX {
     }
 
     public function getHistory($personId, $filters = null, $debug = false) {
+        // Пример:
+        // $filters = [
+        //     "fromDate" => "2021-01-01",
+        //     "count" => 999
+        // ];
+
         $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
@@ -390,9 +396,52 @@ class LMX {
             if ($debug) $result["debug"] = $methodResult["data"];
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->rows)) {
+                    $acceptedTypes = [
+                        "RewardData",
+                        "WithdrawData"
+                    ];
+
+                    $acceptedWithdrawTypes = [
+                        "Expiration",
+                        "Bonus"
+                    ];
+
+                    $acceptedRewardTypes = [
+                        "Bonus"
+                    ];
+
                     $result["data"] = [];
 
-                    foreach ($methodResult["data"]->data->rows as $key => $row) array_push($result["data"], $row);
+                    foreach ($methodResult["data"]->data->rows as $key => $row) {
+                        if (in_array($row->type, $acceptedTypes)) {
+                            $transaction = [
+                                "extId" => $row->id,
+                                "date" => (new DateTime($row->dateTime))->format("Y-m-d H:i:s"),
+                                "description" => $row->description
+                            ];
+    
+                            switch ($row->type) {
+                                case "RewardData": {
+                                    if (in_array($row->data->rewardType, $acceptedRewardTypes)) $transaction["type"] = $row->data->rewardType;
+
+                                    break;
+                                }
+
+                                case "WithdrawData": {
+                                    if (in_array($row->data->withdrawType, $acceptedWithdrawTypes)) $transaction["type"] = $row->data->withdrawType;
+
+                                    break;
+                                }
+                            }
+
+                            if (isset($transaction["type"])) {
+                                $transaction["amount"] = $row->data->amount->amount * 100;
+                                array_push($result["data"], $transaction);
+                            }
+                        }
+                    }
+
+                    $result["status"] = true;
                 } else {
                     $result["description"] = "История покупок за выбранный период пуста.";    
                 }

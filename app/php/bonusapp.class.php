@@ -14,8 +14,9 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        $LMX = $this->getLMX();
-        print_r($LMX->getBalance(288879, 1));
+        // $result = $this->updateWalletDataByLMX();
+        // $LMX = $this->getLMX();
+        // debug($LMX->getHistory(158971, ["fromDate" => "2022-02-05T01:01:01", "count" => 2], 1));
 
         exit;
     }
@@ -237,10 +238,6 @@ class BonusApp {
                     }
                     case "cron10": {
                         print_r($this->uploadDump());
-                        break;
-                    }
-                    case "syncbonuscards": {
-                        print_r($this->service_syncBonusCards());
                         break;
                     }
                     case "changediscountsystem": {
@@ -744,7 +741,7 @@ class BonusApp {
     }
 
     private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync, $debug = false) {
-        $result = ["status" => false, "data" => null];
+        $result = ["status" => false];
 
         $lastPurchaseDate = "2021-01-01 00:00:00";
         $getLastPurchaseResult = $this->getLastPurchase($personId);
@@ -757,7 +754,7 @@ class BonusApp {
 
         // Подгружаем актуальный баланс из процессинговой системы
         if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0)) {
-            $result = $this->updateCardDataByLMX($personId, $cardNumber, $lastPurchaseDate);
+            $result = $this->updateWalletDataByLMX($personId, $cardNumber, $lastPurchaseDate);
         } else {
             $result["data"] = "Запрос баланса будет доступен через: [" . (WALLET_TIMEOUT_SECONDS - $dd) . "] секунд.";
         }
@@ -785,7 +782,7 @@ class BonusApp {
             $dd = $cd_time - $ls_time;
 
             // Подгружаем актуальный баланс из процессинговой системы
-            if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0) && !$onlyBalance) $this->updateCardDataByLMX($personId, $cardNumber, $lastPurchase);
+            if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0) && !$onlyBalance) $this->updateWalletDataByLMX($personId, $cardNumber, $lastPurchase);
 
             // Подгрузка текущего баланса
             $getBonusCardDataResult = $this->getBonusCardData($cardNumber);
@@ -1058,61 +1055,6 @@ class BonusApp {
 
     /* Сервисные ф-ии */
 
-    private function service_getBalance($limit = 1000) {
-        $query = $this->pdo->prepare("SELECT
-                a.id,
-                p.ext_id,
-                b.card_number
-            FROM
-                accounts a
-                LEFT JOIN profiles p ON a.id = p.account_id
-                LEFT JOIN bonuscards b ON a.id = b.account_id
-            WHERE
-                a.status = 1 AND
-                NOT p.ext_id IS NULL
-                AND b.status = 1
-                AND b.last_sync < DATE_ADD(NOW(), INTERVAL -1 DAY)
-            ORDER BY
-                a.id
-            LIMIT ?
-        ");
-        $query->execute([$limit]);
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) {
-            $LMX = $this->getLMX();
-            $cd = new DateTime();
-
-            foreach ($queryResult as $key => $value) {
-                $result = null;
-                
-                $getBalanceResult = $LMX->getBalanceNew($value["ext_id"]);
-                if ($getBalanceResult["status"]) {
-                    $newData = [
-                        "last_sync" => $cd->format('Y-m-d H:i:s'),
-                        "balance" => $getBalanceResult["data"]["amount"] * 100
-                    ];
-                    debug($newData);
-
-                    $setBonusCardDataResult = $this->setBonusCardData($value["card_number"], $newData);
-                    $result = $setBonusCardDataResult;
-
-                    if ($setBonusCardDataResult["status"]) {
-                        //
-                    } else {
-                        //
-                    }
-                } else {
-                    $result = $getBalanceResult;
-                }
-
-                debug([
-                    "profile" => $value,
-                    "result" => $result
-                ]);
-            }
-        }
-    }
-
     public function service_completeRegistration() {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
@@ -1161,38 +1103,6 @@ class BonusApp {
             $cd = new DateTime();
             $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron3'");
             $query->execute([$cd->format('Y-m-d H:i:s')]);
-        }
-    }
-
-    public function service_syncBonusCards() {
-        $operationResult = $this->initPDO();
-        if ($operationResult["status"]) {
-            $start = microtime(true);
-
-            $results = [];
-
-            // Сперва обновляем карты у которых есть свежие чеки, затем работаем со всеми остальными
-            $getCardsToSync = $this->getCardsToUpdateByPurchases();
-            if (!$getCardsToSync["status"]) $getCardsToSync = $this->getOutdatedCards(100);
-
-            if ($getCardsToSync["status"]) foreach ($getCardsToSync["data"] as $key => $value) {
-                $getWalletDataResult = $this->updateCardData($value["card_number"], $value["last_sync"]);
-                if (!$getWalletDataResult["status"]) $this->journal("CRON", "service_syncBonusCards", json_encode(["cardNumber" => $value["card_number"], "lastSync" => $value["last_sync"]], JSON_UNESCAPED_UNICODE), $getWalletDataResult["status"]);
-
-                array_push($results, $getWalletDataResult);
-            }
-
-            print_r($results);
-
-            // Фиксация завершения обработки
-            $cd = new DateTime();
-            $this->pdo->beginTransaction();
-            $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'cron_syncbonuscards_start'");
-            $query->execute([$cd->format('Y-m-d H:i:s')]);
-
-            $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'cron_syncbonuscards_duration'");
-            $query->execute([round(microtime(true) - $start, 4)]);
-            $this->pdo->commit();
         }
     }
 
@@ -2652,7 +2562,7 @@ class BonusApp {
     }
 
     private function setBonusCardData($cardNumber, $bonusCardData) {
-        $result = ["status" => false, "data" => null];
+        $result = ["status" => false];
 
         $begin = false;
         try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
@@ -2671,92 +2581,88 @@ class BonusApp {
         return $result;
     }
 
-    private function addTransaction($cardNumber, $transactionData) {
-        $result = ["status" => false, "data" => null];
+    private function addTransaction($personId, $data) {
+        $result = ["status" => false];
 
-        $query = $this->pdo->prepare("INSERT INTO transactions (ext_id, amount, type, operation_date, start_date, finish_date, rsa_id, cash, shift, number, bonuscard_id) VALUES (
-                :ext_id,
-                :amount,
-                :type,
-                :operation_date,
-                :start_date,
-                :finish_date,
-                :rsa_id,
-                :cash,
-                :shift,
-                :number,
-                (SELECT id FROM bonuscards WHERE card_number = :cardNumber)
-            )");
-        $query->execute([
-            "ext_id" => $transactionData["ext_id"],
-            "type" => $transactionData["type"],
-            "amount" => $transactionData["amount"],
-            "operation_date" => $transactionData["operation_date"],
-            "start_date" => $transactionData["start_date"],
-            "finish_date" => $transactionData["finish_date"],
-            "rsa_id" => $transactionData["rsa_id"],
-            "cash" => $transactionData["cash"],
-            "shift" => $transactionData["shift"],
-            "number" => $transactionData["number"],
-            "cardNumber" => $cardNumber
-        ]);
+        try {
+            $query = $this->pdo->prepare("INSERT INTO transactions (
+                ext_id,
+                profile_ext_id,
+                date,
+                description,
+                type,
+                amount
+            ) VALUES (?, ?, ?, ?, ?, ?)");
+            $a = [
+                $data["extId"],
+                $personId,
+                $data["date"],
+                $data["description"],
+                $data["type"],
+                $data["amount"]
+            ];
+            $query->execute($a);
 
-        $result["status"] = true;
+            $result = [
+                "status" => true,
+                "data" => $this->pdo->lastInsertId()
+            ];
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
+        }
 
         return $result;
     }
 
-    private function getTransactionsIds($cardNumber) {
-        $result = ["status" => false, "data" => null];
+    private function getTransactionsIds($personId) {
+        $result = ["status" => false];
 
-        $query = $this->pdo->prepare("SELECT 
-                    transactions.ext_id
-                FROM transactions
-                WHERE
-                    bonuscard_id IN (SELECT id FROM bonuscards WHERE card_number = :cardNumber)
-                    AND type IN ('" . implode("','", SRC::$transactionTypes) . "')"
-        );
-        $query->execute(["cardNumber" => $cardNumber]);
+        $query = $this->pdo->prepare("SELECT ext_id FROM transactions WHERE profile_ext_id = ?");
+        $query->execute([$personId]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result["status"] = true;
-            $result["data"] = $queryResult;
+            $result["data"] = [];
+
+            foreach ($queryResult as $key => $value) array_push($result["data"], $value["ext_id"]);
         }
+
         return $result;
     }
 
-    private function updateCardData($cardNumber, $lastSync) {
-        $result = ["status" => false, "data" => null];
+    private function getTransactions($personId) {
+        $result = ["status" => false];
 
-        $cd = new DateTime();
-        $lsd = new DateTime($lastSync);
+        $query = $this->pdo->prepare("SELECT date, description, type, amount FROM transactions WHERE profile_ext_id = ?");
+        $query->execute([$personId]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) $result = [
+            "status" => true,
+            "data" => $queryResult
+        ];
+        
+        return $result;
+    }
 
-        $syncResult = SRC::getBonusAccountBalances($cardNumber);
-        if ($syncResult["status"]) {
-            $newCardBalance = $syncResult["data"]["active"];
-
-            $this->pdo->beginTransaction();
-            $transactionsRequest = SRC::getBonusAccountHistory($cardNumber, $lsd->format("Y-m-d"), $cd->format("Y-m-d"));
-            if ($transactionsRequest["status"] && count($transactionsRequest["data"])) {
-                $transactions = $this->getTransactionsIds($cardNumber);
-                $extIds = [];
-                if (isset($transactions["data"]) && count($transactions["data"])) $extIds = array_map(function($transaction) { return $transaction["ext_id"]; }, $transactions["data"]);
-
-                foreach ($transactionsRequest["data"] as $value) if (!in_array($value["ext_id"], $extIds)) $this->addTransaction($cardNumber, $value);
-            }
-
-            $setBonusCardDataResult = $this->setBonusCardData($cardNumber, ["last_sync" => $cd->format('Y-m-d H:i:s'), "balance" => $newCardBalance]);
-            if ($setBonusCardDataResult["status"]) {
-                $this->pdo->commit();
-            } else {
-                $this->pdo->rollback();
-            }
-
-            $result["status"] = true;
-            $result["data"] = [
-                "last_sync" => $cd->format('Y-m-d H:i:s')
-            ];
-        }
+    private function getLastTransaction($personId) {
+        $result = ["status" => false];
+        
+        $query = $this->pdo->prepare("SELECT
+                *
+            FROM
+                transactions
+            WHERE
+                profile_ext_id = ?
+            ORDER BY
+                date DESC
+            LIMIT 1
+        ");
+        $query->execute([$personId]);
+        $queryResult = $query->fetchAll();
+        if (count($queryResult)) $result = [
+            "status" => true,
+            "data" => $queryResult[0]
+        ];
 
         return $result;
     }
@@ -3937,8 +3843,8 @@ class BonusApp {
 
     /* Работа с внешними ИБ */
 
-    private function updateCardDataByLMX($personId, $cardNumber, $fromDate) {
-        $result = ["status" => false, "data" => []];
+    private function updateWalletDataByLMX($personId, $cardNumber, $fromDate) {
+        $result = ["status" => false, "data" => ["purchases" => [], "transactions" => [], "setBonusCardData" => null]];
         if (empty($personId)) return $result;
 
         $cd = new DateTime();
@@ -3948,21 +3854,38 @@ class BonusApp {
         if ($getBalanceResult["status"]) {
             $this->pdo->beginTransaction();
 
-            $newDate = new DateTime($fromDate);
-            $newDate->add(new DateInterval('P1D'));
-            $filters = [
+            // Загрузка чеков из ЛМ
+            $getPurchasesFullDataResult = $LMX->getPurchasesFullData([
                 "startChequeTime" => $fromDate,
                 "count" => 9999,
                 "personId" => $personId,
                 "state" => "Confirmed"
-            ];
-            $getPurchasesFullDataResult = $LMX->getPurchasesFullData($filters);
+            ]);
             if ($getPurchasesFullDataResult["status"]) {
                 $currentPurchases = [];
                 $getPurchasesHashResult = $this->getPurchasesHash($personId);
                 if ($getPurchasesHashResult["status"]) $currentPurchases = $getPurchasesHashResult["data"];
 
-                foreach ($getPurchasesFullDataResult["data"]["purchases"] as $purchase) array_push($result["data"], in_array(md5($purchase["rsa_id"] . $purchase["sale_time"] . $purchase["number"]), $currentPurchases) ? ["status" => false] : $this->addPurchase($purchase, $purchase["rsa_id"], $personId));
+                foreach ($getPurchasesFullDataResult["data"]["purchases"] as $purchase)
+                    array_push($result["data"]["purchases"], in_array(md5($purchase["rsa_id"] . $purchase["sale_time"] . $purchase["number"]), $currentPurchases) ?
+                        ["status" => true, "data" => md5($purchase["rsa_id"] . $purchase["sale_time"] . $purchase["number"])] : $this->addPurchase($purchase, $purchase["rsa_id"], $personId));
+            }
+
+            // Загрузка транзакций из ЛМ (начисления, списания, сгорания)
+            $getLastTransactionResult = $this->getLastTransaction($personId);
+            if ($getLastTransactionResult["status"]) $fromDate = $getLastTransactionResult["data"]["date"];
+            $getHistoryResult = $LMX->getHistory($personId, [
+                "fromDate" => (new DateTime($fromDate))->format("Y-m-d"),
+                "count" => 9999
+            ]);
+            if ($getHistoryResult["status"]) {
+                $currentTransactions = [];
+                $getTansactionsIdsResult = $this->getTransactionsIds($personId);
+                if ($getTansactionsIdsResult["status"]) $currentTransactions = $getTansactionsIdsResult["data"];
+    
+                foreach ($getHistoryResult["data"] as $value)
+                    array_push($result["data"]["transactions"], in_array($value["extId"], $currentTransactions) ?
+                        ["status" => true, "data" => $value["extId"]] : $this->addTransaction($personId, $value));
             }
             
             // Запись даты синхронизации баланса
@@ -3974,11 +3897,11 @@ class BonusApp {
             ]);
             if ($setBonusCardDataResult["status"]) {
                 $this->pdo->commit();
-
-                $result = $setBonusCardDataResult;
             } else {
                 $this->pdo->rollback();
             }
+
+            $result["data"]["setBonusCardData"] = $setBonusCardDataResult;
         } else {
             $this->journal("APP", __FUNCTION__, "", $getBalanceResult["status"], json_encode(["f" => "LMX->getBalance", "a" => [$personId], "outer" => [$personId, $cardNumber, $fromDate]]), json_encode($getBalanceResult, JSON_UNESCAPED_UNICODE));
         }
