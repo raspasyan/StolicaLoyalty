@@ -2840,7 +2840,7 @@ class BonusApp {
                         WHEN purchases.profile_ext_id IS NULL THEN -ROUND(purchases.discount_amount / 100, 2)
                         ELSE ROUND(purchases.payment_amount / 100, 2)
                     END AS purchase_payment_amount,
-                    positions.title AS product_title,
+                    IFNULL(products.title, positions.title) AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
                     CASE
@@ -2857,6 +2857,8 @@ class BonusApp {
                     ON purchases.id = positions.purchase_id
                 LEFT JOIN stores
                     ON purchases.rsa_id = stores.rsa_id
+                LEFT JOIN products
+                	ON positions.product_id = products.id
                 WHERE
                     purchases.id IN (" . join(",", $purchasesId) . ")
                 ORDER BY
