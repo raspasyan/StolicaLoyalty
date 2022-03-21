@@ -66,6 +66,7 @@ details > summary {
   justify-items: center;
   background-color: white;
   width: inherit;
+  padding-top: env(safe-area-inset-top, 0px) !important;
 }
 #top-nav-back {
   font-size: 40px;

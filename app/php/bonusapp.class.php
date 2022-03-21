@@ -3877,7 +3877,7 @@ class BonusApp {
             $getLastTransactionResult = $this->getLastTransaction($personId);
             if ($getLastTransactionResult["status"]) $fromDate = $getLastTransactionResult["data"]["date"];
             $getHistoryResult = $LMX->getHistory($personId, [
-                "fromDate" => (new DateTime($fromDate))->format("Y-m-d"),
+                "fromDate" => (new DateTime($fromDate))->format("Y-m-dTH:i:s"),
                 "count" => 9999
             ]);
             if ($getHistoryResult["status"]) {
