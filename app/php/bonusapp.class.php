@@ -14,10 +14,6 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        // $result = $this->updateWalletDataByLMX();
-        // $LMX = $this->getLMX();
-        // debug($LMX->getHistory(158971, ["fromDate" => "2022-02-05T01:01:01", "count" => 2], 1));
-
         exit;
     }
 
@@ -240,10 +236,6 @@ class BonusApp {
                         print_r($this->uploadDump());
                         break;
                     }
-                    case "changediscountsystem": {
-                        print_r($this->sheduler_changeDiscountSystem());
-                        break;
-                    }
                     case "sendfeedbacks": {
                         print_r($this->sheduler_sendFeedbacks());
                         break;
@@ -327,7 +319,7 @@ class BonusApp {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         if (!empty($requestData["data"]["pass"])) {
-                            $resultData = $this->API_AuthorizationHandler($phone, $requestData["data"]["pass"]);
+                            $resultData = $this->API_authorizationHandler($phone, $requestData["data"]["pass"]);
                         } else {
                             $resultData["description"] = "Введите пароль";
                         }
@@ -344,7 +336,7 @@ class BonusApp {
                         if (!empty($requestData["data"]["pass"])) {
                             $pass = $requestData["data"]["pass"];
 
-                            $resultData = $this->API_RegistrationHandler($phone, $pass, [
+                            $resultData = $this->API_registrationHandler($phone, $pass, [
                                     "firstname" => $requestData["data"]["firstname"],
                                     "birthdate" => $requestData["data"]["birthdate"],
                                     "email"     => $requestData["data"]["email"]
@@ -366,7 +358,7 @@ class BonusApp {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
                         $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
 
-                        $resultData = $this->API_AccountConfirmationHandler($phone, $code);
+                        $resultData = $this->API_accountConfirmationHandler($phone, $code);
                     } else {
                         $resultData = ["status" => false, "description" => "Отсутствуют данные"];
                     }
@@ -377,7 +369,7 @@ class BonusApp {
                     if (!empty($requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
-                        $resultData = $this->API_RepeatAccountConfirmationHandler($phone);
+                        $resultData = $this->API_repeatAccountConfirmationHandler($phone);
                     } else {
                         $resultData = ["status" => false, "description" => "Отсутствуют данные"];
                     }
@@ -456,7 +448,8 @@ class BonusApp {
 
                 case "changeCardType": {
                     $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) $resultData = $this->changeCardType($resultData["data"]["phone"], $requestData["data"]["discount"]);
+                    if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["discount"]);
+                    
                     break;
                 }
 
@@ -590,7 +583,7 @@ class BonusApp {
 
     /* Обработчики API */
 
-    private function API_RegistrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
+    private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
 
         $query = $this->pdo->prepare("SELECT status FROM accounts WHERE phone = :phone");
@@ -644,7 +637,7 @@ class BonusApp {
         return $result;
     }
 
-    private function API_AuthorizationHandler($phone, $pass) {
+    private function API_authorizationHandler($phone, $pass) {
         if (!$phone) return ["status" => 0, "description" => "Не указан логин!"];
         if (mb_strlen($phone, "UTF-8") < 6) return ["status" => 0, "description" => "Логин должен содержать не менее 6 символов."];
         if (!$pass) return ["status" => 0, "description" => "Не указан пароль!"];
@@ -670,7 +663,7 @@ class BonusApp {
         return $result;
     }
 
-    private function API_AccountConfirmationHandler($phone, $code) {
+    private function API_accountConfirmationHandler($phone, $code) {
         $result = $this->checkConfirmationCode($phone, $code);
 
         if ($result["status"]) {
@@ -731,7 +724,7 @@ class BonusApp {
         return $result;
     }
 
-    private function API_RepeatAccountConfirmationHandler($phone) {
+    private function API_repeatAccountConfirmationHandler($phone) {
         $result = ["status" => false, "description" => ""];
 
         $result = $this->canSendConfirmationCode($phone);
@@ -743,10 +736,6 @@ class BonusApp {
     private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync, $debug = false) {
         $result = ["status" => false];
 
-        $lastPurchaseDate = "2021-01-01 00:00:00";
-        $getLastPurchaseResult = $this->getLastPurchase($personId);
-        if ($getLastPurchaseResult["status"]) $lastPurchaseDate = $getLastPurchaseResult["data"]["sale_time"];
-
         $cd = new DateTime();
         $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
         $ls_time = strtotime($bonusCardLastSync);
@@ -754,7 +743,7 @@ class BonusApp {
 
         // Подгружаем актуальный баланс из процессинговой системы
         if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0)) {
-            $result = $this->updateWalletDataByLMX($personId, $cardNumber, $lastPurchaseDate);
+            $result = $this->updateWalletDataByLMX($personId, $cardNumber);
         } else {
             $result["data"] = "Запрос баланса будет доступен через: [" . (WALLET_TIMEOUT_SECONDS - $dd) . "] секунд.";
         }
@@ -771,7 +760,6 @@ class BonusApp {
             $cardBalance        = $operationResult["data"]["balance"];
             $lastSync           = $operationResult["data"]["card_last_sync"];
             $personId           = $operationResult["data"]["ext_id"];
-            $lastPurchase       = $operationResult["data"]["last_purchase"];
             $discount           = $operationResult["data"]["discount"];
             $discountValue      = $operationResult["data"]["discount_value"];
             $preferredDiscount  = $operationResult["data"]["preferred_discount"]; 
@@ -782,7 +770,7 @@ class BonusApp {
             $dd = $cd_time - $ls_time;
 
             // Подгружаем актуальный баланс из процессинговой системы
-            if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0) && !$onlyBalance) $this->updateWalletDataByLMX($personId, $cardNumber, $lastPurchase);
+            if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0) && !$onlyBalance) $this->updateWalletDataByLMX($personId, $cardNumber);
 
             // Подгрузка текущего баланса
             $getBonusCardDataResult = $this->getBonusCardData($cardNumber);
@@ -879,6 +867,27 @@ class BonusApp {
         $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
         
         return $this->setFeedback($phone, $data);
+    }
+
+    private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount) {
+        $result = ["status" => false];
+
+        $LMX = $this->getLMX();
+        $setDiscountAttributeValue = $LMX->setDiscountAttributeValue($personId, boolval($preferredDiscount));
+        if ($setDiscountAttributeValue["status"]) {
+            $updateAccountResult = $this->updateAccount($accountId, ["discount" => $preferredDiscount, "preferred_discount" => $preferredDiscount]);
+            if ($updateAccountResult["status"]) {
+                $result["status"] = true;
+            } else {
+                $result = $updateAccountResult;
+                $this->journal("CRON", __FUNCTION__, "", $updateAccountResult["status"], json_encode(["f" => "updateAccount", "a" => [$accountId, ["discount" => $preferredDiscount]]]), json_encode($updateAccountResult, JSON_UNESCAPED_UNICODE));   
+            }
+        } else {
+            $result = $setDiscountAttributeValue;
+            $this->journal("CRON", __FUNCTION__, "", $setDiscountAttributeValue["status"], json_encode(["f" => "LMX->setDiscountAttributeValue", "a" => [$personId, $preferredDiscount]]), json_encode($setDiscountAttributeValue, JSON_UNESCAPED_UNICODE));
+        }
+
+        return $result;
     }
 
     /* Утилитарные ф-ии */
@@ -1310,73 +1319,8 @@ class BonusApp {
         return $result;
     }
 
-    public function sheduler_changeDiscountSystem() {
-        $operationResult = $this->initPDO();
-        if ($operationResult["status"]) {
-            $start = microtime(true);
-
-            // Переключение системы лояльности
-            $this->service_changeDiscountSystem();
-
-            // Фиксация завершения обработки
-            $cd = new DateTime();
-            $this->journal("CRON", __FUNCTION__, json_encode(["startAt" => $cd->format('Y-m-d H:i:s'), "duration" => round(microtime(true) - $start, 4)], JSON_UNESCAPED_UNICODE), 1);
-        }
-    }
-
-    public function service_changeDiscountSystem() {
-        $result = $this->service_getAccountsToChangeDiscountSystem();
-        if ($result["status"]) {
-            $LMX = $this->getLMX();
-            foreach ($result["data"] as $value) $this->service_changeAccountDiscountSystem($LMX, $value["id"], $value["ext_id"], $value["preferred_discount"]);
-        }
-    }
-
-    public function service_getAccountsToChangeDiscountSystem($limit = 100) {
-        $result = ["status" => false, "data" => null];
-
-        $query = $this->pdo->prepare("SELECT
-                a.id,
-                a.preferred_discount,
-                p.ext_id
-            FROM
-                accounts a
-                LEFT JOIN profiles p
-                ON a.id = p.account_id
-            WHERE
-                a.status = 1
-                AND a.discount != a.preferred_discount
-                AND NOT p.city IN ('Чегдомын', 'Новый Ургал', 'Николаевск на Амуре')
-            LIMIT ?
-        ");
-        $query->execute([$limit]);
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) $result = [
-            "status" => true,
-            "data" => $queryResult
-        ];
-
-        return $result;
-    }
-
     public function service_changeAccountDiscountSystem($LMX, $accountId, $personId, $preferredDiscount) {
-        $result = ["status" => false];
-
-        $setDiscountAttributeValue = $LMX->setDiscountAttributeValue($personId, boolval($preferredDiscount));
-        if ($setDiscountAttributeValue["status"]) {
-            $updateAccountResult = $this->updateAccount($accountId, ["discount" => $preferredDiscount]);
-            if ($updateAccountResult["status"]) {
-                $result["status"] = true;
-            } else {
-                $result = $updateAccountResult;
-                $this->journal("CRON", __FUNCTION__, "", $updateAccountResult["status"], json_encode(["f" => "updateAccount", "a" => [$accountId, ["discount" => $preferredDiscount]]]), json_encode($updateAccountResult, JSON_UNESCAPED_UNICODE));   
-            }
-        } else {
-            $result = $setDiscountAttributeValue;
-            $this->journal("CRON", __FUNCTION__, "", $setDiscountAttributeValue["status"], json_encode(["f" => "LMX->setDiscountAttributeValue", "a" => [$personId, $preferredDiscount]]), json_encode($setDiscountAttributeValue, JSON_UNESCAPED_UNICODE));
-        }
-
-        return $result;
+        
     }
 
     private function sheduler_sendFeedbacks() {
@@ -1576,11 +1520,12 @@ class BonusApp {
     private function getUpdates($phone, $options = null) {
         // Подгрузим новости, магазины, профиль, номер карты и баланс
         // $options = [
-        //     "personalHash"  => "",
-        //     "walletHash"    => "",
-        //     "storesHash"    => "",
-        //     "lastNews"      => "",
-        //     "lastPurchase"  => ""
+        //     "personalHash"       => "",
+        //     "walletHash"         => "",
+        //     "storesHash"         => "",
+        //     "lastNews"           => "",
+        //     "lastPurchase"       => "",
+        //     "lastTransaction"    => ""
         // ];
 
         $result = [
@@ -1593,8 +1538,8 @@ class BonusApp {
                 "wallet"        => [],
                 "walletHash"    => "",
                 "news"          => [],
-                "purchases"     => []
-                
+                "purchases"     => [],
+                "transactions"  => []
             ]
         ];
 
@@ -1638,11 +1583,16 @@ class BonusApp {
 
             $personId = $fullAccountData["data"]["ext_id"];
             if (!empty($personId)) {
+                // Подгрузка чеков
                 $getFullPurchasesDataByDateResult = $this->getFullPurchasesDataNew($personId, $options["lastPurchase"]);
                 if ($getFullPurchasesDataByDateResult["status"]) {
                     $result["data"]["purchases"] = $getFullPurchasesDataByDateResult["data"];
                     $result["data"]["lastPurchase"] = $result["data"]["purchases"][count($result["data"]["purchases"]) - 1]["operation_date"];
                 }
+
+                // Подгрузка транзакций
+                $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
+                if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }
         }
 
@@ -2397,17 +2347,6 @@ class BonusApp {
         return $result;
     }
 
-    private function changeCardType($phone, $discount) {
-        $query = $this->pdo->prepare("UPDATE accounts SET preferred_discount = :discount WHERE phone = :phone");
-        $query->execute(["discount" => $discount, "phone" => $phone]);
-
-        $result = ["status" => true, "description" => "Тип карты изменен."];
-
-        $this->journal("APP", __FUNCTION__, "", true, json_encode(["f" => "changeCardType", "a" => [$phone, $discount]]), json_encode($result, JSON_UNESCAPED_UNICODE));
-
-        return $result;
-    }
-
     private function logOff() {
         $result = ["status" => false];
 
@@ -2630,16 +2569,33 @@ class BonusApp {
         return $result;
     }
 
-    private function getTransactions($personId) {
+    private function getTransactions($personId, $fromDate = "2021-01-01 00:00:00", $limit = 99) {
         $result = ["status" => false];
 
-        $query = $this->pdo->prepare("SELECT date, description, type, amount FROM transactions WHERE profile_ext_id = ?");
-        $query->execute([$personId]);
+        $query = $this->pdo->prepare("SELECT
+                date,
+                description,
+                type,
+                amount
+            FROM
+                transactions
+            WHERE
+                profile_ext_id = ?
+                AND date > ?
+            ORDER BY
+                date DESC
+            LIMIT ?
+        ");
+        $query->execute([$personId, $fromDate, $limit]);
         $queryResult = $query->fetchAll();
-        if (count($queryResult)) $result = [
-            "status" => true,
-            "data" => $queryResult
-        ];
+        if (count($queryResult)) {
+            $result = [
+                "status" => true,
+                "data" => $queryResult
+            ];
+
+            usort($result["data"], function($a, $b) { return $a["date"] > $b["date"];});
+        }
         
         return $result;
     }
@@ -3377,56 +3333,6 @@ class BonusApp {
         return $result;
     }
 
-    private function getOutdatedCards($limit = 50) {
-        $result = ["status" => false, "data" => null];
-
-        $query = $this->pdo->prepare("SELECT
-                card_number,
-                last_sync
-            FROM
-                bonuscards
-            WHERE
-                status = 1
-                AND NOT account_id IS NULL
-                AND last_sync < DATE_ADD(NOW(), INTERVAL -3 hour)
-            LIMIT ?");
-        $query->execute([$limit]);
-
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) $result = [
-            "status" => true,
-            "data" => $queryResult
-        ];
-
-        return $result;
-    }
-
-    private function getCardsToUpdateByPurchases() {
-        $result = ["status" => false, "data" => null];
-
-        $query = $this->pdo->prepare("SELECT
-                dc.card_number,
-                bc.last_sync
-            FROM (SELECT
-                    discount_card as card_number,
-                    MAX(sale_time) AS sale_time
-                FROM purchases
-                WHERE sale_time > DATE_FORMAT(NOW(), '%y-%m-%d')
-                GROUP BY discount_card) AS dc
-            INNER JOIN bonuscards AS bc
-                ON dc.card_number = bc.card_number AND dc.sale_time > bc.last_sync
-            LIMIT 50");
-        $query->execute();
-
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) $result = [
-            "status" => true,
-            "data" => $queryResult
-        ];
-
-        return $result;
-    }
-
     private function getAccountsWithoutExtProfile($limit = 100) {
         $result = ["status" => false, "data" => null];
 
@@ -3845,18 +3751,21 @@ class BonusApp {
 
     /* Работа с внешними ИБ */
 
-    private function updateWalletDataByLMX($personId, $cardNumber, $fromDate) {
+    private function updateWalletDataByLMX($personId, $cardNumber) {
         $result = ["status" => false, "data" => ["purchases" => [], "transactions" => [], "setBonusCardData" => null]];
         if (empty($personId)) return $result;
-
-        $cd = new DateTime();
 
         $LMX = $this->getLMX();
         $getBalanceResult = $LMX->getBalance($personId);
         if ($getBalanceResult["status"]) {
+            $cd = new DateTime();
+
             $this->pdo->beginTransaction();
 
             // Загрузка чеков из ЛМ
+            $fromDate = "2021-01-01 00:00:00";
+            $getLastPurchaseResult = $this->getLastPurchase($personId);
+            if ($getLastPurchaseResult["status"]) $fromDate = $getLastPurchaseResult["data"]["sale_time"];
             $getPurchasesFullDataResult = $LMX->getPurchasesFullData([
                 "startChequeTime" => $fromDate,
                 "count" => 9999,
@@ -3874,10 +3783,11 @@ class BonusApp {
             }
 
             // Загрузка транзакций из ЛМ (начисления, списания, сгорания)
+            $fromDate = "2021-01-01 00:00:00";
             $getLastTransactionResult = $this->getLastTransaction($personId);
             if ($getLastTransactionResult["status"]) $fromDate = $getLastTransactionResult["data"]["date"];
             $getHistoryResult = $LMX->getHistory($personId, [
-                "fromDate" => (new DateTime($fromDate))->format("Y-m-dTH:i:s"),
+                "fromDate" => (new DateTime($fromDate))->format("Y-m-d"),
                 "count" => 9999
             ]);
             if ($getHistoryResult["status"]) {
@@ -3898,6 +3808,8 @@ class BonusApp {
                 "life_times"    => json_encode($getBalanceResult["data"]["lifeTimes"], JSON_UNESCAPED_UNICODE)
             ]);
             if ($setBonusCardDataResult["status"]) {
+                $result["status"] = true;
+
                 $this->pdo->commit();
             } else {
                 $this->pdo->rollback();
@@ -3905,7 +3817,7 @@ class BonusApp {
 
             $result["data"]["setBonusCardData"] = $setBonusCardDataResult;
         } else {
-            $this->journal("APP", __FUNCTION__, "", $getBalanceResult["status"], json_encode(["f" => "LMX->getBalance", "a" => [$personId], "outer" => [$personId, $cardNumber, $fromDate]]), json_encode($getBalanceResult, JSON_UNESCAPED_UNICODE));
+            $this->journal("APP", __FUNCTION__, "", $getBalanceResult["status"], json_encode(["f" => "LMX->getBalance", "a" => [$personId], "outer" => [$personId, $cardNumber]]), json_encode($getBalanceResult, JSON_UNESCAPED_UNICODE));
         }
 
         return $result;

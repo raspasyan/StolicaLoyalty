@@ -1340,7 +1340,7 @@ class LMX {
     private function SAPI_UpdateAttributeValue($personId, $data) {    
         $result = $this->SAPI_CheckToken();
         if ($result["status"]) {
-            $url = LMX_HOST . "/systemapi//api/users/" . $personId . "/UpdateAttributeValue";
+            $url = LMX_HOST . "/systemapi/api/users/" . $personId . "/UpdateAttributeValue";
             $options = array(
                 'http' => array(
                     'header'  => [

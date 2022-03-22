@@ -88,11 +88,12 @@ let currentSection = "";
 
 let bearerToken   = "";
 let currentUpdates = {
-  personalHash:"",
-  walletHash:"",
-  storesHash: "",
-  lastNews:"",
-  lastPurchase:""
+  "personalHash": "",
+  "walletHash": "",
+  "storesHash": "",
+  "lastNews": "",
+  "lastPurchase": "",
+  "lastTransaction":  ""
 };
 let currentCity = "";
 let userActivityTimeout = null;
@@ -1191,6 +1192,9 @@ function checkUpdates(lastUpdates, callback) {
       if (result.data.lastPurchase) {
         drawPurchases(result.data.purchases);
         currentUpdates.lastPurchase = result.data.lastPurchase;
+      }
+      if (result.data.transactions.length) {
+        currentUpdates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
       }
 
       // Всех авторизованных отправляем на страницу кошелька
