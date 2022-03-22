@@ -1,6 +1,6 @@
 htaccess
 .idea/
 app/php/const.php
-nbproject/
+nbproject/*
 /app/php/const.original.php
 app/assets/news/*

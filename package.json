@@ -36,7 +36,7 @@
     "postcss-loader": "^6.2.0",
     "postcss-preset-env": "^6.7.0",
     "prettier": "^2.4.1",
-    "sass": "^1.43.5",
+    "sass": "^1.49.9",
     "sass-loader": "^12.2.0",
     "style-loader": "^3.3.0",
     "webpack": "^5.58.2",
@@ -50,6 +50,12 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/runtime": "^7.17.0",
     "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^8.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-sass": "^5.1.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-uglify": "^3.0.2",
     "yarn": "^1.22.17"
   }
 }

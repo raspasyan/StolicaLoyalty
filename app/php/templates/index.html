@@ -17,18 +17,18 @@
 
   <link rel="stylesheet" href="app/styles/normalize.css" />
   <link rel="stylesheet" href="app/styles/skeleton_new.css" />
-  <link rel="stylesheet" href="app/styles/styles.css" />
+  <link rel="stylesheet" href="app/styles/styles.css?v=<?=filemtime('app/styles/styles.css')?>" />
   <link rel="stylesheet" href="app/styles/animate.css" />
   <link rel="stylesheet" href="app/styles/google-open-sans.css" />
   <link rel="stylesheet" href="app/styles/fontello.css" />
 
   <script src="app/js/qrious.min.js"></script>
   <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-  <script src="app/js/module.main.js?v=2203221142" defer></script>
-  <script src="app/js/module.news.js?v=2203221142" defer></script>
-  <script src="app/js/module.stores.js?v=2203221142" defer></script>
-  <script src="app/js/module.personal.js?v=2203221142" defer></script>
-  <script src="app/js/module.wallet.js?v=<?=1?>" defer></script>
+  <script src="app/js/module.main.js?v=<?=filemtime('app/js/module.main.js')?>" defer></script>
+  <script src="app/js/module.news.js?v=<?=filemtime('app/js/module.news.js')?>" defer></script>
+  <script src="app/js/module.stores.js?v=<?=filemtime('app/js/module.stores.js')?>" defer></script>
+  <script src="app/js/module.personal.js?v=<?=filemtime('app/js/module.personal.js')?>" defer></script>
+  <script src="app/js/module.wallet.js?v=<?=filemtime('app/js/module.wallet.js')?>" defer></script>
 </head>
 
 <body>
