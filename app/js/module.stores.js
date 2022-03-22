@@ -1,1 +1,78 @@
-function drawStores(a){let e=[];a.forEach(t=>{-1===e.indexOf(t.id)&&e.push(t.id)}),e.forEach(e=>{let s=[],t=(a.forEach(t=>{t.id===e&&s.push(t)}),C().create("option"));t.val(e),t.attr("data-stores",JSON.stringify(s)),t.text(s[0].title),C("#store_cities").append(t),s[0].title===currentCity&&t.attr("selected",!0)}),drawStoresInCity(JSON.parse(C("#store_cities").el.options[C("#store_cities").el.selectedIndex].getAttribute("data-stores")))}function drawStoresInCity(t){let i=C(".storesList"),r=1;i.html(""),t.forEach(e=>{let t=C().create("div"),s=(t.addclass(["storesList__block","animate__animated","animate__fadeInLeft"]),t.attr("style","animation-duration: "+r/5+"s"),t.el.addEventListener("click",t=>getStoreToGeoMap(e.coordinates,e.title,e.store_title,e.shedule,e.phone,e.rsa_id)),C().create("div")),a=(s.addclass("storesList__block_title"),s.text(e.store_title),t.el.append(s.el),C().create("div"));a.addclass("storesList__block_shedule"),a.text(e.shedule),t.el.append(a.el),i.el.append(t.el),r<10&&r++})}function getStores(){return fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json;charset=utf-8"},body:JSON.stringify({method:"getStores"})}).then(t=>t.json()).catch(t=>({status:!1,description:t.message,error:t}))}
+/* global C, d, fetch, currentCity, API_URL */
+
+function drawStores(stores) {
+    let cities = [];
+    stores.forEach(item => {
+        if (cities.indexOf(item.id) === -1) cities.push(item.id);
+    });
+
+    cities.forEach(cityId => {
+        let storesInCity = [];
+        stores.forEach(item => {
+            if (item.id === cityId) {
+                storesInCity.push(item);
+            }
+        });
+
+        let option = C().create("option");
+        option.val(cityId);
+        option.attr("data-stores", JSON.stringify(storesInCity));
+        option.text(storesInCity[0].title);
+        C("#store_cities").append(option);
+
+        if (storesInCity[0].title === currentCity) {
+            option.attr("selected", true);
+        }
+    });
+
+    let storesInCity = JSON.parse(C("#store_cities").el.options[C("#store_cities").el.selectedIndex].getAttribute("data-stores"));
+    drawStoresInCity(storesInCity);
+}
+
+function drawStoresInCity(stores) {
+    let list  = C(".storesList"),
+        delay = 1;
+    
+    list.html("");
+    
+    stores.forEach(city => {
+        let blockStoreElement = C().create("div");
+        blockStoreElement.addclass(["storesList__block", "animate__animated", "animate__fadeInLeft"]);
+        blockStoreElement.attr("style", "animation-duration: " + (delay / 5) + "s");
+        blockStoreElement.el.addEventListener("click", e => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
+
+        let storeTitle = C().create("div");
+        storeTitle.addclass("storesList__block_title");
+        storeTitle.text(city.store_title);
+        blockStoreElement.el.append(storeTitle.el);
+
+        let storeShedule = C().create("div");
+        storeShedule.addclass("storesList__block_shedule");
+        storeShedule.text(city.shedule);
+        blockStoreElement.el.append(storeShedule.el);
+
+        list.el.append(blockStoreElement.el);
+
+        if (delay < 10) {
+            delay++;
+        }
+    });
+}
+
+function getStores() {
+    return fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify({
+            "method": "getStores"
+        })
+    }).then(response => response.json()).catch(error => {
+        return {
+            status: false,
+            description: error.message,
+            error: error
+        };
+    });
+}

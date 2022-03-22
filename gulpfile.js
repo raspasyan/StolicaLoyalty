@@ -10,13 +10,13 @@ var gulp = require('gulp'),
      
 var path = {
   build_desktop: {
-    js: 'app/js/',
-    css: 'app/styles/'
+    js: 'app/assets/js/',
+    css: 'app/assets/styles/'
   },
   
   src_desktop: {
-    js:   ['app/src/js/*.js'],
-    style: 'app/src/styles/*.css'
+    js:   ['app/js/*.js'],
+    style: 'app/styles/*.css'
   },
   
   clean: './build'

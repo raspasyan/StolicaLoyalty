@@ -1,1 +1,353 @@
-function drawWallet(r){let a=C("#cardNumber"),n=C("#qrcode").el,d=C("#cardType"),l=C("#cardInfo"),o=C("#currencyType"),c=C("#bonuses"),s=C("#changeDiscountSystemValue");if(r.cardNumber){hide("#wallet-placeholder"),hide("#wallet-loader"),show("#wallet-data"),r.cardNumber&&a.text!==r.cardNumber&&(a.text(r.cardNumber),n.codeNumber!==r.cardNumber&&(n.children.length&&removeChildrens(n),drawBonusCard(r.cardNumber))),C("#discountValue").text(r.discountValue+"%");let e=!1,t=(r.discount&&r.preferredDiscount?(d.text("Дисконтная карта"),l.text("Ваша скидка"),o.text("%"),C("#cardDataDiscount").el.style.display="flex",e=!0):!r.discount&&!r.preferredDiscount||!r.discount&&r.preferredDiscount?(d.text("Бонусная карта"),l.text("Баланс"),o.text("бонусов"),hide("#cardDataBonusPreffered"),hide("#cardDataDiscount")):r.discount&&!r.preferredDiscount&&(d.text("Дисконтная карта"),l.text("Баланс"),o.text("бонусов"),hide("#cardDataDiscount")),r.discount!==r.preferredDiscount?(show("#changeDiscountSystem"),s.text(r.discount?"БОНУСНОЙ":"ДИСКОНТНОЙ")):(hide("#changeDiscountSystem"),s.text("")),r.discount&&e?r.discountValue:r.balance);if(void 0!==t){if(c.text!==t){c.el.classList.remove("load");for(let e=1;e<101;e+=3)promiseTimeout(function(){c.text(new Intl.NumberFormat("ru-RU").format(Number(Math.ceil(t*(e/100)))))},10*e);promiseTimeout(function(){c.text(new Intl.NumberFormat("ru-RU").format(Number(t)))},1e3)}var i=0;if(void 0!==r.activation){let e=C().create("div"),t=C().create("span"),a=C().create("span"),n=C().create("span");show(".wallet__balanceDetail");var i=r.activation,p=new Date;p.setDate(p.getDate()+1),t.text(p.toLocaleString("ru-Ru").replace(", ","\r\n")),a.text("+"+i),n.text(" бонусов (активация)"),e.el.append(t.el),a.el.append(n.el),e.el.append(a.el),C(".balance-view").el.append(e.el)}C("#currentBalance").html(new Intl.NumberFormat("ru-RU").format(Number(t-i))),void 0!==r.life_times&&(show(".wallet__balanceDetail"),r.life_times.forEach(e=>{let t=C().create("div"),a=C().create("span"),n=C().create("span"),r=C().create("span");a.text(new Date(e.date).toLocaleString("ru-Ru").replace(", ","\r\n")),n.text((0<e.amount?"+":"")+e.amount),r.text(" бонусов ("+(0<e.amount?"активация":"списание")+")"),t.el.append(a.el),n.el.append(r.el),t.el.append(n.el),C(".balance-view").el.append(t.el)}))}else c.text("Не удалось загрузить с сервера.")}else show("#wallet-placeholder"),show("#wallet-loader"),hide("#wallet-data")}function drawPurchases(e){e.forEach(e=>drawPurchase(e))}function drawPurchase(n){let d=C().create("div"),e=C().create("div"),t=C().create("span"),a=Math.abs(Number(n.discount_amount))+Math.abs(Number(n.payment_amount));d.addclass(["animate__animated","animate__fadeIn"]),t.el.style.fontWeight="bold",t.text("Всего скидка: "),e.append(t),(t=C().create("span")).addclass("bad"),t.text((a?"-":"")+new Intl.NumberFormat("ru-RU").format(a)+" руб"),e.append(t),n.operation_type||((t=C().create("span")).addclass("bad"),t.style("fontWeight","bold"),t.style("textAlign","right"),t.style("fontSize","12px"),t.text("чек возврата"),e.append(t)),d.append(e),e=C().create("div"),(t=C().create("span")).addclass("payment-amount"),t.style("fontWeight","bold"),t.style("marginLeft","20px"),t.text("из них бонусами: "),e.append(t),(t=C().create("span")).addclass("bad"),t.text(new Intl.NumberFormat("ru-RU").format(Number(n.payment_amount))),e.append(t),d.append(e),e=C().create("div"),(t=C().create("span")).addclass("payment-amount"),t.style("fontWeight","bold"),t.text("Начислено бонусов: "),e.append(t);var r=Number(n.cashback_amount);(t=C().create("span")).addclass("good"),t.text((0<r?"+":"")+new Intl.NumberFormat("ru-RU").format(r)),e.append(t),d.append(e),(e=C().create("div")).addclass("payment-row-date"),(t=C().create("span")).addclass("payment-amount"),t.text("Дата: "),e.append(t);let l=new Date(n.operation_date.replace(new RegExp("-","g"),"/"));if((t=C().create("span")).text(["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"][l.getDay()]+", "+String(l.getDate())+" "+["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"][l.getMonth()]+" "+String(l.getFullYear())+" года, "+String(l.getHours())+":"+(1===String(l.getMinutes()).length?"0":"")+String(l.getMinutes())+":"+(1===String(l.getSeconds()).length?"0":"")+String(l.getSeconds())),e.append(t),d.append(e),(e=C().create("div")).addclass("payment-row-date"),(t=C().create("span")).addclass("payment-amount"),t.text("Магазин: "),e.append(t),n.store_title&&n.store_description?e.append(getGeolink(n.store_title,n.store_description)):((t=C().create("span")).text(n.store_title),e.append(t)),d.append(e),n.positions.length){let e=C().create("details"),t=C().create("summary"),r=C().create("div"),a=C().create("div");d.append(e),t.text("Подробнее"),e.append(t),r.addclass("details-data"),e.append(r),a.addclass(["payment-details","neutral"]),["Оплачено","Скидка","Начислено"].forEach(e=>{let t=C().create("span");t.text(e),a.append(t)}),r.append(a),n.positions.forEach(e=>{let t=C().create("span"),a=C().create("div");a.addclass(["payment-details","important"]),t.text(new Intl.NumberFormat("ru-RU").format(Number(e.cost))+" руб"),a.append(t),t=C().create("span"),Number(e.discount_amount)?t.text(new Intl.NumberFormat("ru-RU").format(-1*Number(e.discount_amount))+" руб"):t.text(new Intl.NumberFormat("ru-RU").format(Number(e.payment_amount))+" бонусов");var n=Number(e.cashback_amount);a.append(t),(t=C().create("span")).text((0<n?"+":"")+new Intl.NumberFormat("ru-RU").format(n)+" бонусов"),a.append(t),r.append(a),(a=C().create("div")).addclass(["payment-details","payment-details-full"]),a.text(e.product_title||"Загрузка.."),r.append(a)})}C("#transactions").el.prepend(d.el)}function drawBonusCard(r){let l=new Image,o=C("#qrcode");l.loaded=!1,l.src=cardImageSRC,l.addEventListener("load",e=>{var t=C().create("canvas");new QRious({element:t.el,size:128,value:r,foreground:"#4062b7"});o.el.cardNumber=r,o.append(t),show("#qrcode");let a=d.createElement("canvas"),n=(a.width=cardImageW,a.height=cardImageH,a.getContext("2d"));n.imageSmoothingEnabled=!1,n.drawImage(l,0,0,cardImageW,cardImageH),n.drawImage(t.el,192,48,128,128),n.font="32px sans-serif",n.textAlign="center",n.fillText(r.substr(0,7),256,216),show("#downloadCard"),C("#downloadCard").el.addEventListener("click",()=>{var e=a.toDataURL("image/jpeg"),t=d.createElement("a");t.href=e,t.download="Stolica - Bonus card - "+r+".jpg",t.click()})})}
+/* global C, Intl, d, cardImageSRC, cardImageW, cardImageH */
+
+function drawWallet(walletData) {
+    let cardEl   = C("#cardNumber"),
+        qrEl     = C("#qrcode").el,
+        typeEl   = C("#cardType"),
+        infoEl   = C("#cardInfo"),
+        curEl    = C("#currencyType"),
+        bonusEl  = C("#bonuses"),
+        systemEl = C("#changeDiscountSystemValue");
+    
+    if (walletData.cardNumber) {
+        hide("#wallet-placeholder");
+        hide("#wallet-loader");
+        show("#wallet-data");
+
+        if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
+            cardEl.text(walletData.cardNumber);
+            if (qrEl.codeNumber !== walletData.cardNumber) {
+                if (qrEl.children.length) {
+                    removeChildrens(qrEl);
+                }
+                drawBonusCard(walletData.cardNumber);
+            }
+        }
+
+        C("#discountValue").text(walletData.discountValue + '%');
+
+        let discountBalance = false;
+
+        if (walletData.discount && walletData.preferredDiscount) {
+            // Текущая: скидка, предпочитаемая: скидка
+            typeEl.text("Дисконтная карта");
+            infoEl.text("Ваша скидка");
+            curEl.text("%");
+            
+            C("#cardDataDiscount").el.style.display = "flex";
+            discountBalance = true;
+        } else if (!walletData.discount && !walletData.preferredDiscount) {
+            // Текущая: бонусы, предпочитаемая: бонусы
+            typeEl.text("Бонусная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
+            hide("#cardDataBonusPreffered");
+            hide("#cardDataDiscount");
+        } else if (!walletData.discount && walletData.preferredDiscount) {
+            // Текущая: бонусы, предпочитаемая: скидка
+            typeEl.text("Бонусная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
+            hide("#cardDataBonusPreffered");
+            hide("#cardDataDiscount");
+        } else if (walletData.discount && !walletData.preferredDiscount) {
+            // Текущая: скидка, предпочитаемая: бонусы
+            typeEl.text("Дисконтная карта");
+            infoEl.text("Баланс");
+            curEl.text("бонусов");
+            
+            hide("#cardDataDiscount");
+        }
+
+        if (walletData.discount !== walletData.preferredDiscount) {
+            show("#changeDiscountSystem");
+            systemEl.text((walletData.discount ? "БОНУСНОЙ" : "ДИСКОНТНОЙ"));
+        } else {
+            hide("#changeDiscountSystem");
+            systemEl.text("");
+        }
+        
+        let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
+        if (balance !== undefined) {
+            if (bonusEl.text !== balance) {
+                bonusEl.el.classList.remove("load");
+                
+                for (let i = 1; i < 101; i=i+3) {
+                    promiseTimeout(function(){
+                        bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * (i/100)))));
+                    }, (10*i));
+                }
+                promiseTimeout(function(){
+                    bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(balance)));
+                }, 1000);
+            }
+            
+            var activation = 0;
+
+            if (walletData.activation !== undefined) {
+                let blockBalanceEl = C().create("div"),
+                    dateField      = C().create("span"),
+                    amountField    = C().create("span"),
+                    bonusField     = C().create("span");
+                
+                //document.querySelector(".wallet__balanceDetail").style.display = "block";
+                show(".wallet__balanceDetail");
+                activation = walletData.activation;
+                
+                var today = new Date();
+                today.setDate(today.getDate()+1);
+                                
+                dateField.text(today.toLocaleString('ru-Ru').replace(", ", "\r\n"));
+                amountField.text("+" + activation);
+                bonusField.text(" бонусов (активация)");
+                
+                blockBalanceEl.el.append(dateField.el);
+                amountField.el.append(bonusField.el);
+                blockBalanceEl.el.append(amountField.el);
+
+                C(".balance-view").el.append(blockBalanceEl.el);
+            }
+            C("#currentBalance").html(new Intl.NumberFormat('ru-RU').format(Number(balance - activation)));
+            
+            if (walletData.life_times !== undefined) {
+                //document.querySelector(".wallet__balanceDetail").style.display = "block";
+                show(".wallet__balanceDetail");
+
+                walletData.life_times.forEach(el => {
+                    let blockBalanceEl = C().create("div"),
+                        dateField      = C().create("span"),
+                        amountField    = C().create("span"),
+                        bonusField     = C().create("span");
+                    
+                    dateField.text(new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n"));
+                    amountField.text((el.amount > 0 ? "+" : "") + el.amount);
+                    bonusField.text(" бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")");
+                    
+                    blockBalanceEl.el.append(dateField.el);
+                    amountField.el.append(bonusField.el);
+                    blockBalanceEl.el.append(amountField.el);
+
+                    C(".balance-view").el.append(blockBalanceEl.el);
+                });
+            }
+        } else {
+            bonusEl.text("Не удалось загрузить с сервера.");
+        }
+        
+    } else {
+        show("#wallet-placeholder");
+        show("#wallet-loader");
+        hide("#wallet-data");
+    }
+}
+
+function drawPurchases(purchases) {
+    purchases.forEach(purchase => drawPurchase(purchase));
+}
+
+function drawPurchase(purchase) {
+    let payEl     = C().create("div"),
+        payRowEl  = C().create("div"),
+        spanEl    = C().create("span"),
+        totalDisc = Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount));
+
+    payEl.addclass(["animate__animated", "animate__fadeIn"]);
+    spanEl.el.style.fontWeight = "bold";
+    spanEl.text("Всего скидка: ");
+    payRowEl.append(spanEl);
+
+    spanEl = C().create("span");
+    spanEl.addclass("bad");
+    spanEl.text((totalDisc ? "-" : "") + new Intl.NumberFormat('ru-RU').format(totalDisc) + " руб");
+    payRowEl.append(spanEl);
+
+    // Чек-возврата
+    if (!purchase.operation_type) {
+        spanEl = C().create("span");
+        spanEl.addclass("bad");
+        spanEl.style("fontWeight", "bold");
+        spanEl.style("textAlign", "right");
+        spanEl.style("fontSize", "12px");
+        spanEl.text("чек возврата");
+        payRowEl.append(spanEl);
+    }
+
+    payEl.append(payRowEl);
+
+    payRowEl = C().create("div");
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.style("fontWeight", "bold");
+    spanEl.style("marginLeft", "20px");
+    spanEl.text("из них бонусами: ");
+    payRowEl.append(spanEl);
+
+    spanEl = C().create("span");
+    spanEl.addclass("bad");
+    spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount)));
+    payRowEl.append(spanEl);
+
+    payEl.append(payRowEl);
+
+    // Начислено бонусов
+    payRowEl = C().create("div");
+
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.style("fontWeight", "bold");
+    spanEl.text("Начислено бонусов: ");
+    payRowEl.append(spanEl);
+
+    let cashbackAmount = Number(purchase.cashback_amount);
+    spanEl = C().create("span");
+    spanEl.addclass("good");
+    spanEl.text((cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount));
+    payRowEl.append(spanEl);
+
+    payEl.append(payRowEl);
+
+    // Дата
+    payRowEl = C().create("div");
+    payRowEl.addclass("payment-row-date");
+
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.text("Дата: ");
+    payRowEl.append(spanEl);
+
+    let date = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/"));
+
+    spanEl = C().create("span");
+    spanEl.text(
+        (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
+        + String(date.getDate()) + " "
+        + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
+        + String(date.getFullYear()) + " года, "
+        + String(date.getHours()) + ":"
+        + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
+        + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds()));
+    payRowEl.append(spanEl);
+
+    payEl.append(payRowEl);
+
+    // Источник начисления
+    payRowEl = C().create("div");
+    payRowEl.addclass("payment-row-date");
+
+    spanEl = C().create("span");
+    spanEl.addclass("payment-amount");
+    spanEl.text("Магазин: ");
+    payRowEl.append(spanEl);
+
+    if (purchase.store_title && purchase.store_description) {
+        payRowEl.append(getGeolink(purchase.store_title, purchase.store_description));
+    } else {
+        spanEl = C().create("span");
+        spanEl.text(purchase.store_title);
+        payRowEl.append(spanEl);
+    }
+
+    payEl.append(payRowEl);
+
+    // Детализация чека
+    if (purchase.positions.length) {
+        let payDetailsEl = C().create("details"),
+            sumEl        = C().create("summary"),
+            detDataEl    = C().create("div"),
+            payRowEl     = C().create("div");
+        
+        payEl.append(payDetailsEl);
+
+        sumEl.text("Подробнее");
+        payDetailsEl.append(sumEl);
+
+        detDataEl.addclass("details-data");
+        payDetailsEl.append(detDataEl); 
+
+        payRowEl.addclass(["payment-details", "neutral"]);
+        
+        ["Оплачено", "Скидка", "Начислено"].forEach(element => {
+            let spanEl = C().create("span");
+            spanEl.text(element);
+            payRowEl.append(spanEl);
+        });
+        detDataEl.append(payRowEl);
+
+        purchase.positions.forEach((position) => {
+            let spanEl   = C().create("span"),
+                payRowEl = C().create("div");
+                
+            payRowEl.addclass(["payment-details", "important"]);
+            spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.cost)) + " руб");
+            payRowEl.append(spanEl);
+
+            spanEl = C().create("span");
+            if (Number(position.discount_amount)) {
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.discount_amount) * -1) + " руб");
+            } else {
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.payment_amount)) + " бонусов");
+            }
+
+            let posCashAmount = Number(position.cashback_amount);
+            payRowEl.append(spanEl);
+            spanEl = C().create("span");
+            spanEl.text((posCashAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(posCashAmount) + " бонусов");
+            payRowEl.append(spanEl);
+
+            detDataEl.append(payRowEl);
+
+            payRowEl = C().create("div");
+            payRowEl.addclass(["payment-details", "payment-details-full"]);
+            payRowEl.text((position.product_title ? position.product_title : "Загрузка.."));
+            detDataEl.append(payRowEl);
+        });
+    }
+
+    C("#transactions").el.prepend(payEl.el);
+}
+
+function drawBonusCard(cardNumber) {
+    let cardImg = new Image(),
+        qrEl    = C("#qrcode");
+    
+    cardImg.loaded = false;
+    cardImg.src = cardImageSRC;
+    cardImg.addEventListener("load", (e) => {
+
+        let qrCanvas = C().create("canvas");
+        let qr = new QRious({
+            element: qrCanvas.el,
+            size: 128,
+            value: cardNumber,
+            foreground: "#4062b7"
+        });
+
+        qrEl.el.cardNumber = cardNumber;
+        qrEl.append(qrCanvas);
+        show("#qrcode");
+
+        let cardCanvas = d.createElement("canvas");
+        cardCanvas.width = cardImageW;
+        cardCanvas.height = cardImageH;
+
+        let cardCanvasCtx = cardCanvas.getContext("2d");
+        cardCanvasCtx.imageSmoothingEnabled = false;
+        cardCanvasCtx.drawImage(cardImg, 0, 0, cardImageW, cardImageH);
+        cardCanvasCtx.drawImage(qrCanvas.el, 192, 48, 128, 128);
+
+        cardCanvasCtx.font = '32px sans-serif';
+        cardCanvasCtx.textAlign = 'center';
+        cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
+
+        show("#downloadCard");
+        C("#downloadCard").el.addEventListener("click", () => {
+            var dataURL = cardCanvas.toDataURL("image/jpeg"),
+                link = d.createElement("a");
+            link.href = dataURL;
+            link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
+            link.click();
+        });
+    });
+}

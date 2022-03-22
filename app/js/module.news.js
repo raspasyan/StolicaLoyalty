@@ -1,1 +1,63 @@
-function drawNews(e){let g=C(".news>div.container").el;e.forEach(t=>{let a=DOMAIN+"/"+t.image,e=new Date(t.date.replace(new RegExp("-","g"),"/")),n=[(1===String(e.getDate()).length?"0":"")+String(e.getDate()),(1===String(e.getMonth()+1).length?"0":"")+String(e.getMonth()+1),String(e.getFullYear())].join("."),r=C().create("div"),l=(r.addclass("news__container"),r.el.addEventListener("click",e=>{show(".newsOverlay"),C(".newsOverlay__image").el.src=a,C(".newsOverlay__details_date").text(n),C(".newsOverlay__details_title").text(t.title),C(".newsOverlay__details_descpription").html(t.description),C(".newsOverlay__image").el.scrollIntoView(),d.body.classList.add("hideOverflow"),C(".newsOverlay").el.addEventListener("click",e=>{e.target!==e.currentTarget&&"submit"!==e.target.type||(hide(".newsOverlay"),d.body.classList.remove("hideOverflow"))})}),C().create("img")),i=(l.el.src=a,r.append(l),C().create("div")),s=(i.addclass("news__container_details"),r.append(i),C().create("p")),c=(s.addclass("news__container_details_date"),s.text(n),i.append(s),C().create("h4")),_=(c.text(t.title),i.append(c),C().create("button"));_.addclass("button-primary"),_.text("Подробнее"),i.append(_),g.prepend(r.el)})}
+/* global C, d, DOMAIN */
+
+function drawNews(newsList) {
+    let container = C(".news>div.container").el;
+
+    newsList.forEach(news => {
+        let imageSrc = DOMAIN + "/" + news.image,
+            dateObj = new Date((news.date).replace(new RegExp("-", 'g'), "/")),
+            date = [
+                    (String(dateObj.getDate()).length === 1 ? "0" : "") + String(dateObj.getDate()),
+                    (String(dateObj.getMonth() + 1).length === 1 ? "0" : "") + String(dateObj.getMonth() + 1),
+                    String(dateObj.getFullYear())
+                ].join("."),
+            newsContEl = C().create("div");
+        
+        newsContEl.addclass("news__container");
+        newsContEl.el.addEventListener("click", e => {
+            //C(".newsOverlay").el.style.display = "block";
+            show(".newsOverlay");
+            C(".newsOverlay__image").el.src = imageSrc;
+            C(".newsOverlay__details_date").text(date);
+            C(".newsOverlay__details_title").text(news.title);
+            C(".newsOverlay__details_descpription").html(news.description);
+
+            C(".newsOverlay__image").el.scrollIntoView();
+
+            // C(".newsOverlay").addclass(["animate__animated", "animate__fadeIn"]);
+
+            d.body.classList.add("hideOverflow");
+
+            C(".newsOverlay").el.addEventListener("click", e => {
+                if (e.target === e.currentTarget || e.target.type === "submit") {
+                    hide(".newsOverlay");
+                    d.body.classList.remove("hideOverflow");
+                }
+            });
+        });
+
+        let newsImageElement = C().create("img");
+        newsImageElement.el.src = imageSrc;
+        newsContEl.append(newsImageElement);
+
+        let newsDetailsElement = C().create("div");
+        newsDetailsElement.addclass("news__container_details");
+        newsContEl.append(newsDetailsElement);
+
+        let newsDetailsDateElement = C().create("p");
+        newsDetailsDateElement.addclass("news__container_details_date");
+        newsDetailsDateElement.text(date);
+        newsDetailsElement.append(newsDetailsDateElement);
+
+        let newsDetailsTitleElement = C().create("h4");
+        newsDetailsTitleElement.text(news.title);
+        newsDetailsElement.append(newsDetailsTitleElement);
+
+        let newsButton = C().create("button");
+        newsButton.addclass("button-primary");
+        newsButton.text("Подробнее");
+        newsDetailsElement.append(newsButton);
+
+        container.prepend(newsContEl.el);
+    });
+}
