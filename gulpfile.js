@@ -11,12 +11,14 @@ var gulp = require('gulp'),
 var path = {
   build_desktop: {
     js: 'app/assets/js/',
-    css: 'app/assets/styles/'
+    css: 'app/assets/styles/',
+    vendors: 'app/assets/styles/'
   },
   
   src_desktop: {
     js:   ['app/js/*.js'],
-    style: 'app/styles/*.css'
+    css: 'app/scss/styles.scss',
+    vendors: 'app/scss/vendors/*.css'
   },
   
   clean: './build'
@@ -34,14 +36,22 @@ gulp.task('js:build', function (done) {
 });
 
 gulp.task('css:build', function (done) {
-  gulp.src(path.src_desktop.style)
+  gulp.src(path.src_desktop.css)
     //.pipe(sourcemaps.init())
-    //.pipe(sass())
+    .pipe(sass())
     .pipe(prefixer())
     .pipe(cssmin())
     //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_desktop.css));
     
+    done();
+});
+
+gulp.task('vendors:build', function (done) {
+  gulp.src(path.src_desktop.vendors)
+    .pipe(prefixer())
+    .pipe(cssmin())
+    .pipe(gulp.dest(path.build_desktop.css));
     done();
 });
 
@@ -51,7 +61,8 @@ gulp.task('clean', function (cb) {
 
 gulp.task('build', gulp.series(
   'js:build',
-  'css:build'
+  'css:build',
+  'vendors:build'
 ));
 
 gulp.task('default', gulp.series('build'));

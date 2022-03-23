@@ -1,0 +1,14 @@
+.maskedInput {
+    position: relative;
+}
+.maskedInput input {
+    width: 100%;
+    font-family: monospace;
+    font-size: 1.25em;
+}
+.maskedInput input:nth-child(2) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: transparent;
+}

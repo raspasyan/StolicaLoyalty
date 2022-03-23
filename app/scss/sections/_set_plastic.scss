@@ -1,0 +1,135 @@
+.setPlastic {
+    background: #F1F1F1;
+}
+.setPlastic__head {
+    text-align: left !important;
+    margin-bottom: 4rem;
+    padding-top: 2rem;
+}
+.setPlastic__head span {
+    font-weight: 600;
+    color: #5F5F5F;
+    font-size: 16px;
+}
+.setPlastic__head p {
+    font-size: 14px;
+    color: #666;
+    margin: 0px;
+}
+.setPlastic__foot input, .setPlastic__foot button {
+    width: 100%;
+}
+.setPlastic__foot_scanerQR {
+    position: relative;
+    height: 200px;
+    background: #fff;
+    width: 100%;
+    color: #666;
+    text-transform: none;
+    font-size: 13px;
+    font-weight: normal;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.setPlastic__foot_scanText {
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    top: 20%;
+    line-height: 24px;
+}
+.scan_focus {
+    display: block;
+    height: 27px;
+    width: 28px;
+    margin-top: 37px;
+}
+.scan_focus-block {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.scan_focus-item1 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid #D3D3D3;
+    border-top: 2px solid #D3D3D3;
+    left: 0px;
+    top: 0px;
+}
+.scan_focus-item2 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #D3D3D3;
+    border-top: 2px solid #D3D3D3;
+    right: 0px;
+    top: 0px;
+}
+.scan_focus-item3 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #D3D3D3;
+    border-bottom: 2px solid #D3D3D3;
+    right: 0px;
+    bottom: 0px;
+}
+.scan_focus-item4 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid #D3D3D3;
+    border-bottom: 2px solid #D3D3D3;
+    left: 0px;
+    bottom: 0px;
+}
+.scan_focus-item5 {
+    position: absolute;
+    width: 60%;
+    height: 2px;
+    background: #d3d3d3;
+    top: 48%;
+    left: 20%;
+}
+.scan_border1 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid #D3D3D3;
+    border-top: 2px solid #D3D3D3;
+    left: 1%;
+    top: 5%;
+}
+.scan_border2 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #D3D3D3;
+    border-top: 2px solid #D3D3D3;
+    right: 1%;
+    top: 5%;
+}
+.scan_border3 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #D3D3D3;
+    border-bottom: 2px solid #D3D3D3;
+    right: 1%;
+    bottom: 5%;
+}
+.scan_border4 {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid #D3D3D3;
+    border-bottom: 2px solid #D3D3D3;
+    left: 1%;
+    bottom: 5%;
+}
+

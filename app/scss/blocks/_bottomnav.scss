@@ -1,0 +1,18 @@
+.bottomNav {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-gap: 2vw;
+}
+.bottomNav > li {
+    text-align: center;
+    padding: 1rem 0;
+    list-style: none;
+    margin-bottom: 0;
+}
+.bottomNav > li > i {
+    font-size: 2rem!important;
+}
+.bottomNav .current-section {
+    color: #28a960;
+}
+
