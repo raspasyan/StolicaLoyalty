@@ -23,6 +23,7 @@
     background-color: white;
     width: inherit;
     font-weight: 600;
+    padding-top: env(safe-area-inset-top, 0px) !important;
 }
 .mainMenu__head_right {
     font-size: 24px;

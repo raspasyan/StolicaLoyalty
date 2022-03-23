@@ -155,7 +155,6 @@ d.addEventListener("DOMContentLoaded", function () {
     // Подключаем обработчики для Popup
     C('span[id*="-popup"]').els.forEach(pop => {
         C("#" + pop.id.replace("-popup", "")).el.addEventListener("blur", e => {
-            console.log('zhopa');
             dropFail(e.target);
             C("#" + e.target.id + "-popup").delclass("show");
         });
