@@ -501,28 +501,6 @@ function renderReferSection() {
     });
 }
 
-function getGeolink(title, description) {
-    let wrapper = C().create("div"),
-        GeolinkElement = C().create("span");
-
-    GeolinkElement.addclass("ymaps-geolink");
-    GeolinkElement.attr("data-description", description);
-    GeolinkElement.text(title);
-
-    wrapper.append(GeolinkElement.el);
-
-    return wrapper;
-}
-
-function getGeoMap() {
-    return new ymaps.Map('map', {
-        center: [48.4827, 135.084],
-        zoom: 10
-    }, {
-        searchControlProvider: 'yandex#search'
-    });
-}
-
 function confirmAdult() {
     drawSection(localStorage.getItem(LS_SECTION));
 }

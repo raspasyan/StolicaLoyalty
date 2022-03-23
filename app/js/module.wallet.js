@@ -351,3 +351,16 @@ function drawBonusCard(cardNumber) {
         });
     });
 }
+
+function getGeolink(title, desc) {
+    let wrap   = C().create("div"),
+        linkEl = C().create("span");
+
+    linkEl.addclass("ymaps-geolink");
+    linkEl.attr("data-description", desc);
+    linkEl.text(title);
+
+    wrap.append(linkEl);
+
+    return wrap;
+}
