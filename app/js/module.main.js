@@ -216,7 +216,7 @@ d.addEventListener("DOMContentLoaded", function () {
 
     C("#reg-button").el.addEventListener("click", e => {
         if (checkReg()) {
-            showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg_phone").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
+            showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
         }
     });
     
@@ -228,7 +228,7 @@ d.addEventListener("DOMContentLoaded", function () {
     
     C("#reset_button").el.addEventListener("click", e => {
         if (canGetResetConfirmationCode()) {
-            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reg_phone").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
+            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
         }
     });
 
@@ -546,9 +546,9 @@ function showPopup(title, desc, message, buttonText, callback) {
     }
 
     popupButton.text(buttonText);
-    popupOverlay.el.callback = callback;
-    popupOverlay.el.classList.remove("animate__fadeIn", "animate__fadeOut", "animate__animated");
+    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated"]);
     popupOverlay.addclass(["animate__animated", "animate__fadeIn"]);
+    callback();
 }
 
 function showLoader() {
@@ -678,7 +678,7 @@ function checkReg() {
 }
 
 async function reg() {
-    let regPhoneEl  = C("#reg-phone-mask").el,
+    let regPhoneEl  = C("#reg-phone-mask"),
         regBdEl     = C("#reg-birthdate"),
         regButtonEl = C("#reg-button").el,
         trueDate    = null,
@@ -844,8 +844,9 @@ async function confirmationReset() {
 
         confButtonReset.disabled = false;
 
-        if (result.status)
+        if (result.status) {
             setConfirmationTimeout(result);
+        }
     }
 }
 
