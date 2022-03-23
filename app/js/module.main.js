@@ -228,7 +228,7 @@ d.addEventListener("DOMContentLoaded", function () {
     
     C("#reset_button").el.addEventListener("click", e => {
         if (canGetResetConfirmationCode()) {
-            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
+            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reset-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
         }
     });
 
@@ -274,7 +274,9 @@ d.addEventListener("DOMContentLoaded", function () {
         
         el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated");
         el.add("animate__animated", "animate__fadeOut");
-
+        if (e.currentTarget.callback) {
+            e.currentTarget.callback();
+        }
         promiseTimeout(function () {
             hide("#popupOverlay");
         }, 1000);
@@ -518,6 +520,8 @@ function showPopup(title, desc, message, buttonText, callback) {
 
     if (!callback) {
         callback = null;
+    } else {
+        popupOverlay.el.callback = callback;
     }
 
     hideLoader();
@@ -548,7 +552,7 @@ function showPopup(title, desc, message, buttonText, callback) {
     popupButton.text(buttonText);
     popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated"]);
     popupOverlay.addclass(["animate__animated", "animate__fadeIn"]);
-    callback();
+    
 }
 
 function showLoader() {
@@ -851,7 +855,7 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl    = C("#reset-phone-mask").el,
+    let resetPhoneEl    = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
     
     if (resetPhoneEl.val().length < 16) {
@@ -866,8 +870,8 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl    = C("#reset_phone"),
-        resButtonEl   = C("#reset_button"),
+    let resPhoneEl    = C("#reset-phone-mask"),
+        resButtonEl   = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
