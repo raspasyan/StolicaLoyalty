@@ -76,11 +76,11 @@ function drawWallet(walletData) {
                 
                 for (let i = 1; i < 101; i=i+3) {
                     promiseTimeout(function(){
-                        bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.ceil(balance * (i/100)))));
+                        bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(balance * (i/100)))));
                     }, (10*i));
                 }
                 promiseTimeout(function(){
-                    bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(balance)));
+                    bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(balance))));
                 }, 1000);
             }
             
@@ -94,7 +94,7 @@ function drawWallet(walletData) {
                 
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
-                activation = walletData.activation;
+                activation = Math.trunc(walletData.activation);
                 
                 var today = new Date();
                 today.setDate(today.getDate()+1);
@@ -109,7 +109,7 @@ function drawWallet(walletData) {
 
                 C(".balance-view").el.append(blockBalanceEl.el);
             }
-            C("#currentBalance").html(new Intl.NumberFormat('ru-RU').format(Number(balance - activation)));
+            C("#currentBalance").html(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc((balance - activation)))));
             
             if (walletData.life_times !== undefined) {
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
@@ -122,7 +122,7 @@ function drawWallet(walletData) {
                         bonusField     = C().create("span");
                     
                     dateField.text(new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n"));
-                    amountField.text((el.amount > 0 ? "+" : "") + el.amount);
+                    amountField.text((el.amount > 0 ? "+" : "") + Math.trunc(el.amount));
                     bonusField.text(" бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")");
                     
                     blockBalanceEl.el.append(dateField.el);
@@ -151,7 +151,7 @@ function drawPurchase(purchase) {
     let payEl     = C().create("div"),
         payRowEl  = C().create("div"),
         spanEl    = C().create("span"),
-        totalDisc = Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount));
+        totalDisc = Math.trunc(Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount)));
 
     payEl.addclass(["animate__animated", "animate__fadeIn"]);
     spanEl.el.style.fontWeight = "bold";
@@ -186,7 +186,7 @@ function drawPurchase(purchase) {
 
     spanEl = C().create("span");
     spanEl.addclass("bad");
-    spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(purchase.payment_amount)));
+    spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(purchase.payment_amount))));
     payRowEl.append(spanEl);
 
     payEl.append(payRowEl);
@@ -200,7 +200,7 @@ function drawPurchase(purchase) {
     spanEl.text("Начислено бонусов: ");
     payRowEl.append(spanEl);
 
-    let cashbackAmount = Number(purchase.cashback_amount);
+    let cashbackAmount = Number(Math.trunc(purchase.cashback_amount));
     spanEl = C().create("span");
     spanEl.addclass("good");
     spanEl.text((cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount));
@@ -280,17 +280,17 @@ function drawPurchase(purchase) {
                 payRowEl = C().create("div");
                 
             payRowEl.addclass(["payment-details", "important"]);
-            spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.cost)) + " руб");
+            spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.cost))) + " руб");
             payRowEl.append(spanEl);
 
             spanEl = C().create("span");
             if (Number(position.discount_amount)) {
-                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.discount_amount) * -1) + " руб");
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.discount_amount)) * -1) + " руб");
             } else {
-                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(position.payment_amount)) + " бонусов");
+                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.payment_amount))) + " бонусов");
             }
 
-            let posCashAmount = Number(position.cashback_amount);
+            let posCashAmount = Number(Math.trunc(position.cashback_amount));
             payRowEl.append(spanEl);
             spanEl = C().create("span");
             spanEl.text((posCashAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(posCashAmount) + " бонусов");

@@ -5,6 +5,7 @@
     height: 100vh;
     z-index: 4;
     overflow: auto;
+    padding-top: calc($height_header + $iphone_notch);
     background: url(../backs/bg.png);
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -12,9 +13,9 @@
     
     .mainMenu__head {
         top: 0;
-        position: sticky;
+        position: fixed;
         z-index: 1;
-        height: 5rem;
+        height: $height_header;
         border-bottom: 1px #efefef ridge;
         display: grid;
         grid-template-columns: 1fr 4fr 1fr;
@@ -23,7 +24,7 @@
         background-color: white;
         width: inherit;
         font-weight: 600;
-        padding-top: env(safe-area-inset-top, 0px) !important;
+        padding-top: $iphone_notch;
 
         .mainMenu__head_right {
             font-size: 24px;

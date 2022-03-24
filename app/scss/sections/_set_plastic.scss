@@ -68,43 +68,19 @@
     }
     
     .scan_focus-item1 {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        border-left: 2px solid #D3D3D3;
-        border-top: 2px solid #D3D3D3;
-        left: 0px;
-        top: 0px;
+        @include focusItem(left, top);
     }
     
     .scan_focus-item2 {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        border-right: 2px solid #D3D3D3;
-        border-top: 2px solid #D3D3D3;
-        right: 0px;
-        top: 0px;
+        @include focusItem(right, top);
     }
     
     .scan_focus-item3 {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        border-right: 2px solid #D3D3D3;
-        border-bottom: 2px solid #D3D3D3;
-        right: 0px;
-        bottom: 0px;
+        @include focusItem(right, bottom);
     }
     
     .scan_focus-item4 {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        border-left: 2px solid #D3D3D3;
-        border-bottom: 2px solid #D3D3D3;
-        left: 0px;
-        bottom: 0px;
+        @include focusItem(left, bottom);
     }
     
     .scan_focus-item5 {
@@ -118,42 +94,18 @@
 }
 
 .scan_border1 {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-left: 2px solid #D3D3D3;
-    border-top: 2px solid #D3D3D3;
-    left: 1%;
-    top: 5%;
+    @include scanBorder(left, top);
 }
 
 .scan_border2 {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid #D3D3D3;
-    border-top: 2px solid #D3D3D3;
-    right: 1%;
-    top: 5%;
+    @include scanBorder(right, top);
 }
 
 .scan_border3 {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid #D3D3D3;
-    border-bottom: 2px solid #D3D3D3;
-    right: 1%;
-    bottom: 5%;
+    @include scanBorder(right, bottom);
 }
 
 .scan_border4 {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-left: 2px solid #D3D3D3;
-    border-bottom: 2px solid #D3D3D3;
-    left: 1%;
-    bottom: 5%;
+    @include scanBorder(left, bottom);
 }
 

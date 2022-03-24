@@ -11,8 +11,8 @@
         overflow-x: hidden;
         width: 100%;
         display: none;
-        padding-top: 5rem;
-        padding-bottom: 8rem;
+        padding-top: calc($height_header + $iphone_notch);
+        padding-bottom: $height_footer;
         
         &.sectionEmpty {
             padding: 0;

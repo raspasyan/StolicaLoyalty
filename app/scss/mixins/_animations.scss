@@ -8,6 +8,17 @@
     animation: $animation $duration $method $times;
 }
 
+@mixin fadeIn {
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity:1 ;
+        }
+    }
+}
+
 @mixin fadeOut {
     @keyframes fadeOut {
         from {
@@ -109,16 +120,6 @@
         }
         100% {
             transform: rotate(360deg);
-        }
-    }
-}
-@mixin fadeIn {
-    @include keyframes(fadeIn){
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity:1 ;
         }
     }
 }

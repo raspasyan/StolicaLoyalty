@@ -276,16 +276,18 @@ d.addEventListener("DOMContentLoaded", function () {
 
     // Сокрытие всплывающего окна
     C("#popupOverlay").el.addEventListener("click", function (e) {
-        let el = e.currentTarget.classList;
+        var el = e.currentTarget.classList;
         
-        el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated");
-        el.add("animate__animated", "animate__fadeOut");
+        el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
+        el.add("animate__animated", "animate__fadeOut", "animate__furious");
         if (e.currentTarget.callback) {
             e.currentTarget.callback();
+            e.currentTarget.callback = null;
         }
-        promiseTimeout(function () {
+        promiseTimeout(function(){
             hide("#popupOverlay");
-        }, 1000);
+            el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
+        }, 500);
     });
 
     checkUpdates(currentUpdates, () => {
@@ -556,8 +558,8 @@ function showPopup(title, desc, message, buttonText, callback) {
     }
 
     popupButton.text(buttonText);
-    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated"]);
-    popupOverlay.addclass(["animate__animated", "animate__fadeIn"]);
+    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious"]);
+    popupOverlay.addclass(["animate__animated", "animate__fadeIn", "animate__furious"]);
     
 }
 

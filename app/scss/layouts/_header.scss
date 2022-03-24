@@ -3,14 +3,14 @@ header {
     position: fixed;
     width: 100%;
     z-index: 1;
-    height: 5rem;
+    height: $height_header;
     border-bottom: 1px #efefef ridge;
     display: grid;
     grid-template-columns: 1fr 4fr 1fr;
     align-items: center;
     justify-items: center;
     background-color: white;
-    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-top: $iphone_notch;
     
     h6 {
         font-weight: bold;
