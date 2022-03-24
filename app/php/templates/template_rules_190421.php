@@ -16,14 +16,10 @@
 
   <title>Столица: Лояльность</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
-
-  <!-- import the webpage's stylesheet -->
-  <link rel="stylesheet" href="app/styles/normalize.css" />
-  <link rel="stylesheet" href="app/styles/skeleton.css" />
-  <link rel="stylesheet" href="app/styles/common.css" />
-  <link rel="stylesheet" href="app/styles/style_desktop.css" media='only screen and (min-width: 1200px)'/>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <link rel="stylesheet" href="app/assets/styles/google-open-sans.css" />
+  <link rel="stylesheet" href="app/assets/styles/normalize.css" />
+  <link rel="stylesheet" href="app/assets/styles/skeleton_new.css" />
+  <link rel="stylesheet" href="app/assets/styles/style_desktop.css" />
 </head>
 
 <body>

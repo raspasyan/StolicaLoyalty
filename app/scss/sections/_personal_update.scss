@@ -1,0 +1,33 @@
+.personalUpdate__setPlastic {
+    text-align: left !important;
+    margin-bottom: 4rem;
+    margin-top: 2rem;
+}
+.personalUpdate__setPlastic p {
+    font-size: 14px;
+    color: #666;
+    margin: 0px;
+}
+.personalUpdate__h {
+    font-weight: 600;
+}
+.personalUpdate__inputPass {
+    position: relative;
+}
+input + i[class^="icon-eye"] {
+    position: absolute;
+    right: 0px;
+    top: 14%;
+    grid-area: 1/3/1/4;
+    align-self: center;
+    justify-self: right;
+    width: 40px;
+    height: 30px;
+}
+.personalUpdate__system {
+    background: #fff;
+    padding: 16px 0px;
+}
+.personalUpdate__system_update {
+    margin-bottom: 24px;
+}

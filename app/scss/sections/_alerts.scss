@@ -1,0 +1,11 @@
+.alerts {
+    height: 100%;
+    padding: 0px !important;
+}
+.alerts__block_item {
+    border-bottom: 1px solid #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14rem;
+}

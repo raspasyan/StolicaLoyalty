@@ -15,12 +15,10 @@
 
   <title>Столица: 404</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
-
-  <!-- import the webpage's stylesheet -->
-  <link rel="stylesheet" href="app/styles/normalize.css" />
-  <link rel="stylesheet" href="app/styles/skeleton.css" />
-  <link rel="stylesheet" href="app/styles/style.css" />
+  <link rel="stylesheet" href="app/assets/styles/google-open-sans.css" />
+  <link rel="stylesheet" href="app/assets/styles/normalize.css" />
+  <link rel="stylesheet" href="app/assets/styles/skeleton_new.css" />
+  <link rel="stylesheet" href="app/assets/styles/style_desktop.css" />
 </head>
 
 <body>
