@@ -76,11 +76,11 @@ function drawWallet(walletData) {
                 
                 for (let i = 1; i < 101; i=i+3) {
                     promiseTimeout(function(){
-                        bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(balance * (i/100)))));
+                        bonusEl.text(Math.trunc(balance * (i/100)));
                     }, (10*i));
                 }
                 promiseTimeout(function(){
-                    bonusEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(balance))));
+                    bonusEl.text(Math.trunc(balance));
                 }, 1000);
             }
             
@@ -109,7 +109,7 @@ function drawWallet(walletData) {
 
                 C(".balance-view").el.append(blockBalanceEl.el);
             }
-            C("#currentBalance").html(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc((balance - activation)))));
+            C("#currentBalance").html(Math.trunc((balance - activation)));
             
             if (walletData.life_times !== undefined) {
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
@@ -151,7 +151,7 @@ function drawPurchase(purchase) {
     let payEl     = C().create("div"),
         payRowEl  = C().create("div"),
         spanEl    = C().create("span"),
-        totalDisc = Math.trunc(Math.abs(Number(purchase.discount_amount)) + Math.abs(Number(purchase.payment_amount)));
+        totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount));
 
     payEl.addclass(["animate__animated", "animate__fadeIn"]);
     spanEl.el.style.fontWeight = "bold";
@@ -160,7 +160,7 @@ function drawPurchase(purchase) {
 
     spanEl = C().create("span");
     spanEl.addclass("bad");
-    spanEl.text((totalDisc ? "-" : "") + new Intl.NumberFormat('ru-RU').format(totalDisc) + " руб");
+    spanEl.text((totalDisc ? "-" : "") + totalDisc + " руб");
     payRowEl.append(spanEl);
 
     // Чек-возврата
@@ -186,7 +186,7 @@ function drawPurchase(purchase) {
 
     spanEl = C().create("span");
     spanEl.addclass("bad");
-    spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(purchase.payment_amount))));
+    spanEl.text(Math.trunc(purchase.payment_amount));
     payRowEl.append(spanEl);
 
     payEl.append(payRowEl);
@@ -200,10 +200,10 @@ function drawPurchase(purchase) {
     spanEl.text("Начислено бонусов: ");
     payRowEl.append(spanEl);
 
-    let cashbackAmount = Number(Math.trunc(purchase.cashback_amount));
+    let cashbackAmount = Math.trunc(purchase.cashback_amount);
     spanEl = C().create("span");
     spanEl.addclass("good");
-    spanEl.text((cashbackAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(cashbackAmount));
+    spanEl.text((cashbackAmount > 0 ? "+" : "") + cashbackAmount);
     payRowEl.append(spanEl);
 
     payEl.append(payRowEl);
@@ -280,20 +280,20 @@ function drawPurchase(purchase) {
                 payRowEl = C().create("div");
                 
             payRowEl.addclass(["payment-details", "important"]);
-            spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.cost))) + " руб");
+            spanEl.text(Math.trunc(position.cost) + " руб");
             payRowEl.append(spanEl);
 
             spanEl = C().create("span");
-            if (Number(position.discount_amount)) {
-                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.discount_amount)) * -1) + " руб");
+            if (position.discount_amount) {
+                spanEl.text(Math.trunc(position.discount_amount * -1) + " руб");
             } else {
-                spanEl.text(new Intl.NumberFormat('ru-RU').format(Number(Math.trunc(position.payment_amount))) + " бонусов");
+                spanEl.text(Math.trunc(position.payment_amount) + " бонусов");
             }
 
-            let posCashAmount = Number(Math.trunc(position.cashback_amount));
+            let posCashAmount = Math.trunc(position.cashback_amount);
             payRowEl.append(spanEl);
             spanEl = C().create("span");
-            spanEl.text((posCashAmount > 0 ? "+" : "") + new Intl.NumberFormat('ru-RU').format(posCashAmount) + " бонусов");
+            spanEl.text((posCashAmount > 0 ? "+" : "") + posCashAmount + " бонусов");
             payRowEl.append(spanEl);
 
             detDataEl.append(payRowEl);

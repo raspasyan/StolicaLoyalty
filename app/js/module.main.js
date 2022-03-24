@@ -577,7 +577,7 @@ function hideLoader() {
     promiseTimeout(function () {
         hide("#loader");
         loader.delclass(["animate__fadeOut", "animate__animated"]);
-    }, 1000);
+    }, 500);
 }
 
 function checkAuthorization() {
