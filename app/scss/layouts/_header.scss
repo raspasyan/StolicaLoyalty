@@ -11,10 +11,10 @@ header {
     justify-items: center;
     background-color: white;
     padding-top: env(safe-area-inset-top, 0px) !important;
-}
-
-header h6 {
-    font-weight: bold;
-    grid-area: 1/2;
-    margin-bottom: 0;
+    
+    h6 {
+        font-weight: bold;
+        grid-area: 1/2;
+        margin-bottom: 0;
+    }
 }

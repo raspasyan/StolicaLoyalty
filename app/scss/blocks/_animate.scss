@@ -1,0 +1,33 @@
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.animate__faster {
+    animation-duration: 0.5s;
+}
+
+.animate__fadeInDown {
+    @include fadeInDown;
+}
+
+.animate__fadeIn {
+    @include fadeIn;
+}
+
+.animate__fadeInLeft {
+    @include fadeInLeft;
+}
+
+
+.animate__slideInLeft {
+    @include slideInLeft;
+}
+
+.animate__slideInDown {
+    @include slideInDown;
+}
+
+.animate__fadeOut {
+    @include fadeOut;
+}

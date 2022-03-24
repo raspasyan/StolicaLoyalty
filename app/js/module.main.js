@@ -150,6 +150,13 @@ d.addEventListener("DOMContentLoaded", function () {
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach(inp => {
         mask(inp);
+        inp.addEventListener("change", e => {
+            let phone = e.currentTarget.value;
+            C('input[id*="-phone-mask"]').els.forEach(phn => {
+                phn.value = phone;
+                setPhoneMask(phn);
+            });
+        });
     });
     
     // Подключаем обработчики для Popup

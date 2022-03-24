@@ -2,6 +2,7 @@ input[type="radio"] {
     position: absolute;
     left: -9999px;
 }
+
 input[type="radio"]:checked + label:before, input[type="radio"]:not(:checked) + label:before {
     content: "";
     position: absolute;
@@ -13,6 +14,7 @@ input[type="radio"]:checked + label:before, input[type="radio"]:not(:checked) + 
     border-radius: 100%;
     background: #fff;
 }
+
 input[type="radio"]:checked + label:after {
     opacity: 1;
     -webkit-transform: scale(1);

@@ -17,6 +17,9 @@
 /* Site settings */
 @import "site-settings";
 
+/* Mixins */
+@import "mixins/animations";
+
 /* Base */
 @import "base";
 
@@ -49,9 +52,11 @@
 @import "blocks/mask";
 @import "blocks/popup";
 @import "blocks/tips";
+@import "blocks/animate";
 
 /* Elements */
 @import "elements/input_radio";
 @import "elements/switcher";
 @import "elements/th";
 @import "elements/button";
+@import "elements/pass_eye";
