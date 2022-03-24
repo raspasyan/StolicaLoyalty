@@ -232,13 +232,23 @@ class LMX {
             $result = ["status" => false, "description" => ""];
 
             $methodResult = $this->SAPI_DetailedBalance($personId);
-            if ($debug) debug($methodResult);
+            if ($debug) $result["debug"] = $methodResult;
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->items)) {
+                    $lifeTimes = [];
+
+                    if (!empty($methodResult["data"]->data->items[0]->lifeTimesByTime))
+                        foreach($methodResult["data"]->data->items[0]->lifeTimesByTime as $value)
+                            array_push($lifeTimes, [
+                                "amount" => $value->amount * 100,
+                                "date" => $value->date
+                            ]);
+
                     $result["status"] = true;
                     $result["data"] = [
-                        "name" => $methodResult["data"]->data->items[0]->currency->name,
-                        "amount" => $methodResult["data"]->data->items[0]->amount + (isset($methodResult["data"]->data->items[0]->notActivatedAmount) ? $methodResult["data"]->data->items[0]->notActivatedAmount : 0)
+                        "balance"       => $methodResult["data"]->data->items[0]->amount,
+                        "activation"    => $methodResult["data"]->data->items[0]->notActivatedAmount,
+                        "lifeTimes"     => $lifeTimes
                     ];
                 } else {
                     $result["description"] = "Бонусные счета отсутствуют.";
@@ -371,34 +381,67 @@ class LMX {
         return $result;
     }
 
-    public function getHistory($phone, $filters) {
-        $result = $this->initPAPIToken($phone);
+    public function getHistory($personId, $filters = null, $debug = false) {
+        // Пример:
+        // $filters = [
+        //     "fromDate" => "2021-01-01",
+        //     "count" => 999
+        // ];
+
+        $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
 
-            $methodResult = $this->PAPI_History($filters);
+            $methodResult = $this->SAPI_History($personId, $filters, $debug);
+            if ($debug) $result["debug"] = $methodResult["data"];
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data->rows)) {
-                    $purchases = [];
+                    $acceptedTypes = [
+                        "RewardData",
+                        "WithdrawData"
+                    ];
+
+                    $acceptedWithdrawTypes = [
+                        "Expiration",
+                        "Bonus"
+                    ];
+
+                    $acceptedRewardTypes = [
+                        "Bonus"
+                    ];
+
+                    $result["data"] = [];
 
                     foreach ($methodResult["data"]->data->rows as $key => $row) {
-                        // debug($row);
+                        if (in_array($row->type, $acceptedTypes)) {
+                            $transaction = [
+                                "extId" => $row->id,
+                                "date" => (new DateTime($row->dateTime))->format("Y-m-d H:i:s"),
+                                "description" => $row->description
+                            ];
+    
+                            switch ($row->type) {
+                                case "RewardData": {
+                                    if (in_array($row->data->rewardType, $acceptedRewardTypes)) $transaction["type"] = $row->data->rewardType;
 
-                        // $purchase = [
-                        //     "rsa_id" => $row->merchant->internalName,
-                        //     "operation_type" => 1,
-                        //     "oper_day" => $purchase->purchaseTime,
-                        //     "sale_time" => $purchase->completeTime,
-                        //     "cash" => 0,
-                        //     "shift" => 0,
-                        //     "number" => $purchase->chequeNumber,
-                        //     "amount" => 0,
-                        //     "cashback_amount" => 0,
-                        //     "discount_amount" => 0,
-                        //     "discount_card" => $purchase->personIdentifier,
-                        //     "positions" => []
-                        // ];
+                                    break;
+                                }
+
+                                case "WithdrawData": {
+                                    if (in_array($row->data->withdrawType, $acceptedWithdrawTypes)) $transaction["type"] = $row->data->withdrawType;
+
+                                    break;
+                                }
+                            }
+
+                            if (isset($transaction["type"])) {
+                                $transaction["amount"] = $row->data->amount->amount * 100;
+                                array_push($result["data"], $transaction);
+                            }
+                        }
                     }
+
+                    $result["status"] = true;
                 } else {
                     $result["description"] = "История покупок за выбранный период пуста.";    
                 }
@@ -1114,6 +1157,29 @@ class LMX {
         return $result;
     }
 
+    private function SAPI_History($personId, $filters = null, $debug = false) {
+        $result = $this->SAPI_CheckToken();
+        if ($result["status"]) {
+            $url = LMX_HOST . "/systemapi/api/Users/" . $personId . "/History";
+            if ($filters) $url .= "?";
+            if (isset($filters["fromDate"])) $url .= "&filter.fromDate=" . $filters["fromDate"];
+            if (isset($filters["count"])) $url .= "&filter.count=" . $filters["count"];
+
+            $options = array(
+                'http' => array(
+                    'header' => [
+                        "Content-Type: application/json",
+                        "authorization: Bearer " . $this->SAPI_accessToken
+                    ]
+                )
+            );
+            
+            $result = $this->doRequest($url, $options);
+        }
+
+        return $result;
+    }
+
     private function SAPI_UsersCards($personId, $cardShowMode = "active") {
         $result = $this->SAPI_CheckToken();
         if ($result["status"]) {
@@ -1274,7 +1340,7 @@ class LMX {
     private function SAPI_UpdateAttributeValue($personId, $data) {    
         $result = $this->SAPI_CheckToken();
         if ($result["status"]) {
-            $url = LMX_HOST . "/systemapi//api/users/" . $personId . "/UpdateAttributeValue";
+            $url = LMX_HOST . "/systemapi/api/users/" . $personId . "/UpdateAttributeValue";
             $options = array(
                 'http' => array(
                     'header'  => [
@@ -1913,4 +1979,3 @@ class LMX {
         return $result;
     }
 }
-?>
