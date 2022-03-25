@@ -208,12 +208,14 @@ d.addEventListener("DOMContentLoaded", function () {
         C("#confirmation_button").el.disabled = (C("#reg-confirmation-code").val().length === 4 ? false : true);
     });
     
-    d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").el.addEventListener("input", e => {
-        if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
-            C("#personal_changePassword_button").el.disabled = false;
-        } else {
-            C("#personal_changePassword_button").el.disabled = true;
-        }
+    d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(el => {
+        addEventListener("input", e => {
+            if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
+                C("#personal_changePassword_button").el.disabled = false;
+            } else {
+                C("#personal_changePassword_button").el.disabled = true;
+            }
+        });
     });
     
     C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
