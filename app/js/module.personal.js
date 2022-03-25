@@ -98,16 +98,16 @@ function getProfileData() {
 
 async function changePassword() {
     let result = false;
-    if (C("#personal_new_pass").val().length === 0) {
+    if (C("#personal-new-pass").val().length === 0) {
         return result;
     }
-    if (C("#personal_new_pass").val().length > 0 && C("#personal_new_pass").val().length < 6) {
-        attentionFocus(C("#personal_new_pass").el);
+    if (C("#personal-new-pass").val().length > 0 && C("#personal-new-pass").val().length < 6) {
+        attentionFocus(C("#personal-new-pass").el);
         return result;
     }
 
-    if (C("#personal_new_pass").val() !== C("#personal_new_pass_confirmation").val()) {
-        attentionFocus(C("#personal_new_pass_confirmation").el);
+    if (C("#personal-new-pass").val() !== C("#personal-new-pass-confirmation").val()) {
+        attentionFocus(C("#personal-new-pass-confirmation").el);
         return result;
     }
 
@@ -122,7 +122,7 @@ async function changePassword() {
         body: JSON.stringify({
             "method": "changePassword",
             "data": {
-                "new_password": C("#personal_new_pass").val()
+                "new_password": C("#personal-new-pass").val()
             }
         })
     });
