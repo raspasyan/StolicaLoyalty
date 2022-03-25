@@ -8,6 +8,7 @@ const DOMAIN = "";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
 const RULES_URL = DOMAIN + "/pravila";
+const REF_RULES_URL = DOMAIN + "/pravila-akcii";
 const LS_TOKEN = "LS_BearerToken";
 const LS_SECTION = "section";
 const SOURCE = "WEB2";
@@ -1136,6 +1137,12 @@ function showRules() {
     show("#terms");
     C("body").el.style.overflow = "hidden";
     C("#terms").el.getElementsByTagName("iframe")[0].src = RULES_URL;
+}
+
+function showRefRules() {
+    show("#terms");
+    C("body").el.style.overflow = "hidden";
+    C("#terms").el.getElementsByTagName("iframe")[0].src = REF_RULES_URL;
 }
 
 function closeTerms() {
