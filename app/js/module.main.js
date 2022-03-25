@@ -911,7 +911,9 @@ async function getResetConfirmationCode() {
                 restartResetConfirmationTimer(result.data.seconds_left);
         } else {
             resButtonEl.disabled = false;
-            showPopup("Внимание", result.description);
+            promiseTimeout(function(){
+                showPopup("Внимание", result.description);
+            }, 1000);
         }
     }
 }
