@@ -1101,12 +1101,20 @@ function loadScript(src) {
 
 function showTerms() {
     show("#terms");
+    C("body").el.style.overflow = "hidden";
     C("#terms").el.getElementsByTagName("iframe")[0].src = TERMS_URL;
 }
 
 function showRules() {
     show("#terms");
+    C("body").el.style.overflow = "hidden";
     C("#terms").el.getElementsByTagName("iframe")[0].src = RULES_URL;
+}
+
+function closeTerms() {
+    hide("#terms");
+    C("body").el.style.overflow = "unset";
+    C("#terms").el.getElementsByTagName("iframe")[0].src = "";
 }
 
 function showIndicator() {
