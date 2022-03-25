@@ -192,8 +192,10 @@ function changeCardType() {
 }
 
 function changeProfileData() {
+    C("#personal_changePassword_button").el.disabled = true;
+
     let changePass = false;
-    if (C("#personal_new_pass").val().length > 0) {
+    if (C("#personal-new-pass").val().length > 0) {
         changePassword().then(result => {
             if (result) {
                 if (result.status) {
@@ -208,6 +210,7 @@ function changeProfileData() {
                 changeCardType().then(result => {
                     if (result.status) {
                         showPopup("", "Данные профиля изменены!");
+                        C("#personal_changePassword_button").el.disabled = false;
                     }
                 });
             }
@@ -216,6 +219,7 @@ function changeProfileData() {
         changeCardType().then(result => {
             if (result.status) {
                 showPopup("", "Тип карты изменен!");
+                C("#personal_changePassword_button").el.disabled = false;
             }
         });
     }

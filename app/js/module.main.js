@@ -192,7 +192,9 @@ d.addEventListener("DOMContentLoaded", function () {
     // Переход на пластиковую карту
     C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
 
-    C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
+    C("#personal_changePassword_button").el.addEventListener("click", e => {
+        changeProfileData();
+    });
 
     // Привязка пластиковой карты
     C("#set_card").el.addEventListener("click", () => setCard());
