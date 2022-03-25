@@ -207,6 +207,16 @@ d.addEventListener("DOMContentLoaded", function () {
     C("#reg-confirmation-code").el.addEventListener("input", e => {
         C("#confirmation_button").el.disabled = (C("#reg-confirmation-code").val().length === 4 ? false : true);
     });
+    
+    C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
+        if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
+            C("#personal_changePassword_button").el.disabled = false;
+        } else {
+            C("#personal_changePassword_button").el.disabled = true;
+        }
+    });
+    
+
 
     let passViewToggles = C('input + i[class^="icon-eye"]').els;
     passViewToggles.forEach(el => {
