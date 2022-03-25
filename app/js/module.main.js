@@ -208,6 +208,10 @@ d.addEventListener("DOMContentLoaded", function () {
         C("#confirmation_button").el.disabled = (C("#reg-confirmation-code").val().length === 4 ? false : true);
     });
     
+    C("#reset-phone-mask").el.addEventListener("input", e => {
+        C("#reset_button").el.disabled = (C("#reset-phone-mask").val().length === 16 ? false : true);
+    });
+    
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(el => {
         addEventListener("input", e => {
             if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
