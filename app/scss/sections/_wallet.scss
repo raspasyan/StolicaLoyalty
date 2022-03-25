@@ -39,6 +39,17 @@
     display:none;
 }
 
+.wallet__bottom_dataDicount {
+    flex-direction: column;
+    
+    a {
+        padding: 2rem 0;
+        color: #28a960;
+        font-size: 18px;
+        font-weight: 600;
+    }
+}
+
 .wallet__bottom_transactions {
     margin: 0 2rem;
     
