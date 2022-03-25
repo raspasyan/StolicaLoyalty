@@ -207,7 +207,7 @@
           <!-- Блок подтверждения входа -->
           <div id="reset_confirmation" style="display: none;" class="animate__animated animate__fadeIn">
             <div id="reset_confirmation_info" style="font-weight: bold;"></div>
-            <input class="u-full-width" type="number" placeholder="Код" id="reset_confirmation_code" />
+            <input class="u-full-width" type="tel" placeholder="Код" id="reset_confirmation_code" />
             <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
             <p class="link">
               <span>Мне не позвонили,</span>
@@ -292,13 +292,13 @@
             <button id="reg-button" class="button button-primary" style="width: 100%;">Создать аккаунт</button>
           </div>
           <!-- Блок подтверждения регистрации -->
-          <div id="reg_confirmation" style="display: none;">
+          <div id="reg_confirmation" class="registration__confirm" style="display: none;">
             <div id="reg_confirmation_info"></div>
             <div id="reg_confirmation_remind"></div>
             <div class="popup"><span class="popup-text" id="reg-confirmation-code-popup"></span></div>
-            <input class="u-full-width" type="number" placeholder="Код" id="reg-confirmation-code" />
+            <input class="u-full-width" type="tel" placeholder="Код" id="reg-confirmation-code" />
             <button class="button button-primary" style="width: 100%;" onclick="confirmation()"
-              id="confirmation_button">Подтвердить</button>
+              id="confirmation_button" disabled>Подтвердить</button>
             <button class="button button-primary" style="width: 100%; display: none" onclick="confirmationReset()"
               id="confirmation_button_reset">Получить СМС</button>
           </div>

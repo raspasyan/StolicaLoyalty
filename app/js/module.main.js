@@ -203,6 +203,10 @@ d.addEventListener("DOMContentLoaded", function () {
     C("#reset_confirmation_code").el.addEventListener("input", e => {
         C("#reset_confirmation_button").el.disabled = (C("#reset_confirmation_code").val().length === 4 ? false : true);
     });
+    
+    C("#reg-confirmation-code").el.addEventListener("input", e => {
+        C("#confirmation_button").el.disabled = (C("#reg-confirmation-code").val().length === 4 ? false : true);
+    });
 
     let passViewToggles = C('input + i[class^="icon-eye"]').els;
     passViewToggles.forEach(el => {
@@ -740,7 +744,6 @@ async function reg() {
             regConfCode.el.scrollIntoView();
             regConfCode.togclass("fail");
             regConfCode.el.focus();
-            C("#reg-confirmation-code-popup").togclass("show");
 
             // Запускаем таймер отсчета для повторной отправки
             setConfirmationTimeout(result);
