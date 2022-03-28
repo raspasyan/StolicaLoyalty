@@ -316,14 +316,17 @@ function drawBonusCard(cardNumber) {
     cardImg.src = cardImageSRC;
     cardImg.addEventListener("load", (e) => {
 
-        let qrCanvas = C().create("canvas");
-        let qr = new QRious({
-            element: qrCanvas.el,
-            size: 128,
-            value: cardNumber,
-            foreground: "#4062b7"
-        });
+        let qrCanvas = C().create("img"),
+            qr = new QRious({
+                element: qrCanvas.el,
+                size: 256,
+                value: cardNumber,
+                foreground: "#4062b7"
+            });
 
+        qrCanvas.el.width = "128";
+        qrCanvas.el.height = "128";
+        
         qrEl.el.cardNumber = cardNumber;
         qrEl.append(qrCanvas);
         show("#qrcode");

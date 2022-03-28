@@ -1430,7 +1430,8 @@ function getValueByMask(value, mask, full) {
 }
 
 function validateBirthdate(el, isSubmit) {
-    let result = false;
+    let res = false,
+        i   =0;
 
     if (!isSubmit) {
         isSubmit = false;
@@ -1440,20 +1441,20 @@ function validateBirthdate(el, isSubmit) {
     
     if (el.value.length > 9) {
         let td = el.value.split("-");
-            bd  = new Date(td[2], (td[1] - 1), td[0]),
+            bd  = new Date(td[2], --td[1], td[0]),
             cd  = new Date(),
             age = (cd - bd);
 
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             showInputPopup("reg-birthdate");
         } else {
-            result = true;
+            res = true;
         }
     } else if (isSubmit) {
         showInputPopup("reg-birthdate");
     }
 
-    return result;
+    return res;
 }
 
 var C = function (s, p) {
