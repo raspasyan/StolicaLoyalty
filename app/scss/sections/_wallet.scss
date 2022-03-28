@@ -50,6 +50,16 @@
     }
 }
 
+.transactions_details_button {
+    background-color: #4062b7;
+    border-color: #4062b7;
+        
+    &.active {
+        background-color: #28a960;
+        border-color: #28a960;
+    }
+}
+
 .wallet__bottom_transactions {
     margin: 0 2rem;
     

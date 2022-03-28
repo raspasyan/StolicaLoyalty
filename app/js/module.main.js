@@ -163,13 +163,17 @@ d.addEventListener("DOMContentLoaded", function () {
     
     // Подключаем обработчики для Popup
     C('span[id*="-popup"]').els.forEach(pop => {
-        C("#" + pop.id.replace("-popup", "")).el.addEventListener("blur", e => {
-            dropFail(e.target);
-            C("#" + e.target.id + "-popup").delclass("show");
-        });
+        let inp = C("#" + pop.id.replace("-popup", "")).el;
+        
+        ["blur", "input"].forEach(evt => {
+            inp.addEventListener(evt, e => {
+                dropFail(e.target);
+                C("#" + e.target.id + "-popup").delclass("show");
+            });
+        })
     });
 
-    C("#auth-button").el.addEventListener("click", e => auth());
+    C("#auth-button").el.addEventListener("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach(label => {
         label.addEventListener("click", function (e) {
@@ -194,63 +198,50 @@ d.addEventListener("DOMContentLoaded", function () {
     // Переход на пластиковую карту
     C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
 
-    C("#personal_changePassword_button").el.addEventListener("click", e => {
-        changeProfileData();
-    });
+    C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
 
     // Привязка пластиковой карты
     C("#set_card").el.addEventListener("click", () => setCard());
 
     // Вход без пароля
     C("#reset_confirmation_code").el.addEventListener("input", e => {
-        C("#reset_confirmation_button").el.disabled = (C("#reset_confirmation_code").val().length === 4 ? false : true);
+        C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
     });
     
     C("#reg-confirmation-code").el.addEventListener("input", e => {
-        C("#confirmation_button").el.disabled = (C("#reg-confirmation-code").val().length === 4 ? false : true);
+        C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
     });
     
     C("#reset-phone-mask").el.addEventListener("input", e => {
-        C("#reset_button").el.disabled = (e.currentTarget.value.length === 16 ? false : true);
+        C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true);
     });
     
-    d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(el => {
-        addEventListener("input", e => {
+    d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
+        addEventListener("input", () => {
+            let but = C("#personal_changePassword_button").el;
+            
             if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
-                C("#personal_changePassword_button").el.disabled = false;
+                but.disabled = false;
             } else {
-                C("#personal_changePassword_button").el.disabled = true;
+                but.disabled = true;
             }
         });
     });
     
     C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
-        if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
-            C("#personal_changePassword_button").el.disabled = false;
+        let but = C("#personal_changePassword_button").el,
+            el  = e.currentTarget;
+        
+        if (C("#" + el.id.replace("-confirmation","")).val() === el.value) {
+            but.disabled = false;
         } else {
-            C("#personal_changePassword_button").el.disabled = true;
+            but.disabled = true;
         }
     });
 
-    let passViewToggles = C('input + i[class^="icon-eye"]').els;
-    passViewToggles.forEach(el => {
-        el.addEventListener("click", e => {
-            let i = e.currentTarget,
-                    input = i.parentNode.children[0];
+    passViewToggle();
 
-            input.type = (input.type === "password" ? "text" : "password");
-            if (input.type === "password") {
-                //? "black" : "#4eb5e6"
-                i.classList.remove("icon-eye");
-                i.classList.add("icon-eye-off");
-            } else {
-                i.classList.remove("icon-eye-off");
-                i.classList.add("icon-eye");
-            }
-        });
-    });
-
-    C("#reg-button").el.addEventListener("click", e => {
+    C("#reg-button").el.addEventListener("click", () => {
         if (checkReg()) {
             showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
         }
@@ -262,23 +253,24 @@ d.addEventListener("DOMContentLoaded", function () {
         e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
     });
     
-    C("#reset_button").el.addEventListener("click", e => {
+    C("#reset_button").el.addEventListener("click", () => {
         if (canGetResetConfirmationCode()) {
             showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reset-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
         }
     });
 
     C("#transactions-details-button").el.addEventListener("click", e => {
-        let list = C("#transactions").el.classList;
+        let list = C("#transactions").el.classList,
+            t    = C(e.target);
+        
         list.toggle("hidden");
+        
         if (list.contains("hidden")) {
-            e.target.innerText = "открыть детализацию";
-            e.target.style.backgroundColor = "#4062b7";
-            e.target.style.borderColor = "#4062b7";
+            t.text("открыть детализацию");
+            t.delclass("active");
         } else {
-            e.target.innerText = "скрыть детализацию";
-            e.target.style.backgroundColor = "#28a960";
-            e.target.style.borderColor = "#28a960";
+            t.text("скрыть детализацию");
+            t.addclass("active");
         }
     });
 
@@ -298,6 +290,7 @@ d.addEventListener("DOMContentLoaded", function () {
             let section = e.currentTarget.dataset.section;
 
             closeNav();
+            
             if (section) {
                 drawSection(section);
             }
@@ -328,6 +321,24 @@ d.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function passViewToggle() {
+    C('input + i[class^="icon-eye"]').els.forEach(el => {
+        el.addEventListener("click", e => {
+            let i   = e.currentTarget,
+                inp = i.parentNode.children[0];
+
+            i.classList.remove("icon-eye", "icon-eye-off");
+            
+            inp.type = (inp.type === "password" ? "text" : "password");
+            if (inp.type === "password") {
+                i.classList.add("icon-eye-off");
+            } else {
+                i.classList.add("icon-eye");
+            }
+        });
+    });
+}
 
 function hide(selector) {
     C(selector).el.style.display = "none";
@@ -1108,10 +1119,8 @@ async function updateCities() {
     }
 }
 
-function dropFail(element) {
-    if (element.value && element.classList.contains("fail")) {
-        element.classList.remove("fail");
-    }
+function dropFail(el) {
+    C(el).delclass("fail");
 }
 
 function clearLocalStorage() {
@@ -1356,21 +1365,21 @@ async function updateWalletData() {
             });
 }
 
-function mask(input) {
+function mask(inp) {
     let underlay = document.createElement('input'),
         attr     = {};
     
-    attr.id = input.id.replace("-mask", "");
+    attr.id = inp.id.replace("-mask", "");
     attr.disabled = "disabled";
-    attr.type = input.getAttribute("type");
+    attr.type = inp.getAttribute("type");
     
     for (let key in attr) {
         underlay.setAttribute(key, attr[key]);
     }
     
-    input.parentNode.insertBefore(underlay, input);
-    setPhoneMask(input, false);
-    input.addEventListener("input", e => setPhoneMask(e.target));
+    inp.parentNode.insertBefore(underlay, inp);
+    setPhoneMask(inp, false);
+    inp.addEventListener("input", e => setPhoneMask(e.target));
 }
 
 function setPhoneMask(inp, mask) {
@@ -1421,11 +1430,8 @@ function getValueByMask(value, mask, full) {
 }
 
 function validateBirthdate(el, isSubmit) {
-    let result = false,
-        popup  = C("#reg-birthdate-popup");
+    let result = false;
 
-    popup.delclass("show");
-    
     if (!isSubmit) {
         isSubmit = false;
     }
@@ -1438,14 +1444,12 @@ function validateBirthdate(el, isSubmit) {
             age = (cd - bd);
 
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
-            popup.addclass("show");
+            showInputPopup("reg-birthdate");
         } else {
-            popup.delclass("show");
             result = true;
         }
     } else if (isSubmit) {
-        popup.addclass("show");
-        C(".main").el.scrollIntoView();
+        showInputPopup("reg-birthdate");
     }
 
     return result;
