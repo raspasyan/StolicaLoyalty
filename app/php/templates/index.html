@@ -1,619 +1,619 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
-  <meta name='HandheldFriendly' content='true' />
-  <meta name="theme-color" content="#4062b7" />
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
+        <meta name='HandheldFriendly' content='true' />
+        <meta name="theme-color" content="#4062b7" />
 
-  <link rel="manifest" href="manifest.json" />
+        <link rel="manifest" href="manifest.json" />
 
-  <link rel="icon" type="image/png" sizes="192x192" href="app/assets/icons/192x192.png" />
-  <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="app/assets/icons/180x180_apple.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="app/assets/icons/192x192.png" />
+        <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="app/assets/icons/180x180_apple.png" />
 
-  <title>Столица.Бонусы</title>
+        <title>Столица.Бонусы</title>
 
-  <link rel="stylesheet" href="app/assets/styles/normalize.css" />
-  <link rel="stylesheet" href="app/assets/styles/skeleton_new.css" />
-  <link rel="stylesheet" href="app/assets/styles/styles.css?v=<?=filemtime('app/assets/styles/styles.css')?>" />
-  <link rel="stylesheet" href="app/assets/styles/google-open-sans.css" />
-  <link rel="stylesheet" href="app/assets/styles/fontello.css" />
+        <link rel="stylesheet" href="app/assets/styles/normalize.css" />
+        <link rel="stylesheet" href="app/assets/styles/skeleton_new.css" />
+        <link rel="stylesheet" href="app/assets/styles/styles.css?v=<?=filemtime('app/assets/styles/styles.css')?>" />
+        <link rel="stylesheet" href="app/assets/styles/google-open-sans.css" />
+        <link rel="stylesheet" href="app/assets/styles/fontello.css" />
 
-  <script src="app/assets/js/qrious.min.js"></script>
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-  <script src="app/assets/js/module.main.js?v=<?=filemtime('app/assets/js/module.main.js')?>" defer></script>
-  <script src="app/assets/js/module.news.js?v=<?=filemtime('app/assets/js/module.news.js')?>" defer></script>
-  <script src="app/assets/js/module.stores.js?v=<?=filemtime('app/assets/js/module.stores.js')?>" defer></script>
-  <script src="app/assets/js/module.personal.js?v=<?=filemtime('app/assets/js/module.personal.js')?>" defer></script>
-  <script src="app/assets/js/module.wallet.js?v=<?=filemtime('app/assets/js/module.wallet.js')?>" defer></script>
-</head>
+        <script src="app/assets/js/qrious.min.js"></script>
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
+        <script src="app/assets/js/module.main.js?v=<?=filemtime('app/assets/js/module.main.js')?>" defer></script>
+        <script src="app/assets/js/module.news.js?v=<?=filemtime('app/assets/js/module.news.js')?>" defer></script>
+        <script src="app/assets/js/module.stores.js?v=<?=filemtime('app/assets/js/module.stores.js')?>" defer></script>
+        <script src="app/assets/js/module.personal.js?v=<?=filemtime('app/assets/js/module.personal.js')?>" defer></script>
+        <script src="app/assets/js/module.wallet.js?v=<?=filemtime('app/assets/js/module.wallet.js')?>" defer></script>
+    </head>
 
-<body>
-  <div class="loader" id="loader">
-    <span class="loader__rotation"></span>
-  </div>
-
-  <div class="popupOverlay" id="popupOverlay" style="display: none;">
-    <div class="popupCont" id="popupCont">
-      <h4 id="popupTitle"></h4>
-      <hr>
-      <h6 id="popupDescription"></h6>
-      <p id="popupMessage"></p>
-      <button id="popupButton" class="button-primary"></button>
-    </div>
-  </div>
-
-  <div class="newsOverlay" style="display: none;">
-    <div class="newsOverlay__cont animate__animated animate__fadeInDown">
-      <img class="newsOverlay__image" src="" alt="">
-      <div class="newsOverlay__details">
-        <p class="newsOverlay__details_date"></p>
-        <h4 class="newsOverlay__details_title"></h4>
-        <p class="newsOverlay__details_descpription"></p>
-        <button>Закрыть</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="mainMenu animate__animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
-    <div class="mainMenu__head">
-      <div class="mainMenu__head_left"></div>
-      <div class="mainMenu__head_title"><span>Меню</span></div>
-      <div class="mainMenu__head_right"><i class="icon-cancel" onclick="closeNav()"></i></div>
-    </div>
-    <div class="mainMenu__content">
-      <ul class="mainMenu__content_nav">
-        <li data-section="wallet">Кошелек</li>
-        <li data-section="news">Акции</li>
-        <li data-section="stores">Магазины</li>
-        <li data-section="personal">Профиль</li>
-        <li data-section="refer">Пригласить друга</li>
-      </ul>
-      <ul class="mainMenu__content_bottom">
-        <li onclick="showFeedback(); closeNav();">
-          <i class="icon-help" aria-hidden="true"></i>
-          <div>Задать вопрос</div>
-        </li>
-        <li onclick="logOff()">
-          <i class="icon-logout" aria-hidden="true"></i>
-          <div>Выход</div>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="feedback animate__animated animate__slideInDown" id="feedback" style="display: none;">
-    <div class="container">
-      <div class="row">
-        <div class="six columns">
-          <label for="feedback-name">Ваше имя</label>
-          <input id="feedback-name" class="u-full-width" type="text" placeholder="Имя">
-          <label for="feedback-email">Email</label>
-          <input id="feedback-email" class="u-full-width" type="text" placeholder="My@mail.com">
+    <body>
+        <div class="loader" id="loader">
+            <span class="loader__rotation"></span>
         </div>
-        <div class="six columns">
-          <div class="popup"><span class="popup-text" id="feedback-phone-mask-popup">Введите номер телефона</span></div>
-          <label for="feedback-phone-mask">Телефон</label>
-          <div class="maskedInput">
-            <input id="feedback-phone-mask" class="u-full-width" type="tel">
-          </div>
-          <label for="feedback-reason">Причина обращения</label>
-          <select id="feedback-reason" class="u-full-width">
-            <option value="Комментарий">Комментарий</option>
-            <option value="Вопрос">Вопрос</option>
-            <option value="Ошибка">Ошибка</option>
-            <option value="Предложение">Предложение</option>
-          </select>
-        </div>
-      </div>
-      <div class="popup"><span class="popup-text" id="feedback-message-popup">Введите сообщение</span></div>
-      <label for="feedback-message">Сообщение</label>
-      <textarea class="u-full-width" placeholder="Здравствуйте!" id="feedback-message"></textarea>
-      <input id="feedback-account" disabled style="display: none;" />
-      <div class="row">
-        <div class="six columns">
-          <input id="feedback-submit" class="u-full-width button-primary" type="submit" value="Отправить">
-        </div>
-        <div class="six columns">
-          <button class="u-full-width" onclick="hideFeedback();">Закрыть</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="terms" id="terms" style="display: none">
-    <iframe loading="lazy" src="" frameborder="0"></iframe>
-    <div class="terms__button">
-      <button onclick='closeTerms()'>Принять</button>
-    </div>
-  </div>
-    
-  <div class="wrapper">
-    <header class="topNav">
-      <i class="topNav__back icon-angle-left" onclick="routePrevSection()"></i>
-      <i class="icon-cancel topNav__close" onclick="routePrevSection()"></i>
-      <i class="icon-mail topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
-      <h6>&nbsp;</h6>
-      <i class="icon-menu topNav__menu" onclick="openNav()"></i>
-      <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
-    </header>
-
-    <main class="main">
-        
-      <div id="adult" class="sectionEmpty">
-          <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица" srcset="app/assets/logo/logo_256.png 1x,
-               app/assets/logo/logo_256x2.png 2x,
-               app/assets/logo/logo_256x3.png 3x,
-               app/assets/logo/logo_256x4.png 4x">
-        <div class="container">
-          <h5>
-            Подтвердите, что Вам есть 18 лет
-          </h5>
-          <button class="button button-primary u-full-width" onclick="drawSection('intro')">мне исполнилось 18
-            лет</button>
-          <button class="button button-leave u-full-width">мне нет 18 лет</button>
-        </div>
-      </div>
-
-      <div id="intro" class="sectionEmpty">
-        <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица" srcset="app/assets/logo/logo_256.png 1x,
-             app/assets/logo/logo_256x2.png 2x,
-             app/assets/logo/logo_256x3.png 3x,
-             app/assets/logo/logo_256x4.png 4x">
-        <div class="container">
-          <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
-          <div class="textWings">или</div>
-          <a href="#" class="link" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
-        </div>
-      </div>
-
-      <div id="authorization">
-        <div class="container">
-          <p class="hero-heading">Введите ваш номер телефона и пароль</p>
-          <!-- Номер телефона -->
-          <div class="popup"><span id="auth-phone-mask-popup" class="popup-text">Введите номер телефона</span></div>
-          <div class="maskedInput">
-            <input id="auth-phone-mask" type="tel" />
-          </div>
-          <!-- Пароль -->
-          <div class="popup"><span class="popup-text" id="auth-pass-popup">Введите пароль</span></div>
-          <div class="authorization__inputPass">
-            <input class="u-full-width" type="password" placeholder="Пароль" id="auth-pass" />
-            <i class="icon-eye-off"></i>
-          </div>
-          <!-- Кнопки -->
-          <p style="text-align: right;"><a class="link" href="#" onclick="drawSection('reset')">Забыли
-              пароль?</a></p>
-          <button id="auth-button" class="button button-primary u-full-width">Войти</button>
-          <p  class="link">
-            <span>У вас ещё нет аккунта?</span>
-            <a href="#" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
-          </p>
-        </div>
-      </div>
-
-      <div id="reset">
-        <div class="container">
-          <h3>Не удается войти?</h3>
-          <i class="icon-lock-open-alt" style="font-size: 48px"></i>
-          <p class="hero-heading">Введите ваш номер мобильного телефона</p>
-          <div class="popup"><span class="popup-text" id="reset-phone-mask-popup">Введите номер телефона</span></div>
-          <div class="maskedInput">
-            <input id="reset-phone-mask" type="tel" />
-          </div>
-          <button class="button button-primary" style="width: 100%;" id="reset_button" disabled>Получить код для входа</button>
-          <!-- Блок подтверждения входа -->
-          <div id="reset_confirmation" style="display: none;" class="animate__animated animate__fadeIn">
-            <div id="reset_confirmation_info" style="font-weight: bold;"></div>
-            <input class="u-full-width" maxlength="4" type="tel" placeholder="Код" id="reset_confirmation_code" />
-            <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
-            <p class="link">
-              <span>Мне не позвонили,</span>
-              <a href="#" onclick="showFeedback()">что мне делать?</a>
-            </p>
-            <button class="button button-primary" style="width: 100%;" onclick="checkResetConfirmationCode()"
-              id="reset_confirmation_button" disabled>Войти</button>
-          </div>
-          <div class="textWings">или</div>
-          <p class="link">
-            <a href="#" onclick="drawSection('pre-registration')">Создать новый аккаунт</a>
-          </p>
-        </div>
-      </div>
-
-      <div id="pre-registration" class="preRegistration">
-        <h2 class="main-logo"></h2>
-        <div class="container">
-          <img src="app/assets/backs/city.png">
-          <p>Выберите город</p>
-          <select id="city" name="card_discount" class="reg_city"></select>
-          <p class="link">
-            <button class="button button-primary" style="width: 100%;"
-              onclick="drawSection('registration')">Готово</button>
-          </p>
-        </div>
-      </div>
-
-      <div id="registration" class="registration">
-        <div class="container">
-          <!-- Блок регистрации -->
-          <div id="registration_cont" class="row registration__cont">
-            <p class="hero-heading">Для завершения регистрации укажите свои контактные данные</p>
-            <div>
-              <input class="u-full-width" type="text" placeholder="Имя" id="reg_firstname" />
+        <div class="popupOverlay" id="popupOverlay" style="display: none;">
+            <div class="popupCont" id="popupCont">
+                <h4 id="popupTitle"></h4>
+                <hr>
+                <h6 id="popupDescription"></h6>
+                <p id="popupMessage"></p>
+                <button id="popupButton" class="button-primary"></button>
             </div>
-            <!-- Номер телефона -->
-            <div class="popup"><span class="popup-text" id="reg-phone-mask-popup">Введите номер телефона</span></div>
-            <div class="required maskedInput">
-              <input id="reg-phone-mask" type="tel" />
-            </div>
-            <div>
-              <p>Дата рождения:</p>
-              <div class="popup"><span class="popup-text" id="reg-birthdate-popup">Вы должны быть старше 18 лет!</span></div>
-              <input id="reg-birthdate" class="u-full-width required" type="tel" placeholder="дд-мм-гггг" />
-            </div>
-            <div>
-              <input class="u-full-width" type="email" placeholder="e-mail" id="reg_email" />
-            </div>
-            <div class="popup"><span class="popup-text" id="reg-pass-popup">Введите пароль, не менее 6 символов</span>
-            </div>
-            <div id="reg_password_group" class="registration__inputPass required">
-              <input class="u-full-width" type="password" placeholder="Пароль" id="reg-pass" />
-              <i class="icon-eye-off"></i>
-            </div>
-            <div id="reg_password_group" class="registration__inputPass required">
-              <input class="u-full-width" type="password" placeholder="Повторите пароль" id="reg-pass-confirm" />
-              <i class="icon-eye-off"></i>
-            </div>
-            <!-- Система скидок -->
-            <div id="loyalty-system" class="system system-reg" style="display:none">
-              <p class="system_title">Выберите систему скидок</p>
-              
-              <div class="system_tabs">
-                <div class="system_tabsHead">
-                  <span class="tab_h_active" data-tab="0"><input id="prem" type="radio"
-                      name="system" value="0" checked><label for="prem">Бонусная</label></span>
-                  <span data-tab="1"><input id="discount" type="radio" name="system"
-                      value="1"><label for="discount">Дисконтная</label></span>
+        </div>
+
+        <div class="newsOverlay" style="display: none;">
+            <div class="newsOverlay__cont animate__animated animate__fadeInDown">
+                <img class="newsOverlay__image" src="" alt="">
+                <div class="newsOverlay__details">
+                    <p class="newsOverlay__details_date"></p>
+                    <h4 class="newsOverlay__details_title"></h4>
+                    <p class="newsOverlay__details_descpription"></p>
+                    <button>Закрыть</button>
                 </div>
-                <div class="system_tabsContent">
-                  <div class="tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок, 2000 бонусов в подарок при регистрации.</span></div>
-                  <div><span>Вы можете получать скидки от 5% до 10% на товар, который можно приобрести со скидкой.</span></div>
-                </div>
-              </div>
             </div>
-            <!-- Согласие с условиями -->
-            <p class="reg_confirm">Создавая аккаунт, я соглашаюсь с <a onclick="showRules()">правилами</a> и даю
-              согласие
-              на <a onclick="showTerms()">обработку персональных данных</a>.</p>
-            <!-- Кнопка регистрации -->
-            <button id="reg-button" class="button button-primary" style="width: 100%;">Создать аккаунт</button>
-          </div>
-          <!-- Блок подтверждения регистрации -->
-          <div id="reg_confirmation" class="registration__confirm" style="display: none;">
-            <div id="reg_confirmation_info"></div>
-            <div id="reg_confirmation_remind"></div>
-            <div class="popup"><span class="popup-text" id="reg-confirmation-code-popup"></span></div>
-            <input class="u-full-width" type="tel" maxlength="4" placeholder="Код" id="reg-confirmation-code" />
-            <button class="button button-primary" style="width: 100%;" onclick="confirmation()"
-              id="confirmation_button" disabled>Подтвердить</button>
-            <button class="button button-primary" style="width: 100%; display: none" onclick="confirmationReset()"
-              id="confirmation_button_reset">Получить СМС</button>
-          </div>
-          <!-- Авторизация -->
-          <p class="reg_auth link">
-            <span>Постойте, но ведь</span>
-            <a href="#" onclick="drawSection('authorization')">я уже зарегистрирован</a>
-          </p>
         </div>
-      </div>
 
-      <div id="reg_success">
-        <div class="reg_success-top">
-          <div class="container">
-            <div class="reg_success-top-block">
-              <img src="app/assets/backs/success-reg.png">
-              <p>Ваша ВИРТУАЛЬНАЯ карта готова к использованию! Для использования перейдите в <a href="#"
-                  onclick="drawSection('wallet')">КОШЕЛЕК</a> и предьявите QR-код продавцу.</p>
-              <p> ПЛАСТИКОВАЯ карта больше не нужна!</p>
-              <p> Если вам не удобно пользоваться виртуальной картой, вы можете получить пластиковую карту в <a href="#"
-                  onclick="drawSection('stores')">любом магазине</a>. </p>
+        <div class="mainMenu animate__animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
+            <div class="mainMenu__head">
+                <div class="mainMenu__head_left"></div>
+                <div class="mainMenu__head_title"><span>Меню</span></div>
+                <div class="mainMenu__head_right"><i class="icon-cancel" onclick="closeNav()"></i></div>
             </div>
-          </div>
-        </div>
-        <div class="reg_success-bottom">
-          <div class="container">
-            <button class="button" style="width: 100%;" onclick="drawSection('wallet')">Перейти в кошелек</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="personal" id="personal">
-        <div class="personal__head">
-          <div class="personal__head_avatar">
-              <div class="personal__head_avatar_image">
-                <img src="app/assets/backs/avatar.png">
-              </div>
-          </div>
-          <div class="personal__head_name" id="personal_name">Наш Любимый Покупатель</div>
-          <div class="personal__head_birthday textWings" id="personal_birthdate"></div>
-          <div class="personal__head_phone" id="personal_phone">+7-___-___-__-__</div>
-        </div>
-        <div class="personal__footer container">
-          <div class="personal__footer_title">Ваша карта</div>
-          <div class="personal__footer_level">
-            <img src="app/assets/backs/level-bg.png">
-            <span class="personal__footer_level_text" id="personalCardType"></span>
-          </div>
-          <div class="personal__footer_type" id="notMatchCardType">
-            Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
-          </div>
-          <div class="personal__footer_event">
-            <button onclick="drawSection('personal_update')">сменить данные</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="personal_update" class="personalUpdate">
-        <div class="container">
-          <div class="personalUpdate__replaceCard" id="replace_card" style="display: none">
-            <p>Переход на пластиковую карту:</p>
-            <div class="popup"><span class="popup-text" id="personal_new_card_popup">Введите номер карты</span></div>
-            <input class="u-full-width" type="text" placeholder="Номер карты" id="personal_new_card" />
-            <button id="personal_changeCard_button" class="button-primary">Подтвердить</button>
-          </div>
-          <div class="personalUpdate__setPlastic">
-            <a href="#" onclick="drawSection('set_plastic')">Привязать пластиковую карту</a>
-            <p>Пластиковую карту можно получить в магазине.</p>
-            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
-          </div>
-          <p class="personalUpdate__h">Изменить пароль</p>
-          <div class="popup"><span class="popup-text" id="personal-new-pass-popup">Введите новый пароль</span></div>
-          <div class="personalUpdate__inputPass">
-            <input class="u-full-width" type="password" placeholder="введите новый пароль" id="personal-new-pass" />
-            <i class="icon-eye-off"></i>
-          </div>
-          <div class="popup"><span class="popup-text" id="personal-new-pass-confirmation-popup">Введенные пароли не
-              совпадают</span></div>
-          <div class="personalUpdate__inputPass">
-            <input class="u-full-width" type="password" placeholder="повторите новый пароль"
-              id="personal-new-pass-confirmation" />
-            <i class="icon-eye-off"></i>
-          </div>
-        </div>
-
-        <div class="personalUpdate__system">
-          <div class="container">
-            <p class="personalUpdate__h">ВЫБЕРИТЕ ТИП КАРТЫ</p>
-            <div class="personalUpdate__system_update">
-              <div class="system_tabs">
-                <div class="system_tabsHead">
-                  <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
-                      name="systemChange" value="0" checked><label for="premChange">БОНУСНАЯ</label></span>
-                  <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
-                      value="1"><label for="discountChange">ДИСКОНТНАЯ</label></span>
-                </div>
-
-                <div class="system_tabsContent">
-                  <div class="tab_c_active"><span>С покупок Вы получаете кэшбек
-                      бонусными
-                      рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
-                  <div><span>Вы можете получать скидки от 5% до 10% на товар,
-                      который можно приобрести со скидкой.</span></div>
-                </div>
-              </div>
+            <div class="mainMenu__content">
+                <ul class="mainMenu__content_nav">
+                    <li data-section="wallet">Кошелек</li>
+                    <li data-section="news">Акции</li>
+                    <li data-section="stores">Магазины</li>
+                    <li data-section="personal">Профиль</li>
+                    <li data-section="refer">Пригласить друга</li>
+                </ul>
+                <ul class="mainMenu__content_bottom">
+                    <li onclick="showFeedback(); closeNav();">
+                        <i class="icon-help" aria-hidden="true"></i>
+                        <div>Задать вопрос</div>
+                    </li>
+                    <li onclick="logOff()">
+                        <i class="icon-logout" aria-hidden="true"></i>
+                        <div>Выход</div>
+                    </li>
+                </ul>
             </div>
-          </div>
-          <div class="container">
-            <p style="text-align: center;font-size: 13px;">Сменить вид программы Вы можете один раз в сутки. <a
-                onclick="showRules()">Подробнее</a></p>
-            <button id="personal_changePassword_button" class="button button-primary" style="width: 100%;">Внести
-              изменения</button>
-          </div>
         </div>
-      </div>
 
-      <div class="setPlastic" id="set_plastic">
-        <div class="container">
-          <div class="setPlastic__head">
-            <span>Привязать пластиковую карту</span>
-            <p>Пластиковую карту можно получить в магазине.</p>
-            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
-          </div>
-          <div class="setPlastic__foot">
-            <button id="scanerQR" class="setPlastic__foot_scanerQR">
-                <span class="setPlastic__foot_scanText">Просканируйте QR-код,<br> Что бы привязать карту</span>
-                <span class="scan_focus">
-                  <span class="scan_focus-block">
-                    <span class="scan_focus-item1"></span>
-                    <span class="scan_focus-item2"></span>
-                    <span class="scan_focus-item3"></span>
-                    <span class="scan_focus-item4"></span>
-                    <span class="scan_focus-item5"></span>
-                  </span>
-                </span>
-                <span class="scan_border1"></span>
-                <span class="scan_border2"></span>
-                <span class="scan_border3"></span>
-                <span class="scan_border4"></span>
-            </button>
-            <input type="text" id="plasticNumber" placeholder="номер карты">
-            <button id="set_card" class="button-primary">Добавить</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="news" class="news">
-        <div class="container"></div>
-      </div>
-
-      <div id="wallet" class="wallet">
-        <div class="wallet__content">
+        <div class="feedback animate__animated animate__slideInDown" id="feedback" style="display: none;">
             <div class="container">
-            <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
-              <div style="padding: 2rem;"><i class="icon-pied-piper" style="font-size: 4rem;"></i></div>
-              <h6>Почти готово! Осуществляется начисление бонусов, в течение минуты всё будет завершено.</h6>
-            </div>
-            <div class="wallet__content_loader" id="wallet-loader">
-              <div class="lds-ellipsis">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-            </div>
-            <div class="wallet__content_data" id="wallet-data" style="display: none;">
-                <div class="wallet__content_data_type" id="cardType"></div>
-                <div class="wallet__content_data_qr animate__animated animate__fadeIn" id="qrcode" style="display: none;"></div>
-                <div style="display: none">Ваш персональный код:</div>
-                <div style="display: none">
-                    <span class="cardNumber neutral" id="cardNumber">Загрузка...</span>
+                <div class="row">
+                    <div class="six columns">
+                        <label for="feedback-name">Ваше имя</label>
+                        <input id="feedback-name" class="u-full-width" type="text" placeholder="Имя">
+                        <label for="feedback-email">Email</label>
+                        <input id="feedback-email" class="u-full-width" type="text" placeholder="My@mail.com">
+                    </div>
+                    <div class="six columns">
+                        <div class="popup"><span class="popup-text" id="feedback-phone-mask-popup">Введите номер телефона</span></div>
+                        <label for="feedback-phone-mask">Телефон</label>
+                        <div class="maskedInput">
+                            <input id="feedback-phone-mask" class="u-full-width" type="tel">
+                        </div>
+                        <label for="feedback-reason">Причина обращения</label>
+                        <select id="feedback-reason" class="u-full-width">
+                            <option value="Комментарий">Комментарий</option>
+                            <option value="Вопрос">Вопрос</option>
+                            <option value="Ошибка">Ошибка</option>
+                            <option value="Предложение">Предложение</option>
+                        </select>
+                    </div>
                 </div>
-                <button id="downloadCard" style="display: none" class="animate__animated animate__fadeIn">Скачать QR код</button>
-                <button class="wallet__content_data_balance button">
-                    <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span id="bonuses" class="load"></span>
-                    <span id="currencyType" class="currencyType">бонусов</span>
-                </button>
-                <div class="currentBalance">
-                    Доступно <span id="currentBalance"></span> <span class="currencyType">бонусов</span>
+                <div class="popup"><span class="popup-text" id="feedback-message-popup">Введите сообщение</span></div>
+                <label for="feedback-message">Сообщение</label>
+                <textarea class="u-full-width" placeholder="Здравствуйте!" id="feedback-message"></textarea>
+                <input id="feedback-account" disabled style="display: none;" />
+                <div class="row">
+                    <div class="six columns">
+                        <input id="feedback-submit" class="u-full-width button-primary" type="submit" value="Отправить">
+                    </div>
+                    <div class="six columns">
+                        <button class="u-full-width" onclick="hideFeedback();">Закрыть</button>
+                    </div>
                 </div>
-                <div class="wallet__balanceDetail">
-                    <a href="#" data-click="openBalanceView">Подробнее...</a>
-                    <div class="balance-view"></div>
+            </div>
+        </div>
+
+        <div class="terms" id="terms" style="display: none">
+            <iframe loading="lazy" src="" frameborder="0"></iframe>
+            <div class="terms__button">
+                <button onclick='closeTerms()'>Принять</button>
+            </div>
+        </div>
+
+        <div class="wrapper">
+            <header class="topNav">
+                <i class="topNav__back icon-angle-left" onclick="routePrevSection()"></i>
+                <i class="icon-cancel topNav__close" onclick="routePrevSection()"></i>
+                <i class="icon-mail topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
+                <h6>&nbsp;</h6>
+                <i class="icon-menu topNav__menu" onclick="openNav()"></i>
+                <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
+            </header>
+
+            <main class="main">
+
+                <div id="adult" class="sectionEmpty">
+                    <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица" srcset="app/assets/logo/logo_256.png 1x,
+                         app/assets/logo/logo_256x2.png 2x,
+                         app/assets/logo/logo_256x3.png 3x,
+                         app/assets/logo/logo_256x4.png 4x">
+                    <div class="container">
+                        <h5>
+                            Подтвердите, что Вам есть 18 лет
+                        </h5>
+                        <button class="button button-primary u-full-width" onclick="drawSection('intro')">мне исполнилось 18
+                            лет</button>
+                        <button class="button button-leave u-full-width">мне нет 18 лет</button>
+                    </div>
                 </div>
-            </div>
-          </div>
+
+                <div id="intro" class="sectionEmpty">
+                    <img class="main-logo" src="app/assets/logo/logo_256.png" alt="Столица" srcset="app/assets/logo/logo_256.png 1x,
+                         app/assets/logo/logo_256x2.png 2x,
+                         app/assets/logo/logo_256x3.png 3x,
+                         app/assets/logo/logo_256x4.png 4x">
+                    <div class="container">
+                        <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
+                        <div class="textWings">или</div>
+                        <a href="#" class="link" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
+                    </div>
+                </div>
+
+                <div id="authorization">
+                    <div class="container">
+                        <p class="hero-heading">Введите ваш номер телефона и пароль</p>
+                        <!-- Номер телефона -->
+                        <div class="popup"><span id="auth-phone-mask-popup" class="popup-text">Введите номер телефона</span></div>
+                        <div class="maskedInput">
+                            <input id="auth-phone-mask" type="tel" />
+                        </div>
+                        <!-- Пароль -->
+                        <div class="popup"><span class="popup-text" id="auth-pass-popup">Введите пароль</span></div>
+                        <div class="authorization__inputPass">
+                            <input class="u-full-width" type="password" placeholder="Пароль" id="auth-pass" />
+                            <i class="icon-eye-off"></i>
+                        </div>
+                        <!-- Кнопки -->
+                        <p style="text-align: right;"><a class="link" href="#" onclick="drawSection('reset')">Забыли
+                                пароль?</a></p>
+                        <button id="auth-button" class="button button-primary u-full-width">Войти</button>
+                        <p  class="link">
+                            <span>У вас ещё нет аккунта?</span>
+                            <a href="#" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="reset">
+                    <div class="container">
+                        <h3>Не удается войти?</h3>
+                        <i class="icon-lock-open-alt" style="font-size: 48px"></i>
+                        <p class="hero-heading">Введите ваш номер мобильного телефона</p>
+                        <div class="popup"><span class="popup-text" id="reset-phone-mask-popup">Введите номер телефона</span></div>
+                        <div class="maskedInput">
+                            <input id="reset-phone-mask" type="tel" />
+                        </div>
+                        <button class="button button-primary" style="width: 100%;" id="reset_button" disabled>Получить код для входа</button>
+                        <!-- Блок подтверждения входа -->
+                        <div id="reset_confirmation" style="display: none;" class="animate__animated animate__fadeIn">
+                            <div id="reset_confirmation_info" style="font-weight: bold;"></div>
+                            <input class="u-full-width" maxlength="4" type="tel" placeholder="Код" id="reset_confirmation_code" />
+                            <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
+                            <p class="link">
+                                <span>Мне не позвонили,</span>
+                                <a href="#" onclick="showFeedback()">что мне делать?</a>
+                            </p>
+                            <button class="button button-primary" style="width: 100%;" onclick="checkResetConfirmationCode()"
+                                    id="reset_confirmation_button" disabled>Войти</button>
+                        </div>
+                        <div class="textWings">или</div>
+                        <p class="link">
+                            <a href="#" onclick="drawSection('pre-registration')">Создать новый аккаунт</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="pre-registration" class="preRegistration">
+                    <h2 class="main-logo"></h2>
+                    <div class="container">
+                        <img src="app/assets/backs/city.png">
+                        <p>Выберите город</p>
+                        <select id="city" name="card_discount" class="reg_city"></select>
+                        <p class="link">
+                            <button class="button button-primary" style="width: 100%;"
+                                    onclick="drawSection('registration')">Готово</button>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="registration" class="registration">
+                    <div class="container">
+                        <!-- Блок регистрации -->
+                        <div id="registration_cont" class="row registration__cont">
+                            <p class="hero-heading">Для завершения регистрации укажите свои контактные данные</p>
+                            <div>
+                                <input class="u-full-width" type="text" placeholder="Имя" id="reg_firstname" />
+                            </div>
+                            <!-- Номер телефона -->
+                            <div class="popup"><span class="popup-text" id="reg-phone-mask-popup">Введите номер телефона</span></div>
+                            <div class="required maskedInput">
+                                <input id="reg-phone-mask" type="tel" />
+                            </div>
+                            <div>
+                                <p>Дата рождения:</p>
+                                <div class="popup"><span class="popup-text" id="reg-birthdate-popup">Вы должны быть старше 18 лет!</span></div>
+                                <input id="reg-birthdate" class="u-full-width required" type="tel" placeholder="дд-мм-гггг" />
+                            </div>
+                            <div>
+                                <input class="u-full-width" type="email" placeholder="e-mail" id="reg_email" />
+                            </div>
+                            <div class="popup"><span class="popup-text" id="reg-pass-popup">Введите пароль, не менее 6 символов</span>
+                            </div>
+                            <div id="reg_password_group" class="registration__inputPass required">
+                                <input class="u-full-width" type="password" placeholder="Пароль" id="reg-pass" />
+                                <i class="icon-eye-off"></i>
+                            </div>
+                            <div id="reg_password_group" class="registration__inputPass required">
+                                <input class="u-full-width" type="password" placeholder="Повторите пароль" id="reg-pass-confirm" />
+                                <i class="icon-eye-off"></i>
+                            </div>
+                            <!-- Система скидок -->
+                            <div id="loyalty-system" class="system system-reg" style="display:none">
+                                <p class="system_title">Выберите систему скидок</p>
+
+                                <div class="system_tabs">
+                                    <div class="system_tabsHead">
+                                        <span class="tab_h_active" data-tab="0"><input id="prem" type="radio"
+                                                                                       name="system" value="0" checked><label for="prem">Бонусная</label></span>
+                                        <span data-tab="1"><input id="discount" type="radio" name="system"
+                                                                  value="1"><label for="discount">Дисконтная</label></span>
+                                    </div>
+                                    <div class="system_tabsContent">
+                                        <div class="tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок, 2000 бонусов в подарок при регистрации.</span></div>
+                                        <div><span>Вы можете получать скидки от 5% до 10% на товар, который можно приобрести со скидкой.</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Согласие с условиями -->
+                            <p class="reg_confirm">Создавая аккаунт, я соглашаюсь с <a onclick="showRules()">правилами</a> и даю
+                                согласие
+                                на <a onclick="showTerms()">обработку персональных данных</a>.</p>
+                            <!-- Кнопка регистрации -->
+                            <button id="reg-button" class="button button-primary" style="width: 100%;">Создать аккаунт</button>
+                        </div>
+                        <!-- Блок подтверждения регистрации -->
+                        <div id="reg_confirmation" class="registration__confirm" style="display: none;">
+                            <div id="reg_confirmation_info"></div>
+                            <div id="reg_confirmation_remind"></div>
+                            <div class="popup"><span class="popup-text" id="reg-confirmation-code-popup"></span></div>
+                            <input class="u-full-width" type="tel" maxlength="4" placeholder="Код" id="reg-confirmation-code" />
+                            <button class="button button-primary" style="width: 100%;" onclick="confirmation()"
+                                    id="confirmation_button" disabled>Подтвердить</button>
+                            <button class="button button-primary" style="width: 100%; display: none" onclick="confirmationReset()"
+                                    id="confirmation_button_reset">Получить СМС</button>
+                        </div>
+                        <!-- Авторизация -->
+                        <p class="reg_auth link">
+                            <span>Постойте, но ведь</span>
+                            <a href="#" onclick="drawSection('authorization')">я уже зарегистрирован</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="reg_success">
+                    <div class="reg_success-top">
+                        <div class="container">
+                            <div class="reg_success-top-block">
+                                <img src="app/assets/backs/success-reg.png">
+                                <p>Ваша ВИРТУАЛЬНАЯ карта готова к использованию! Для использования перейдите в <a href="#"
+                                                                                                                   onclick="drawSection('wallet')">КОШЕЛЕК</a> и предьявите QR-код продавцу.</p>
+                                <p> ПЛАСТИКОВАЯ карта больше не нужна!</p>
+                                <p> Если вам не удобно пользоваться виртуальной картой, вы можете получить пластиковую карту в <a href="#"
+                                                                                                                                  onclick="drawSection('stores')">любом магазине</a>. </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reg_success-bottom">
+                        <div class="container">
+                            <button class="button" style="width: 100%;" onclick="drawSection('wallet')">Перейти в кошелек</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="personal" id="personal">
+                    <div class="personal__head">
+                        <div class="personal__head_avatar">
+                            <div class="personal__head_avatar_image">
+                                <img src="app/assets/backs/avatar.png">
+                            </div>
+                        </div>
+                        <div class="personal__head_name" id="personal_name">Наш Любимый Покупатель</div>
+                        <div class="personal__head_birthday textWings" id="personal_birthdate"></div>
+                        <div class="personal__head_phone" id="personal_phone">+7-___-___-__-__</div>
+                    </div>
+                    <div class="personal__footer container">
+                        <div class="personal__footer_title">Ваша карта</div>
+                        <div class="personal__footer_level">
+                            <img src="app/assets/backs/level-bg.png">
+                            <span class="personal__footer_level_text" id="personalCardType"></span>
+                        </div>
+                        <div class="personal__footer_type" id="notMatchCardType">
+                            Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
+                        </div>
+                        <div class="personal__footer_event">
+                            <button onclick="drawSection('personal_update')">сменить данные</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="personal_update" class="personalUpdate">
+                    <div class="container">
+                        <div class="personalUpdate__replaceCard" id="replace_card" style="display: none">
+                            <p>Переход на пластиковую карту:</p>
+                            <div class="popup"><span class="popup-text" id="personal_new_card_popup">Введите номер карты</span></div>
+                            <input class="u-full-width" type="text" placeholder="Номер карты" id="personal_new_card" />
+                            <button id="personal_changeCard_button" class="button-primary">Подтвердить</button>
+                        </div>
+                        <div class="personalUpdate__setPlastic">
+                            <a href="#" onclick="drawSection('set_plastic')">Привязать пластиковую карту</a>
+                            <p>Пластиковую карту можно получить в магазине.</p>
+                            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
+                        </div>
+                        <p class="personalUpdate__h">Изменить пароль</p>
+                        <div class="popup"><span class="popup-text" id="personal-new-pass-popup">Введите новый пароль</span></div>
+                        <div class="personalUpdate__inputPass">
+                            <input class="u-full-width" type="password" placeholder="введите новый пароль" id="personal-new-pass" />
+                            <i class="icon-eye-off"></i>
+                        </div>
+                        <div class="popup"><span class="popup-text" id="personal-new-pass-confirmation-popup">Введенные пароли не
+                                совпадают</span></div>
+                        <div class="personalUpdate__inputPass">
+                            <input class="u-full-width" type="password" placeholder="повторите новый пароль"
+                                   id="personal-new-pass-confirmation" />
+                            <i class="icon-eye-off"></i>
+                        </div>
+                    </div>
+
+                    <div class="personalUpdate__system">
+                        <div class="container">
+                            <p class="personalUpdate__h">ВЫБЕРИТЕ ТИП КАРТЫ</p>
+                            <div class="personalUpdate__system_update">
+                                <div class="system_tabs">
+                                    <div class="system_tabsHead">
+                                        <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
+                                                                                       name="systemChange" value="0" checked><label for="premChange">БОНУСНАЯ</label></span>
+                                        <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
+                                                                  value="1"><label for="discountChange">ДИСКОНТНАЯ</label></span>
+                                    </div>
+
+                                    <div class="system_tabsContent">
+                                        <div class="tab_c_active"><span>С покупок Вы получаете кэшбек
+                                                бонусными
+                                                рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
+                                        <div><span>Вы можете получать скидки от 5% до 10% на товар,
+                                                который можно приобрести со скидкой.</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container">
+                            <p style="text-align: center;font-size: 13px;">Сменить вид программы Вы можете один раз в сутки. <a
+                                    onclick="showRules()">Подробнее</a></p>
+                            <button id="personal_changePassword_button" class="button button-primary" style="width: 100%;">Внести
+                                изменения</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setPlastic" id="set_plastic">
+                    <div class="container">
+                        <div class="setPlastic__head">
+                            <span>Привязать пластиковую карту</span>
+                            <p>Пластиковую карту можно получить в магазине.</p>
+                            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
+                        </div>
+                        <div class="setPlastic__foot">
+                            <button id="scanerQR" class="setPlastic__foot_scanerQR">
+                                <span class="setPlastic__foot_scanText">Просканируйте QR-код,<br> Что бы привязать карту</span>
+                                <span class="scan_focus">
+                                    <span class="scan_focus-block">
+                                        <span class="scan_focus-item1"></span>
+                                        <span class="scan_focus-item2"></span>
+                                        <span class="scan_focus-item3"></span>
+                                        <span class="scan_focus-item4"></span>
+                                        <span class="scan_focus-item5"></span>
+                                    </span>
+                                </span>
+                                <span class="scan_border1"></span>
+                                <span class="scan_border2"></span>
+                                <span class="scan_border3"></span>
+                                <span class="scan_border4"></span>
+                            </button>
+                            <input type="text" id="plasticNumber" placeholder="номер карты">
+                            <button id="set_card" class="button-primary">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="news" class="news">
+                    <div class="container"></div>
+                </div>
+
+                <div id="wallet" class="wallet">
+                    <div class="wallet__content">
+                        <div class="container">
+                            <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
+                                <div style="padding: 2rem;"><i class="icon-pied-piper" style="font-size: 4rem;"></i></div>
+                                <h6>Почти готово! Осуществляется начисление бонусов, в течение минуты всё будет завершено.</h6>
+                            </div>
+                            <div class="wallet__content_loader" id="wallet-loader">
+                                <div class="lds-ellipsis">
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                            </div>
+                            <div class="wallet__content_data" id="wallet-data" style="display: none;">
+                                <div class="wallet__content_data_type" id="cardType"></div>
+                                <div class="wallet__content_data_qr animate__animated animate__fadeIn" id="qrcode" style="display: none;"></div>
+                                <div style="display: none">Ваш персональный код:</div>
+                                <div style="display: none">
+                                    <span class="cardNumber neutral" id="cardNumber">Загрузка...</span>
+                                </div>
+                                <button id="downloadCard" style="display: none" class="animate__animated animate__fadeIn">Скачать QR код</button>
+                                <button class="wallet__content_data_balance button">
+                                    <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <span id="bonuses" class="load"></span>
+                                    <span id="currencyType" class="currencyType">бонусов</span>
+                                </button>
+                                <div class="currentBalance">
+                                    Доступно <span id="currentBalance"></span> <span class="currencyType">бонусов</span>
+                                </div>
+                                <div class="wallet__balanceDetail">
+                                    <a href="#" data-click="openBalanceView">Подробнее...</a>
+                                    <div class="balance-view"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wallet__bottom">
+                        <div id="cardDataDiscount" class="wallet__bottom_dataDicount" style="display: none">
+                            <div>С бонусами выгоднее!</div>
+                            <div>Переходи на бонусы,</div>
+                            <div>получай скидки до 50% и кэшбек до 15%!</div>
+                            <a href="#" onclick="drawSection('personal_update')">Хочу бонусную карту!</a>
+                        </div>
+                        <div id="cardDataBonus" style="display: none">
+                            <span>Пока мы не запустили бонусную программу,<br> Ваша скидка <span id="discountValue"></span>. <br>
+                                О начале действия бонусной программы мы сообщим дополнительно и Вы сможете поспользоваться Вашими бонусами.</span>
+                        </div>
+                        <div id="cardDataBonusPreffered" style="display: none">
+                            <span>Бонусная карта, переход на дисконтную(заглушка).</span>
+                        </div>
+                        <p id="changeDiscountSystem" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
+                            <span>Завтра Ваша карта станет <span id="changeDiscountSystemValue"></span>.</span>
+                        </p>
+                        <button id="transactions-details-button" class="details button-primary">Открыть детализацию</button>
+                        <div class="wallet__bottom_transactions hidden" id="transactions">
+                            <div class="container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stores" class="stores">
+                    <div class="container">
+                        <div class="main-logo">
+                            <img src="app/assets/backs/city.png">
+                            <p>Выберите город</p>
+                            <select id="store_cities" name="store_cities" class="u-full-width"></select>
+                        </div>
+                        <div class="storesList"></div>
+                    </div>
+                </div>
+
+                <div id="refer" class="refer">
+                    <div class="container">
+                        <div id="referQr" class="referQr"></div>
+                        <h3>Хочешь еще бонусов?</h3>
+                        <p>Пригласи друга и получи дополнительные <strong>1000</strong> бонусов!</p>
+                        <p>Отправь другу ссылку на регистрацию и получи <strong>1000</strong> бонусов на свой счет после его первой
+                            покупки в магазине «Столица»*</p>
+                        <p>Количество ссылок не ограничено, больше друзей – больше бонусов!</p>
+                        <p><small>*Бонусы начисляются после первой совершенной покупки другом.</small></p>
+                        <p class="link">
+                            <a href="#" onClick="showRefRules();">Полные правила акции</a>
+                        </p>
+                        <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
+                        <p id="referLink" style="display: none" class="animate__animated animate__fadeIn">
+                            <a id="referLinkWA" href=""><img style="width: 64px;" loading="lazy"
+                                                             src="app/assets/social/whatsapp-128x128.png" alt="WHATSAPP"></a>
+                            <a id="referLinkTG" href=""><img style="width: 64px;" loading="lazy"
+                                                             src="app/assets/social/telegram-128x128.png" alt="TELEGRAM"></a>
+                        </p>
+                        <p>История отправленных приглашений:</p>
+                        <table class="u-full-width" style="font-size: 1.1rem;">
+                            <tbody id="referrals">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="alerts">
+                    <div class="alerts__block">
+                        <div class="alerts__block_item">
+                            <span>Push-уведомления</span>
+                            <div class="switcher">
+                                <input id="push-sw" type="checkbox" /><label class="toggle" for="push-sw"><span
+                                        class="toggle--handler"></span></label>
+                            </div>
+                        </div>
+                        <div class="alerts__block_item">
+                            <span>Email</span>
+                            <div class="switcher">
+                                <input id="email-sw" type="checkbox" /><label class="toggle" for="email-sw"><span
+                                        class="toggle--handler"></span></label>
+                            </div>
+                        </div>
+                        <div class="alerts__block_item">
+                            <span>SMS</span>
+                            <div class="switcher">
+                                <input id="sms-sw" type="checkbox" /><label class="toggle" for="sms-sw"><span
+                                        class="toggle--handler"></span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer style="display: none;">
+                <nav>
+                    <ul class="bottomNav">
+                        <li data-section="news">
+                            <i class="icon-newspaper"></i>
+                            <div>Акции</div>
+                        </li>
+                        <li data-section="stores">
+                            <i class="icon-location"></i>
+                            <div>Карты</div>
+                        </li>
+                        <li data-section="wallet">
+                            <i class="icon-credit-card"></i>
+                            <div>Кошелек</div>
+                        </li>
+                        <li data-section="personal">
+                            <i class="icon-id-card-o"></i>
+                            <div>Профиль</div>
+                        </li>
+                    </ul>
+                </nav>
+            </footer>
         </div>
-        <div class="wallet__bottom">
-          <div id="cardDataDiscount" class="wallet__bottom_dataDicount" style="display: none">
-            <div>С бонусами выгоднее!</div>
-            <div>Переходи на бонусы,</div>
-            <div>получай скидки до 50% и кэшбек до 15%!</div>
-            <a href="#" onclick="drawSection('personal_update')">Хочу бонусную карту!</a>
-          </div>
-          <div id="cardDataBonus" style="display: none">
-            <span>Пока мы не запустили бонусную программу,<br> Ваша скидка <span id="discountValue"></span>. <br>
-                О начале действия бонусной программы мы сообщим дополнительно и Вы сможете поспользоваться Вашими бонусами.</span>
-          </div>
-          <div id="cardDataBonusPreffered" style="display: none">
-            <span>Бонусная карта, переход на дисконтную(заглушка).</span>
-          </div>
-          <p id="changeDiscountSystem" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
-            <span>Завтра Ваша карта станет <span id="changeDiscountSystemValue"></span>.</span>
-          </p>
-          <button id="transactions-details-button" class="details button-primary">Открыть детализацию</button>
-          <div class="wallet__bottom_transactions hidden" id="transactions">
-            <div class="container"></div>
-          </div>
-        </div>
-      </div>
 
-      <div id="stores" class="stores">
-        <div class="container">
-          <div class="main-logo">
-            <img src="app/assets/backs/city.png">
-            <p>Выберите город</p>
-            <select id="store_cities" name="store_cities" class="u-full-width"></select>
-          </div>
-          <div class="storesList"></div>
-        </div>
-      </div>
-
-      <div id="refer" class="refer">
-        <div class="container">
-          <div id="referQr" class="referQr"></div>
-          <h3>Хочешь еще бонусов?</h3>
-          <p>Пригласи друга и получи дополнительные <strong>1000</strong> бонусов!</p>
-          <p>Отправь другу ссылку на регистрацию и получи <strong>1000</strong> бонусов на свой счет после его первой
-            покупки в магазине «Столица»*</p>
-          <p>Количество ссылок не ограничено, больше друзей – больше бонусов!</p>
-          <p><small>*Бонусы начисляются после первой совершенной покупки другом.</small></p>
-          <p class="link">
-            <a href="#" onClick="showRefRules();">Полные правила акции</a>
-          </p>
-          <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
-          <p id="referLink" style="display: none" class="animate__animated animate__fadeIn">
-            <a id="referLinkWA" href=""><img style="width: 64px;" loading="lazy"
-                src="app/assets/social/whatsapp-128x128.png" alt="WHATSAPP"></a>
-            <a id="referLinkTG" href=""><img style="width: 64px;" loading="lazy"
-                src="app/assets/social/telegram-128x128.png" alt="TELEGRAM"></a>
-          </p>
-          <p>История отправленных приглашений:</p>
-          <table class="u-full-width" style="font-size: 1.1rem;">
-            <tbody id="referrals">
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="alerts">
-        <div class="alerts__block">
-          <div class="alerts__block_item">
-            <span>Push-уведомления</span>
-            <div class="switcher">
-              <input id="push-sw" type="checkbox" /><label class="toggle" for="push-sw"><span
-                  class="toggle--handler"></span></label>
-            </div>
-          </div>
-          <div class="alerts__block_item">
-            <span>Email</span>
-            <div class="switcher">
-              <input id="email-sw" type="checkbox" /><label class="toggle" for="email-sw"><span
-                  class="toggle--handler"></span></label>
-            </div>
-          </div>
-          <div class="alerts__block_item">
-            <span>SMS</span>
-            <div class="switcher">
-              <input id="sms-sw" type="checkbox" /><label class="toggle" for="sms-sw"><span
-                  class="toggle--handler"></span></label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <footer style="display: none;">
-        <nav>
-            <ul class="bottomNav">
-                <li data-section="news">
-                  <i class="icon-newspaper"></i>
-                  <div>Акции</div>
-                </li>
-                <li data-section="stores">
-                  <i class="icon-location"></i>
-                  <div>Карты</div>
-                </li>
-                <li data-section="wallet">
-                  <i class="icon-credit-card"></i>
-                  <div>Кошелек</div>
-                </li>
-                <li data-section="personal">
-                  <i class="icon-id-card-o"></i>
-                  <div>Профиль</div>
-                </li>
-            </ul>
-        </nav>
-    </footer>
-  </div>
-
-    <!-- Yandex.Metrika counter -->
-    <!-- <script type="text/javascript" >
-    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-    ym(75982831, "init", {
-          clickmap:true,
-          trackLinks:true,
-          accurateTrackBounce:true
-    });
-  </script>
-  <noscript><div><img src="https://mc.yandex.ru/watch/75982831" style="position:absolute; left:-9999px;" alt="" /></div></noscript> -->
-    <!-- /Yandex.Metrika counter -->
-</body>
+        <!-- Yandex.Metrika counter -->
+        <!-- <script type="text/javascript" >
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+    
+        ym(75982831, "init", {
+              clickmap:true,
+              trackLinks:true,
+              accurateTrackBounce:true
+        });
+      </script>
+      <noscript><div><img src="https://mc.yandex.ru/watch/75982831" style="position:absolute; left:-9999px;" alt="" /></div></noscript> -->
+        <!-- /Yandex.Metrika counter -->
+    </body>
 
 </html>

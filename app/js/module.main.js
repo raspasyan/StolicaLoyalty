@@ -382,8 +382,9 @@ function removeChildrens(el) {
 function routePrevSection() {
     let section = localStorage.getItem(LS_SECTION);
 
-    if (sections[section] && sections[section].prevSection)
+    if (sections[section] && sections[section].prevSection) {
         drawSection(sections[section].prevSection);
+    }
 }
 
 function drawSection(section) {
@@ -472,7 +473,8 @@ function drawSection(section) {
     C(".topNav__msg").el.style.display = (sections[section] && !sections[section].prevSection ? "" : "none");
     C("header h6").text(sections[section].title);
     C(".topNav__menu").el.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
-    C(".topNav__close").el.style.display = (["alerts"].indexOf(section) === -1 ? "none" : "");
+    //C(".topNav__close").el.style.display = (["alerts"].indexOf(section) === -1 ? "none" : "");
+    C(".topNav__close").el.style.display = "none";
 
     let bottomNav = C("footer").el;
 
@@ -707,7 +709,7 @@ function checkReg() {
         return 0;
     }
 
-    if (!validateBirthdate(regBdEl)) {
+    if (!validateBirthdate(regBdEl, true)) {
         return 0;
     }
 
@@ -1418,9 +1420,15 @@ function getValueByMask(value, mask, full) {
     return newPhone;
 }
 
-function validateBirthdate(el) {
+function validateBirthdate(el, isSubmit) {
     let result = false,
         popup  = C("#reg-birthdate-popup");
+
+    popup.delclass("show");
+    
+    if (!isSubmit) {
+        isSubmit = false;
+    }
         
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
     
@@ -1435,6 +1443,9 @@ function validateBirthdate(el) {
             popup.delclass("show");
             result = true;
         }
+    } else if (isSubmit) {
+        popup.addclass("show");
+        C(".main").el.scrollIntoView();
     }
 
     return result;
