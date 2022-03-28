@@ -39,9 +39,48 @@
             font-size: 13px;
             font-weight: normal;
             text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: grid;
+            
+            .scan_focus {
+                display: block;
+                height: 27px;
+                width: 28px;
+                margin-top: 37px;
+                justify-self: center;
+                align-self: center;
+
+                .scan_focus-block {
+                    display: block;
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                .scan_focus-item1 {
+                    @include focusItem(left, top);
+                }
+
+                .scan_focus-item2 {
+                    @include focusItem(right, top);
+                }
+
+                .scan_focus-item3 {
+                    @include focusItem(right, bottom);
+                }
+
+                .scan_focus-item4 {
+                    @include focusItem(left, bottom);
+                }
+
+                .scan_focus-item5 {
+                    position: absolute;
+                    width: 60%;
+                    height: 2px;
+                    background: #d3d3d3;
+                    top: 48%;
+                    left: 20%;
+                }
+            }
         }
         
         .setPlastic__foot_scanText {
@@ -51,45 +90,6 @@
             top: 20%;
             line-height: 24px;
         }
-    }
-}
-
-.scan_focus {
-    display: block;
-    height: 27px;
-    width: 28px;
-    margin-top: 37px;
-    
-    .scan_focus-block {
-        display: block;
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-    
-    .scan_focus-item1 {
-        @include focusItem(left, top);
-    }
-    
-    .scan_focus-item2 {
-        @include focusItem(right, top);
-    }
-    
-    .scan_focus-item3 {
-        @include focusItem(right, bottom);
-    }
-    
-    .scan_focus-item4 {
-        @include focusItem(left, bottom);
-    }
-    
-    .scan_focus-item5 {
-        position: absolute;
-        width: 60%;
-        height: 2px;
-        background: #d3d3d3;
-        top: 48%;
-        left: 20%;
     }
 }
 

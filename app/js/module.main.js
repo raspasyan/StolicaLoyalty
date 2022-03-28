@@ -1129,25 +1129,25 @@ function loadScript(src) {
 
 function showTerms() {
     show("#terms");
-    C("body").el.style.overflow = "hidden";
+    C("body").addclass("hideOverflow");
     C("#terms").el.getElementsByTagName("iframe")[0].src = TERMS_URL;
 }
 
 function showRules() {
     show("#terms");
-    C("body").el.style.overflow = "hidden";
+    C("body").addclass("hideOverflow");
     C("#terms").el.getElementsByTagName("iframe")[0].src = RULES_URL;
 }
 
 function showRefRules() {
     show("#terms");
-    C("body").el.style.overflow = "hidden";
+    C("body").addclass("hideOverflow");
     C("#terms").el.getElementsByTagName("iframe")[0].src = REF_RULES_URL;
 }
 
 function closeTerms() {
     hide("#terms");
-    C("body").el.style.overflow = "unset";
+    C("body").delclass("hideOverflow");
     C("#terms").el.getElementsByTagName("iframe")[0].src = "";
 }
 
@@ -1420,18 +1420,23 @@ function getValueByMask(value, mask, full) {
 function validateBirthdate(el) {
     let result = false,
         popup  = C("#reg-birthdate-popup");
-
+        
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
+    //el.value = el.value.replace(/^(\d{2})/, "$1-$2");
     
-    let td = el.value.split("-"),
-        bd = new Date([td[2], td[1], td[0]].join("/")),
-        cd = new Date();
+    if (el.value.length > 9) {
+        let bd  = new Date(el.value.replace(/^(\d{2})-(\d{2})/, "$2-$1")),
+            cd  = new Date(),
+            age = (cd - bd);
+    
+    console.log(bd);
 
-    if (cd.getFullYear() - bd.getFullYear() < 18 || bd === "Invalid Date") {
-        popup.addclass("show");
-    } else {
-        popup.delclass("show");
-        result = true;
+        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
+            popup.addclass("show");
+        } else {
+            popup.delclass("show");
+            result = true;
+        }
     }
 
     return result;

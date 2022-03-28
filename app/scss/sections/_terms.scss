@@ -14,7 +14,7 @@
     }
     
     .terms__button {
-        text-align: center;
+        display: grid;
         position: fixed;
         bottom: 0;
         width: 100%;
@@ -22,7 +22,8 @@
         height: 10rem;
         
         button {
-            margin-top: 7%;
+            justify-self: center;
+            align-self: center;
         }
     }
 }
