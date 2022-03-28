@@ -157,6 +157,7 @@ d.addEventListener("DOMContentLoaded", function () {
                 phn.value = phone;
                 setPhoneMask(phn);
             });
+            C("#reset_button").el.disabled = (phone.length === 16 ? false : true);
         });
     });
     
@@ -210,7 +211,7 @@ d.addEventListener("DOMContentLoaded", function () {
     });
     
     C("#reset-phone-mask").el.addEventListener("input", e => {
-        C("#reset_button").el.disabled = (C("#reset-phone-mask").val().length === 16 ? false : true);
+        C("#reset_button").el.disabled = (e.currentTarget.value.length === 16 ? false : true);
     });
     
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(el => {
@@ -1422,14 +1423,11 @@ function validateBirthdate(el) {
         popup  = C("#reg-birthdate-popup");
         
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
-    //el.value = el.value.replace(/^(\d{2})/, "$1-$2");
     
     if (el.value.length > 9) {
         let bd  = new Date(el.value.replace(/^(\d{2})-(\d{2})/, "$2-$1")),
             cd  = new Date(),
             age = (cd - bd);
-    
-    console.log(bd);
 
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             popup.addclass("show");
