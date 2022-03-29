@@ -2075,14 +2075,26 @@ class BonusApp {
     private function canSendConfirmationCode($phone) {
         $result = ["status" => false, "data" => null];
 
-        $query = $this->pdo->prepare("SELECT sent_at, provider FROM `confirmations` WHERE phone = :phone AND sent_at > DATE_ADD(NOW(), INTERVAL -5 MINUTE) ORDER BY sent_at DESC LIMIT 1");
+        $query = $this->pdo->prepare("SELECT
+                sent_at,
+                provider,
+                (SELECT COUNT(phone) FROM confirmations WHERE phone = :phone AND sent_at > DATE_ADD(NOW(), INTERVAL -60 MINUTE)) AS messages_count
+            FROM 
+                confirmations
+            WHERE
+                phone = :phone
+                AND sent_at > DATE_ADD(NOW(), INTERVAL -5 MINUTE)
+            ORDER BY
+                sent_at
+            DESC LIMIT 1
+        ");
         $query->execute(["phone" => $phone]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $cd = new DateTime();
             $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
             $ls_time = strtotime($queryResult[0]["sent_at"]);
-            if ($cd_time - MESSAGE_TIMEOUT_SECONDS > $ls_time) {
+            if ($cd_time - MESSAGE_TIMEOUT_SECONDS > $ls_time && $queryResult[0]["messages_count"] < MESSAGE_HOUR_LIMIT) {
                 $result = [
                     "status" => true,
                     "data" => [
@@ -2090,7 +2102,7 @@ class BonusApp {
                     ]
                 ];
             } else {
-                $result["data"] = ["seconds_left" => MESSAGE_TIMEOUT_SECONDS - ($cd_time - $ls_time)];
+                $result["data"] = ["seconds_left" => MESSAGE_TIMEOUT_SECONDS - ($cd_time - $ls_time), "limit_left" => MESSAGE_HOUR_LIMIT - $queryResult[0]["messages_count"]];
             }
         } else {
             $result["status"] = true;

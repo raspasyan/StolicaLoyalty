@@ -11,8 +11,10 @@
     // Таймаут на запрос данных из центрума
     define("WALLET_TIMEOUT_SECONDS", 30);
 
-    // Таймаут отправки сообщения на один номер
+    // Таймаут отправки сообщений
     define("MESSAGE_TIMEOUT_SECONDS", 15);
+    // Лимит сообщений в час
+    define("MESSAGE_HOUR_LIMIT", 4);
 
     // MariaDB
     define("DB_HOST", "localhost");
