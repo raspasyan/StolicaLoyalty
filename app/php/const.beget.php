@@ -14,7 +14,7 @@
     // Таймаут отправки сообщений
     define("MESSAGE_TIMEOUT_SECONDS", 15);
     // Лимит сообщений в час
-    define("MESSAGE_HOUR_LIMIT", 4);
+    define("MESSAGE_HOUR_LIMIT", 6);
 
     // MariaDB
     define("DB_HOST", "localhost");

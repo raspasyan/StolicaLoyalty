@@ -14,6 +14,9 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
+        // debug(getallheaders()["User-Agent"]);
+        debug(preg_match("/^[7]\d{10}$/", "79635658436"));
+
         exit;
     }
 
@@ -162,13 +165,6 @@ class BonusApp {
                     echo(json_encode($result));
                     exit;
                 }
-                
-                if (INPUT_LOG) $this->journal("INPUT", "", "", false, json_encode([
-                    "header" => getallheaders(),
-                    "get" => $_GET,
-                    "post" => $_POST,
-                    "json" => file_get_contents('php://input')
-                ]));
 
                 $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
                 $message = $_GET["message"];
@@ -288,6 +284,30 @@ class BonusApp {
             exit;
         }
 
+        if (INPUT_LOG) $this->journal("INPUT", "", "", false, json_encode([
+            "header" => getallheaders(),
+            "get" => $_GET,
+            "post" => $_POST,
+            "json" => file_get_contents('php://input')
+        ]));
+
+        if (getallheaders()["User-Agent"] == "Mozilla/5.0 (Linux; Android 10; SM-A205FN Build/QP1A.190711.020; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/99.0.4844.58 Mobile Safari/537.36") {
+            // $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
+            //     "header" => getallheaders(),
+            //     "get" => $_GET,
+            //     "post" => $_POST,
+            //     "json" => file_get_contents('php://input')
+            // ]));
+            
+            $resultData = [
+                "status" => true
+            ];
+
+            echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
+
+            exit;
+        }
+
         try {
             $requestData = json_decode($rawRequestData, true);
             $resultData = array(
@@ -315,7 +335,7 @@ class BonusApp {
                 }
 
                 case "authorization": {
-                    if (!empty($requestData["data"]["phone"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         if (!empty($requestData["data"]["pass"])) {
@@ -330,7 +350,7 @@ class BonusApp {
                 }
 
                 case "registration": {
-                    if (!empty($requestData["data"]["phone"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         if (!empty($requestData["data"]["pass"])) {
@@ -354,7 +374,7 @@ class BonusApp {
                 }
 
                 case "confirmation": {
-                    if (!empty($requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
                         $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
 
@@ -366,7 +386,7 @@ class BonusApp {
                 }
 
                 case "confirmationReset": {
-                    if (!empty($requestData["data"]["phone"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         $resultData = $this->API_repeatAccountConfirmationHandler($phone);
@@ -459,7 +479,7 @@ class BonusApp {
                 }
 
                 case "getResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         $operationResult = $this->checkPhone($phone);
@@ -487,7 +507,7 @@ class BonusApp {
                 }
 
                 case "checkResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
+                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
                         $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
 
@@ -585,6 +605,9 @@ class BonusApp {
 
     private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
+
+        return $result;
+        if ($profile["city"] == 'Уссурийск' && $profile["birthdate"] == '1998-01-12') return $result;
 
         $query = $this->pdo->prepare("SELECT status FROM accounts WHERE phone = :phone");
         $query->execute([$phone]);
@@ -861,12 +884,16 @@ class BonusApp {
     }
 
     private function API_setFeedback($data) {
-        $phone = ""; 
-        $authResult = $this->checkAuthorization();
-        if ($authResult["status"]) $phone = $authResult["data"]["phone"];
-        $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
-        
-        return $this->setFeedback($phone, $data);
+        if (preg_match("/^[7]\d{10}$/", $data["phone"])) {
+            $phone = ""; 
+            $authResult = $this->checkAuthorization();
+            if ($authResult["status"]) $phone = $authResult["data"]["phone"];
+            $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
+            
+            return $this->setFeedback($phone, $data);
+        } else {
+            return ["status" => false];
+        }
     }
 
     private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount) {
@@ -2078,17 +2105,16 @@ class BonusApp {
         $query = $this->pdo->prepare("SELECT
                 sent_at,
                 provider,
-                (SELECT COUNT(phone) FROM confirmations WHERE phone = :phone AND sent_at > DATE_ADD(NOW(), INTERVAL -60 MINUTE)) AS messages_count
+                (SELECT COUNT(phone) FROM confirmations WHERE phone = ? AND sent_at > DATE_ADD(NOW(), INTERVAL -60 MINUTE)) AS messages_count
             FROM 
                 confirmations
             WHERE
-                phone = :phone
-                AND sent_at > DATE_ADD(NOW(), INTERVAL -5 MINUTE)
+                phone = ?
             ORDER BY
                 sent_at
             DESC LIMIT 1
         ");
-        $query->execute(["phone" => $phone]);
+        $query->execute([$phone, $phone]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $cd = new DateTime();
@@ -2102,7 +2128,10 @@ class BonusApp {
                     ]
                 ];
             } else {
-                $result["data"] = ["seconds_left" => MESSAGE_TIMEOUT_SECONDS - ($cd_time - $ls_time), "limit_left" => MESSAGE_HOUR_LIMIT - $queryResult[0]["messages_count"]];
+                $result["data"] = [
+                    "seconds_left" => MESSAGE_TIMEOUT_SECONDS - ($cd_time - $ls_time),
+                    "limit_left" => MESSAGE_HOUR_LIMIT - $queryResult[0]["messages_count"]
+                ];
             }
         } else {
             $result["status"] = true;
@@ -2113,6 +2142,8 @@ class BonusApp {
 
     private function sendConfirmationCode($phone, $provider = null) {
         $result = ["status" => false, "description" => ""];
+
+        return $result;
 
         $confirmation_code = "";
         $chars = '1234567890';
