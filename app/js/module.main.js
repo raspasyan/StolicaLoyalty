@@ -1,8 +1,8 @@
 /* global Notification, fetch, ymaps, Document, Window, attachEvent */
 
-const cardImageW = 512;
-const cardImageH = 328;
-const cardImageSRC = "app/assets/backs/card_back.jpg";
+const cardImageW = 512,
+cardImageH = 328,
+cardImageSRC = "app/assets/backs/card_back.jpg";
 const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
@@ -10,6 +10,7 @@ const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
 const RULES_URL = DOMAIN + "/pravila";
 const REF_RULES_URL = DOMAIN + "/pravila-akcii";
 const LS_TOKEN = "LS_BearerToken";
+const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_SECTION = "section";
 const SOURCE = "WEB2";
 
@@ -146,8 +147,8 @@ d.addEventListener("DOMContentLoaded", function () {
    
     initPopups();
 
-    bearerToken = localStorage.getItem(LS_TOKEN);
-
+    bearerToken = C().getStor(LS_TOKEN);
+    //currentUpdates = JSON.parse(C().getStor(LS_CURR_UPDATE));
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach(inp => {
         mask(inp);
@@ -1607,6 +1608,13 @@ var C = function (s, p) {
         }
         
         return this;
+    },
+    this.setStor = function (key, val) {
+        localStorage.setItem(key, val);
+        return this;
+    },
+    this.getStor = function (key) {
+        return localStorage.getItem(key);
     },
     this.bind = function (type, fn) {
         var addEvent, z;
