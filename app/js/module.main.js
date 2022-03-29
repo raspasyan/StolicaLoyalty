@@ -1,8 +1,8 @@
 /* global Notification, fetch, ymaps, Document, Window, attachEvent */
 
 const cardImageW = 512,
-cardImageH = 328,
-cardImageSRC = "app/assets/backs/card_back.jpg";
+        cardImageH = 328,
+        cardImageSRC = "app/assets/backs/card_back.jpg";
 const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
@@ -91,60 +91,60 @@ let sections = {
 };
 
 let currentSection = "",
-    bearerToken = "",
-    currentUpdates = {
-        "personalHash": "",
-        "walletHash": "",
-        "storesHash": "",
-        "lastNews": "",
-        "lastPurchase": "",
-        "lastTransaction":  ""
-    },
-    currentCity = "",
-    userActivityTimeout = null;
+        bearerToken = "",
+        currentUpdates = {
+            "personalHash": "",
+            "walletHash": "",
+            "storesHash": "",
+            "lastNews": "",
+            "lastPurchase": "",
+            "lastTransaction": ""
+        },
+        currentCity = "",
+        userActivityTimeout = null;
 
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", function () {
     /*
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/sw.js').then(function (registration) {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function (err) {
-                console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-    } else {
-        console.log('ServiceWorker do not work');
-    }
+     if ('serviceWorker' in navigator) {
+     window.addEventListener('load', function () {
+     navigator.serviceWorker.register('/sw.js').then(function (registration) {
+     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+     }, function (err) {
+     console.log('ServiceWorker registration failed: ', err);
+     });
+     });
+     } else {
+     console.log('ServiceWorker do not work');
+     }
+     
+     function notifyMe() {
+     var notification = new Notification("Все еще работаешь?", {
+     tag: "ache-mail",
+     body: "Пора сделать паузу и отдохнуть"
+     //icon : "https://itproger.com/img/notify.png"
+     });
+     }
+     
+     function notifySet() {
+     if (!("Notification" in window)) {
+     console.log("Ваш браузер не поддерживает уведомления.");
+     } else if (Notification.permission === "granted") {
+     //setTimeout(notifyMe, 2000);
+     } else if (Notification.permission !== "denied") {
+     Notification.requestPermission(function (permission) {
+     if (!('permission' in Notification)) {
+     Notification.permission = permission;
+     }
+     if (permission === "granted") {
+     //setTimeout(notifyMe, 2000);
+     }
+     });
+     }
+     }
+     notifySet();
+     */
 
-    function notifyMe() {
-        var notification = new Notification("Все еще работаешь?", {
-            tag: "ache-mail",
-            body: "Пора сделать паузу и отдохнуть"
-            //icon : "https://itproger.com/img/notify.png"
-        });
-    }
-
-    function notifySet() {
-        if (!("Notification" in window)) {
-            console.log("Ваш браузер не поддерживает уведомления.");
-        } else if (Notification.permission === "granted") {
-            //setTimeout(notifyMe, 2000);
-        } else if (Notification.permission !== "denied") {
-            Notification.requestPermission(function (permission) {
-                if (!('permission' in Notification)) {
-                    Notification.permission = permission;
-                }
-                if (permission === "granted") {
-                    //setTimeout(notifyMe, 2000);
-                }
-            });
-        }
-    }
-    notifySet();
-    */
-   
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
@@ -161,11 +161,11 @@ d.addEventListener("DOMContentLoaded", function () {
             C("#reset_button").el.disabled = (phone.length === 16 ? false : true);
         });
     });
-    
+
     // Подключаем обработчики для Popup
     C('span[id*="-popup"]').els.forEach(pop => {
         let inp = C("#" + pop.id.replace("-popup", "")).el;
-        
+
         ["blur", "input"].forEach(evt => {
             inp.addEventListener(evt, e => {
                 dropFail(e.target);
@@ -178,9 +178,9 @@ d.addEventListener("DOMContentLoaded", function () {
 
     C(".system_tabsHead > span label").els.forEach(label => {
         label.addEventListener("click", function (e) {
-            let el       = e.currentTarget.parentNode,
-                elCs     = el.parentNode.parentNode.children[1].children,
-                tabHeads = el.parentNode.children;
+            let el = e.currentTarget.parentNode,
+                    elCs = el.parentNode.parentNode.children[1].children,
+                    tabHeads = el.parentNode.children;
 
             for (var i = 0; i < tabHeads.length; i++) {
                 tabHeads[i].classList.remove("tab_h_active");
@@ -208,19 +208,19 @@ d.addEventListener("DOMContentLoaded", function () {
     C("#reset_confirmation_code").el.addEventListener("input", e => {
         C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
     });
-    
+
     C("#reg-confirmation-code").el.addEventListener("input", e => {
         C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
     });
-    
+
     C("#reset-phone-mask").el.addEventListener("input", e => {
         C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true);
     });
-    
+
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
         addEventListener("input", () => {
             let but = C("#personal_changePassword_button").el;
-            
+
             if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
                 but.disabled = false;
             } else {
@@ -228,12 +228,12 @@ d.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-    
+
     C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
         let but = C("#personal_changePassword_button").el,
-            el  = e.currentTarget;
-        
-        if (C("#" + el.id.replace("-confirmation","")).val() === el.value) {
+                el = e.currentTarget;
+
+        if (C("#" + el.id.replace("-confirmation", "")).val() === el.value) {
             but.disabled = false;
         } else {
             but.disabled = true;
@@ -247,13 +247,13 @@ d.addEventListener("DOMContentLoaded", function () {
             showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
         }
     });
-    
+
     C('a[data-click="openBalanceView"]').el.addEventListener("click", e => {
         let el = C('.balance-view').el.classList;
         el.toggle('open');
         e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
     });
-    
+
     C("#reset_button").el.addEventListener("click", () => {
         if (canGetResetConfirmationCode()) {
             showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reset-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
@@ -262,10 +262,10 @@ d.addEventListener("DOMContentLoaded", function () {
 
     C("#transactions-details-button").el.addEventListener("click", e => {
         let list = C("#transactions").el.classList,
-            t    = C(e.target);
-        
+                t = C(e.target);
+
         list.toggle("hidden");
-        
+
         if (list.contains("hidden")) {
             t.text("открыть детализацию");
             t.delclass("active");
@@ -291,7 +291,7 @@ d.addEventListener("DOMContentLoaded", function () {
             let section = e.currentTarget.dataset.section;
 
             closeNav();
-            
+
             if (section) {
                 drawSection(section);
             }
@@ -301,25 +301,26 @@ d.addEventListener("DOMContentLoaded", function () {
     // Сокрытие всплывающего окна
     C("#popupOverlay").el.addEventListener("click", function (e) {
         var el = e.currentTarget.classList;
-        
+
         el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
         el.add("animate__animated", "animate__fadeOut", "animate__furious");
         if (e.currentTarget.callback) {
             e.currentTarget.callback();
             e.currentTarget.callback = null;
         }
-        promiseTimeout(function(){
+        promiseTimeout(function () {
             hide("#popupOverlay");
             el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
         }, 500);
     });
 
     checkUpdates(currentUpdates, () => {
-        //drawSection(localStorage.getItem(LS_SECTION));
-        drawSection('wallet');
         if (bearerToken) {
+            drawSection('wallet');
             d.body.addEventListener("pointerover", userActivity);
             d.body.addEventListener("pointerdown", userActivity);
+        } else {
+            drawSection(localStorage.getItem(LS_SECTION));
         }
     });
 });
@@ -327,11 +328,11 @@ d.addEventListener("DOMContentLoaded", function () {
 function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach(el => {
         el.addEventListener("click", e => {
-            let i   = e.currentTarget,
-                inp = i.parentNode.children[0];
+            let i = e.currentTarget,
+                    inp = i.parentNode.children[0];
 
             i.classList.remove("icon-eye", "icon-eye-off");
-            
+
             inp.type = (inp.type === "password" ? "text" : "password");
             if (inp.type === "password") {
                 i.classList.add("icon-eye-off");
@@ -352,7 +353,7 @@ function show(selector) {
 
 function initPopups() {
     let popups = C(".popup-text").els;
-    
+
     popups.forEach(el => {
         el.addEventListener("click", function (e) {
             if (el.classList.contains("show"))
@@ -511,12 +512,12 @@ function renderReferSection() {
         if (response.status) {
             if (!referQr.children.length) {
                 let qrCanvas = C().create("canvas").el,
-                    qr = new QRious({
-                        element: qrCanvas,
-                        size: 192,
-                        value: response.data.link
-                    });
-                    
+                        qr = new QRious({
+                            element: qrCanvas,
+                            size: 192,
+                            value: response.data.link
+                        });
+
                 referQr.appendChild(qrCanvas);
                 qrCanvas.classList.add("animate__animated", "animate__fadeIn");
 
@@ -529,7 +530,7 @@ function renderReferSection() {
             if (response.data.referrals && response.data.referrals.length)
                 response.data.referrals.forEach((ref_row) => {
                     let tr = C().create("tr"),
-                        td = C().create("td");
+                            td = C().create("td");
 
                     td.text(ref_row.last_sync);
                     tr.append(td);
@@ -562,10 +563,10 @@ function confirmAdult() {
 
 function showPopup(title, desc, message, buttonText, callback) {
     let popupOverlay = C("#popupOverlay"),
-        popupTitle   = C("#popupTitle"),
-        popupDesc    = C("#popupDescription"),
-        popupMessage = C("#popupMessage"),
-        popupButton  = C("#popupButton");
+            popupTitle = C("#popupTitle"),
+            popupDesc = C("#popupDescription"),
+            popupMessage = C("#popupMessage"),
+            popupButton = C("#popupButton");
 
     if (!buttonText) {
         buttonText = "Ок";
@@ -605,7 +606,7 @@ function showPopup(title, desc, message, buttonText, callback) {
     popupButton.text(buttonText);
     popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious"]);
     popupOverlay.addclass(["animate__animated", "animate__fadeIn", "animate__furious"]);
-    
+
 }
 
 function showLoader() {
@@ -627,15 +628,15 @@ function hideLoader() {
 
 function checkAuthorization() {
     return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "checkAuthorization"
-                })
-            })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify({
+            "method": "checkAuthorization"
+        })
+    })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -648,10 +649,10 @@ function checkAuthorization() {
 
 async function auth() {
     let authPhoneEl = C("#auth-phone-mask"),
-        authPassEl  = C("#auth-pass"),
-        authPassPop = C("#auth-pass-popup"),
-        phone       = getPhoneNumbers(C("#auth-phone-mask").val()),
-        authButton  = C("#auth-button").el;
+            authPassEl = C("#auth-pass"),
+            authPassPop = C("#auth-pass-popup"),
+            phone = getPhoneNumbers(C("#auth-phone-mask").val()),
+            authButton = C("#auth-button").el;
 
     if (!phone || phone.length !== 11) {
         showInputPopup("auth-phone-mask");
@@ -704,11 +705,11 @@ async function auth() {
 }
 
 function checkReg() {
-    let regPhoneEl    = C("#reg-phone-mask"),
-        regBdEl       = C("#reg-birthdate").el,
-        regPassEl     = C("#reg-pass"),
-        regPassConfEl = C("#reg-pass-confirm"),
-        phone         = getPhoneNumbers(regPhoneEl.val());
+    let regPhoneEl = C("#reg-phone-mask"),
+            regBdEl = C("#reg-birthdate").el,
+            regPassEl = C("#reg-pass"),
+            regPassConfEl = C("#reg-pass-confirm"),
+            phone = getPhoneNumbers(regPhoneEl.val());
 
     if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
@@ -735,11 +736,11 @@ function checkReg() {
 }
 
 async function reg() {
-    let regPhoneEl  = C("#reg-phone-mask"),
-        regBdEl     = C("#reg-birthdate"),
-        regButtonEl = C("#reg-button").el,
-        trueDate    = null,
-        phone       = getPhoneNumbers(regPhoneEl.val());
+    let regPhoneEl = C("#reg-phone-mask"),
+            regBdEl = C("#reg-birthdate"),
+            regButtonEl = C("#reg-button").el,
+            trueDate = null,
+            phone = getPhoneNumbers(regPhoneEl.val());
 
     if (regBdEl.val()) {
         let td = regBdEl.val().split("-");
@@ -794,10 +795,10 @@ async function reg() {
 }
 
 function setConfirmationTimeout(result) {
-    let regConfRemindEl    = C("#reg_confirmation_remind"),
-        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        regConfInfoEl      = C("#reg_confirmation_info");
-    
+    let regConfRemindEl = C("#reg_confirmation_remind"),
+            regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+            regConfInfoEl = C("#reg_confirmation_info");
+
     hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
     regConfCodePopupEl.text(result.description);
@@ -820,9 +821,9 @@ function setConfirmationTimeout(result) {
 }
 
 async function confirmation() {
-    let regConfCodeEl      = C("#reg-confirmation-code"),
-        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        confButtonEl       = C("#confirmation_button");
+    let regConfCodeEl = C("#reg-confirmation-code"),
+            regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+            confButtonEl = C("#confirmation_button");
 
     if (regConfCodeEl.val().length < 4) {
         regConfCodeEl.el.scrollIntoView();
@@ -907,9 +908,9 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl    = C("#reset-phone-mask"),
+    let resetPhoneEl = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
-    
+
     if (resetPhoneEl.val().length < 16) {
         resetPhoneEl.el.scrollIntoView();
         resetPhoneEl.addclass("fail");
@@ -922,8 +923,8 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl    = C("#reset-phone-mask"),
-        resButtonEl   = C("#reset_button").el,
+    let resPhoneEl = C("#reset-phone-mask"),
+        resButtonEl = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
@@ -953,7 +954,7 @@ async function getResetConfirmationCode() {
                 restartResetConfirmationTimer(result.data.seconds_left);
         } else {
             resButtonEl.disabled = false;
-            promiseTimeout(function(){
+            promiseTimeout(function () {
                 showPopup("Внимание", result.description);
             }, 1000);
         }
@@ -971,7 +972,7 @@ function restartResetConfirmationTimer(seconds) {
     if (resetCodeTimer) {
         clearInterval(resetCodeTimer);
     }
-    
+
     resetCodeTimer = setInterval(() => {
         show("#reset_confirmation_time");
         resConfTimeEl.text(resetCodeTimerValue + " сек.");
@@ -987,10 +988,10 @@ function restartResetConfirmationTimer(seconds) {
 }
 
 async function checkResetConfirmationCode() {
-    let resPhoneEl    = C("#reset-phone"),
+    let resPhoneEl = C("#reset-phone"),
         resConfCodeEl = C("#reset_confirmation_code"),
         resPhonePopEl = C("#reset-phone-popup"),
-        resConfButEl  = C("#reset_confirmation_button");
+        resConfButEl = C("#reset_confirmation_button");
 
     if (resPhoneEl.val().length < 16) {
         resPhoneEl.el.scrollIntoView();
@@ -1010,20 +1011,20 @@ async function checkResetConfirmationCode() {
     resConfButEl.el.disabled = true;
 
     let body = {
-        "method": "checkResetConfirmationCode",
-        "data": {
-            "phone": resPhoneEl.val(),
-            "code": resConfCodeEl.val()
-        }
-    };
+            "method": "checkResetConfirmationCode",
+            "data": {
+                "phone": resPhoneEl.val(),
+                "code": resConfCodeEl.val()
+            }
+        };
 
     let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(body)
-    });
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        });
 
     let result = await response.json();
 
@@ -1044,8 +1045,8 @@ async function checkResetConfirmationCode() {
 
 async function getReferLink() {
     let body = {
-        "method": "getReferLink"
-    };
+            "method": "getReferLink"
+        };
 
     let response = await fetch(API_URL, {
         method: "POST",
@@ -1095,24 +1096,24 @@ async function updateCities() {
 
     if (!city.el.children.length) {
         let response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8"
-                },
-                body: JSON.stringify({
-                    "method": "getCities"
-                })
-            }),
-            result = await response.json();
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify({
+                "method": "getCities"
+            })
+        }),
+                result = await response.json();
 
         if (result.status) {
             result.data.forEach(el => {
                 let option = C().create("option");
-                
+
                 option.val(el.id);
                 option.text(el.title);
                 option.attr("default-discount", el.default_discount);
-                
+
                 if (el.status === 2)
                     option.el.selected = "selected";
                 city.append(option);
@@ -1133,7 +1134,7 @@ function clearLocalStorage() {
 function loadScript(src) {
     return new Promise(function (resolve, reject) {
         let script = d.createElement('script');
-        
+
         script.src = src;
         script.onload = () => resolve(script);
         script.onerror = () => reject(new Error(`Ошибка загрузки скрипта ${src}`));
@@ -1185,24 +1186,24 @@ function hideFeedback() {
 
 function showInputPopup(id) {
     let et = C("#" + id);
-    
+
     et.el.scrollIntoView();
     et.addclass("fail");
     et.el.focus();
-    
+
     C("#" + id + "-popup").addclass("show");
 }
 
 function setFeedback() {
-    let phone       = C("#feedback-phone-mask").val(),
-        message     = C("#feedback-message").val(),
+    let phone = C("#feedback-phone-mask").val(),
+        message = C("#feedback-message").val(),
         fbSubmitBut = C("#feedback-submit").el;
-    
+
     if (getPhoneNumbers(phone).length !== 11) {
         showInputPopup("feedback-phone-mask");
         return;
     }
-    
+
     if (message.length < 3) {
         showInputPopup("feedback-message");
         return;
@@ -1212,15 +1213,15 @@ function setFeedback() {
     showLoader();
 
     API_setFeedback(JSON.stringify({
-                "method": "setFeedback",
-                "data": {
-                    "name": C("#feedback-name").val(),
-                    "phone": C("#feedback-phone-mask").val(),
-                    "email": C("#feedback-email").val(),
-                    "reason": C("#feedback-reason").val(),
-                    "message": C("#feedback-message").val()
-                }
-            }))
+        "method": "setFeedback",
+        "data": {
+            "name": C("#feedback-name").val(),
+            "phone": C("#feedback-phone-mask").val(),
+            "email": C("#feedback-email").val(),
+            "reason": C("#feedback-reason").val(),
+            "message": C("#feedback-message").val()
+        }
+    }))
             .then(result => {
                 if (result.status) {
                     showPopup("Готово", "Ваше сообщение передано оператору");
@@ -1238,12 +1239,12 @@ function setFeedback() {
 
 function API_setFeedback(body) {
     return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8"
-                },
-                body: body
-            })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: body
+    })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1265,51 +1266,51 @@ function checkUpdates(lastUpdates, callback) {
     }
 
     getUpdates(lastUpdates).then(result => {
-                let currentSection = localStorage.getItem(LS_SECTION);
-                if (result.status) {
-                    if (result.data.news.length) {
-                        drawNews(result.data.news);
-                        currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);
-                    }
-                    if (result.data.personalHash) {
-                        drawPersonal(result.data.personal);
-                        currentUpdates.personalHash = result.data.personalHash;
+        let currentSection = localStorage.getItem(LS_SECTION);
+        if (result.status) {
+            if (result.data.news.length) {
+                drawNews(result.data.news);
+                currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);
+            }
+            if (result.data.personalHash) {
+                drawPersonal(result.data.personal);
+                currentUpdates.personalHash = result.data.personalHash;
 
-                        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
-                        C("#feedback-name").val((userName ? userName : ""));
+                let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
+                C("#feedback-name").val((userName ? userName : ""));
 
-                        if (result.data.personal.city) {
-                            currentCity = result.data.personal.city;
-                        }
-                    }
-                    if (result.data.storesHash) {
-                        drawStores(result.data.stores);
-                        currentUpdates.storesHash = result.data.storesHash;
-                    }
-                    if (result.data.walletHash) {
-                        drawWallet(result.data.wallet);
-                        currentUpdates.walletHash = result.data.walletHash;
-                    }
-                    if (result.data.lastPurchase) {
-                        drawPurchases(result.data.purchases);
-                        currentUpdates.lastPurchase = result.data.lastPurchase;
-                    }
-                    
-                    if (result.data.transactions.length) {
-                        currentUpdates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
-                    }
-
-                    // Всех авторизованных отправляем на страницу кошелька
-                    if (sections[currentSection] && !sections[currentSection].needAuth) {
-                        localStorage.setItem(LS_SECTION, "wallet");
-                    }
-                } else {
-                    // Не авторизованных отправляем на авторизацию
-                    if (sections[currentSection] && sections[currentSection].needAuth) {
-                        logOff();
-                    }
+                if (result.data.personal.city) {
+                    currentCity = result.data.personal.city;
                 }
-            })
+            }
+            if (result.data.storesHash) {
+                drawStores(result.data.stores);
+                currentUpdates.storesHash = result.data.storesHash;
+            }
+            if (result.data.walletHash) {
+                drawWallet(result.data.wallet);
+                currentUpdates.walletHash = result.data.walletHash;
+            }
+            if (result.data.lastPurchase) {
+                drawPurchases(result.data.purchases);
+                currentUpdates.lastPurchase = result.data.lastPurchase;
+            }
+
+            if (result.data.transactions.length) {
+                currentUpdates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
+            }
+
+            // Всех авторизованных отправляем на страницу кошелька
+            if (sections[currentSection] && !sections[currentSection].needAuth) {
+                localStorage.setItem(LS_SECTION, "wallet");
+            }
+        } else {
+            // Не авторизованных отправляем на авторизацию
+            if (sections[currentSection] && sections[currentSection].needAuth) {
+                logOff();
+            }
+        }
+    })
             .finally(() => {
                 if (callback) {
                     callback();
@@ -1322,17 +1323,17 @@ function checkUpdates(lastUpdates, callback) {
 
 function getUpdates(lastUpdates) {
     return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "getUpdates",
-                    "data": lastUpdates,
-                    "source": SOURCE
-                })
-            })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify({
+            "method": "getUpdates",
+            "data": lastUpdates,
+            "source": SOURCE
+        })
+    })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1345,15 +1346,15 @@ function getUpdates(lastUpdates) {
 
 async function updateWalletData() {
     return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "updateWalletData"
-                })
-            })
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify({
+            "method": "updateWalletData"
+        })
+    })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1369,26 +1370,26 @@ async function updateWalletData() {
 
 function mask(inp) {
     let underlay = document.createElement('input'),
-        attr     = {};
-    
+            attr = {};
+
     attr.id = inp.id.replace("-mask", "");
     attr.disabled = "disabled";
     attr.type = inp.getAttribute("type");
-    
+
     for (let key in attr) {
         underlay.setAttribute(key, attr[key]);
     }
-    
+
     inp.parentNode.insertBefore(underlay, inp);
     setPhoneMask(inp, false);
     inp.addEventListener("input", e => setPhoneMask(e.target));
 }
 
 function setPhoneMask(inp, mask) {
-    let id     = inp.id,
-        phone  = inp.value,
-        hideId = "#" + id.replace("-mask", "");
-    
+    let id = inp.id,
+            phone = inp.value,
+            hideId = "#" + id.replace("-mask", "");
+
     if (phone === "") {
         phone = "7";
     }
@@ -1404,7 +1405,7 @@ function setPhoneMask(inp, mask) {
 
 function getPhoneNumbers(value) {
     let phone = value.replace(/\D/g, "");
-    
+
     if (phone) {
         phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
     } else {
@@ -1415,15 +1416,15 @@ function getPhoneNumbers(value) {
 }
 
 function getValueByMask(value, mask, full) {
-    let phone    = value.match(/\d/g),
-        newPhone = mask;
+    let phone = value.match(/\d/g),
+            newPhone = mask;
 
     if (!full) {
         full = false;
     }
 
     phone.forEach(e => newPhone = newPhone.replace(/_/, e));
-    
+
     if (!full) {
         newPhone = newPhone.replace(/\)_|-_|_/g, "");
     }
@@ -1433,19 +1434,19 @@ function getValueByMask(value, mask, full) {
 
 function validateBirthdate(el, isSubmit) {
     let res = false,
-        i   =0;
+            i = 0;
 
     if (!isSubmit) {
         isSubmit = false;
     }
-        
+
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
-    
+
     if (el.value.length > 9) {
         let td = el.value.split("-");
-            bd  = new Date(td[2], --td[1], td[0]),
-            cd  = new Date(),
-            age = (cd - bd);
+        bd = new Date(td[2], --td[1], td[0]),
+                cd = new Date(),
+                age = (cd - bd);
 
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             showInputPopup("reg-birthdate");
@@ -1471,217 +1472,217 @@ var C = function (s, p) {
                 (typeof nodes.length === 'number') &&
                 (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
     },
-    this.isNode = function (obj) {
-        //return obj instanceof HTMLElement;
-        if (obj && obj.nodeType) {
-            return true;
-        } else {
-            return false;
-        }
-    },
-    this.isDocument = function (obj) {
-        return obj instanceof Document || obj instanceof Window;
-    },
-    this.isclass = function (cl) {
-        return this.els[0].classList.contains(cl);
-    },
-    this.defineEls = function () {
-        if (this.isNode(s) || this.isDocument(s)) {
-            return [s];
-        } else if (this.isNodeList(s)) {
-            return s;
-        } else {
-            if (p && p.isC) {
-                p = p.els[0];
-            }
-
-            return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
-        }
-    },
-    this.defineEl = function () {
-        return this.els[0];
-    },
-    this.els  = this.defineEls(),
-    this.el   = this.defineEl(),
-    this.on   = function (type, s, fn, except) {
-        var p = this;
-
-        this.bind(type, function (e) {
-            var el;
-
-            if (p.isNode(s) || p.isNodeList(s)) {
-                el = s;
-            } else {
-                el = C(s).els;
-            }
-
-            var t = e.target,
-                    ex = except || false;
-
-            while (t && t !== this) {
-                if (ex) {
-                    var goto = false;
-                    C(ex).els.forEach(function (item, index, array) {
-                        if (item === t) {
-                            goto = true;
-                        }
-                    });
-                    if (goto) {
-                        break;
-                    }
-                }
-
-                for (var i = 0; i < el.length; i++) {
-                    if (t === el[i]) {
-                        fn(e, t);
-                        break;
-                    }
-                }
-
-                if (t) {
-                    t = t.parentNode;
+            this.isNode = function (obj) {
+                //return obj instanceof HTMLElement;
+                if (obj && obj.nodeType) {
+                    return true;
                 } else {
-                    break;
+                    return false;
                 }
-            }
-        });
+            },
+            this.isDocument = function (obj) {
+                return obj instanceof Document || obj instanceof Window;
+            },
+            this.isclass = function (cl) {
+                return this.els[0].classList.contains(cl);
+            },
+            this.defineEls = function () {
+                if (this.isNode(s) || this.isDocument(s)) {
+                    return [s];
+                } else if (this.isNodeList(s)) {
+                    return s;
+                } else {
+                    if (p && p.isC) {
+                        p = p.els[0];
+                    }
 
-        return this;
-    },
-    this.attr = function (attr, value) {
-        if (value === "undefined") {
-            return this.el.getAttribute(attr);
-        }
-        
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].setAttribute(attr, value);
-        }
-        
-        return this;
-    },
-    this.create = function (tag) {
-        var el   = document.createElement(tag);
-        this.els = [el];
-        this.el  = el;
-        
-        return this;
-    },
-    this.append = function (el) {
-        this.el.append(el.el);
-    },
-    this.style = function (st, val) {
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].style[st] = val;
-        }
-        
-        return this;
-    },
-    this.addclass = function (cl) {
-        if (!Array.isArray(cl)) {
-            cl = [cl];
-        }
-        
-        for (var i = 0; i < this.els.length; i++) {
-            for (var y = 0; y < cl.length; y++) {
-                this.els[i].classList.add(cl[y]);
-            }
-        }
-        
-        return this;
-    },
-    this.togclass = function (cl) {
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].classList.toggle(cl);
-        }
-        
-        return this;
-    },
-    this.delclass = function (cl) {
-        if (!Array.isArray(cl)) {
-            cl = [cl];
-        }
-        
-        for (var i = 0; i < this.els.length; i++) {
-            for (var y = 0; y < cl.length; y++) {
-                this.els[i].classList.remove(cl[y]);
-            }
-        }
-        
-        return this;
-    },
-    this.setStor = function (key, val) {
-        localStorage.setItem(key, val);
-        return this;
-    },
-    this.getStor = function (key) {
-        return localStorage.getItem(key);
-    },
-    this.bind = function (type, fn) {
-        var addEvent, z;
+                    return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
+                }
+            },
+            this.defineEl = function () {
+                return this.els[0];
+            },
+            this.els = this.defineEls(),
+            this.el = this.defineEl(),
+            this.on = function (type, s, fn, except) {
+                var p = this;
 
-        if (!type || !fn) {
-            return this;
-        }
+                this.bind(type, function (e) {
+                    var el;
 
-        if (typeof addEventListener === "function") {
-            addEvent = function (el, type, fn) {
-                el.addEventListener(type, fn, false);
+                    if (p.isNode(s) || p.isNodeList(s)) {
+                        el = s;
+                    } else {
+                        el = C(s).els;
+                    }
+
+                    var t = e.target,
+                            ex = except || false;
+
+                    while (t && t !== this) {
+                        if (ex) {
+                            var goto = false;
+                            C(ex).els.forEach(function (item, index, array) {
+                                if (item === t) {
+                                    goto = true;
+                                }
+                            });
+                            if (goto) {
+                                break;
+                            }
+                        }
+
+                        for (var i = 0; i < el.length; i++) {
+                            if (t === el[i]) {
+                                fn(e, t);
+                                break;
+                            }
+                        }
+
+                        if (t) {
+                            t = t.parentNode;
+                        } else {
+                            break;
+                        }
+                    }
+                });
+
+                return this;
+            },
+            this.attr = function (attr, value) {
+                if (value === "undefined") {
+                    return this.el.getAttribute(attr);
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].setAttribute(attr, value);
+                }
+
+                return this;
+            },
+            this.create = function (tag) {
+                var el = document.createElement(tag);
+                this.els = [el];
+                this.el = el;
+
+                return this;
+            },
+            this.append = function (el) {
+                this.el.append(el.el);
+            },
+            this.style = function (st, val) {
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].style[st] = val;
+                }
+
+                return this;
+            },
+            this.addclass = function (cl) {
+                if (!Array.isArray(cl)) {
+                    cl = [cl];
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    for (var y = 0; y < cl.length; y++) {
+                        this.els[i].classList.add(cl[y]);
+                    }
+                }
+
+                return this;
+            },
+            this.togclass = function (cl) {
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].classList.toggle(cl);
+                }
+
+                return this;
+            },
+            this.delclass = function (cl) {
+                if (!Array.isArray(cl)) {
+                    cl = [cl];
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    for (var y = 0; y < cl.length; y++) {
+                        this.els[i].classList.remove(cl[y]);
+                    }
+                }
+
+                return this;
+            },
+            this.setStor = function (key, val) {
+                localStorage.setItem(key, val);
+                return this;
+            },
+            this.getStor = function (key) {
+                return localStorage.getItem(key);
+            },
+            this.bind = function (type, fn) {
+                var addEvent, z;
+
+                if (!type || !fn) {
+                    return this;
+                }
+
+                if (typeof addEventListener === "function") {
+                    addEvent = function (el, type, fn) {
+                        el.addEventListener(type, fn, false);
+                    };
+                } else if (typeof attachEvent === "function") {
+                    addEvent = function (el, type, fn) {
+                        el.attachEvent("on" + type, fn);
+                    };
+                } else {
+                    return this;
+                }
+
+                if (this.isNodeList(this.els)) {
+                    for (z = 0; z < this.els.length; z++) {
+                        addEvent(this.els[z], type, fn);
+                    }
+                } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
+                    addEvent(this.els[0], type, fn);
+                } else if (this.els.length > 0) {
+                    for (z = 0; z < this.els.length; z++) {
+                        addEvent(this.els[z], type, fn);
+                    }
+                }
+
+                return this;
+            },
+            this.html = function (text) {
+                if (!arguments.length && text !== '') {
+                    return this.els[0].innerHTML;
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].innerHTML = text;
+                }
+
+                return this;
+            },
+            this.text = function (text) {
+                if (!arguments.length && text !== '') {
+                    return this.els[0].innerText;
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].innerText = text;
+                }
+
+                return this;
+            },
+            this.val = function (value) {
+                if (!arguments.length && value !== '') {
+                    return this.els[0].value;
+                }
+
+                for (var i = 0; i < this.els.length; i++) {
+                    this.els[i].value = value;
+                }
+
+                return this;
             };
-        } else if (typeof attachEvent === "function") {
-            addEvent = function (el, type, fn) {
-                el.attachEvent("on" + type, fn);
-            };
-        } else {
-            return this;
-        }
-
-        if (this.isNodeList(this.els)) {
-            for (z = 0; z < this.els.length; z++) {
-                addEvent(this.els[z], type, fn);
-            }
-        } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
-            addEvent(this.els[0], type, fn);
-        } else if (this.els.length > 0) {
-            for (z = 0; z < this.els.length; z++) {
-                addEvent(this.els[z], type, fn);
-            }
-        }
-
-        return this;
-    },
-    this.html = function (text) {
-        if (!arguments.length && text !== '') {
-            return this.els[0].innerHTML;
-        }
-
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].innerHTML = text;
-        }
-
-        return this;
-    },
-    this.text = function (text) {
-        if (!arguments.length && text !== '') {
-            return this.els[0].innerText;
-        }
-
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].innerText = text;
-        }
-
-        return this;
-    },
-    this.val = function (value) {
-        if (!arguments.length && value !== '') {
-            return this.els[0].value;
-        }
-
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].value = value;
-        }
-
-        return this;
-    };
 
     if (this instanceof C) {
         return this.C;
