@@ -1039,6 +1039,7 @@ async function checkResetConfirmationCode() {
         showPopup("Внимание", result.description, null, null, function () {
             resConfCodeEl.val("");
             resConfCodeEl.el.focus();
+            C("#reset_confirmation_button").el.disabled = true;        
         });
     }
 }
