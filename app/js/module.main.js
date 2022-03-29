@@ -314,7 +314,8 @@ d.addEventListener("DOMContentLoaded", function () {
     });
 
     checkUpdates(currentUpdates, () => {
-        drawSection(localStorage.getItem(LS_SECTION));
+        //drawSection(localStorage.getItem(LS_SECTION));
+        drawSection('wallet');
         if (bearerToken) {
             d.body.addEventListener("pointerover", userActivity);
             d.body.addEventListener("pointerdown", userActivity);

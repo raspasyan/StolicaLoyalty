@@ -14,7 +14,7 @@ function drawNews(newsList) {
             newsContEl = C().create("div");
         
         newsContEl.addclass("news__container");
-        newsContEl.el.addEventListener("click", e => {
+        newsContEl.el.addEventListener("click", () => {
             //C(".newsOverlay").el.style.display = "block";
             show(".newsOverlay");
             C(".newsOverlay__image").el.src = imageSrc;

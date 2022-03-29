@@ -314,7 +314,7 @@ function drawBonusCard(cardNumber) {
     
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
-    cardImg.addEventListener("load", (e) => {
+    cardImg.addEventListener("load", () => {
 
         let qrCanvas = C().create("img"),
             qr = new QRious({
