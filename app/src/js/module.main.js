@@ -563,10 +563,10 @@ function confirmAdult() {
 
 function showPopup(title, desc, message, buttonText, callback) {
     let popupOverlay = C("#popupOverlay"),
-            popupTitle = C("#popupTitle"),
-            popupDesc = C("#popupDescription"),
-            popupMessage = C("#popupMessage"),
-            popupButton = C("#popupButton");
+        popupTitle = C("#popupTitle"),
+        popupDesc = C("#popupDescription"),
+        popupMessage = C("#popupMessage"),
+        popupButton = C("#popupButton");
 
     if (!buttonText) {
         buttonText = "Ок";
