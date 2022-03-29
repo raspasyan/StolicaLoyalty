@@ -22,7 +22,8 @@ var path = {
     js:   ['app/src/js/*.js'],
     css: 'app/src/scss/styles.scss',
     vendors: 'app/src/scss/vendors/*.css',
-    indx: 'app/php/templates/index.html'
+    indx: 'app/php/templates/index.html',
+    manif: 'manifest.json'
   },
   
   build_desktop: {
@@ -96,6 +97,12 @@ gulp.task('vendors:build', function (done) {
 
 gulp.task('indx:build', function (done) {
   gulp.src(path.src_app.indx)
+    .pipe(gulp.dest(path.build_app.indx));
+    done();
+});
+
+gulp.task('manif:build', function (done) {
+  gulp.src(path.src_app.manif)
     .pipe(gulp.dest(path.build_app.indx));
     done();
 });
