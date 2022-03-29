@@ -5,3 +5,4 @@ nbproject/*
 /app/php/const.original.php
 app/assets/news/*
 vendor/*
+node_modules/*
