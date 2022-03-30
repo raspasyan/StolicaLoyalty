@@ -49,6 +49,7 @@
 
     // API
     define("API_TOKEN", "gruesome");
+    define("CRON_TOKEN", "sorokalo");
     define("DEFAULT_PROVIDER", "DIG_FC");
     define("DEFAULT_SMS_PROVIDER", "BEE");   // NT, BEE, DIG, DIG_FC
     define("API_DEBUG", false);

@@ -192,8 +192,8 @@ class BonusApp {
             }
 
             case "cron": {
-                // Пример: http://localhost/cron?token=API_TOKEN&method=METHOD_NAME
-                if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["method"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                // Пример: http://localhost/cron?token=CRON_TOKEN&method=METHOD_NAME
+                if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
 
                 switch ($_GET["method"]) {
                     default: {
