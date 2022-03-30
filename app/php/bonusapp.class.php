@@ -14,9 +14,6 @@ class BonusApp {
     private function __overload() {
         debug($this->initPDO());
 
-        // debug(getallheaders()["User-Agent"]);
-        debug(preg_match("/^[7]\d{10}$/", "79635658436"));
-
         exit;
     }
 
@@ -479,7 +476,7 @@ class BonusApp {
                 }
 
                 case "getResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
+                    if (!empty($requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
                         $operationResult = $this->checkPhone($phone);
@@ -507,7 +504,7 @@ class BonusApp {
                 }
 
                 case "checkResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
+                    if (!empty($requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
                         $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
 
