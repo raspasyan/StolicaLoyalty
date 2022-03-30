@@ -606,7 +606,6 @@ class BonusApp {
     private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
 
-        return $result;
         if ($profile["city"] == 'Уссурийск' && $profile["birthdate"] == '1998-01-12') return $result;
 
         $query = $this->pdo->prepare("SELECT status FROM accounts WHERE phone = :phone");
@@ -2142,8 +2141,6 @@ class BonusApp {
 
     private function sendConfirmationCode($phone, $provider = null) {
         $result = ["status" => false, "description" => ""];
-
-        return $result;
 
         $confirmation_code = "";
         $chars = '1234567890';
