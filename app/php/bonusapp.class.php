@@ -2094,10 +2094,36 @@ class BonusApp {
 
         return $result;
     }
+    
+    private function checkInstantRegistration($phone) {
+        $query = $this->pdo->prepare("SELECT 
+                    count(`phone`)
+                FROM 
+                    `confirmations` 
+                WHERE (
+                    `phone` = :phone 
+                        AND 
+                    `sent_at` > DATE_ADD(NOW(), INTERVAL -1 MINUTE)
+                    );");
+        $query->execute(['phone' => $phone]);
+        $countPhone = $query->fetchColumn();
+        
+        return $countPhone;
+    }
 
     private function canSendConfirmationCode($phone) {
         $result = ["status" => false, "data" => null];
-
+        $countInstant = $this->checkInstantRegistration($phone);
+        
+        if ($countInstant > 2) {
+            $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
+                 "header" => getallheaders(),
+                 "get" => $_GET,
+                 "post" => $_POST,
+                 "json" => file_get_contents('php://input')
+            ]));
+        }
+        
         $query = $this->pdo->prepare("SELECT
                 sent_at,
                 provider,

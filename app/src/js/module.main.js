@@ -1,8 +1,8 @@
 /* global Notification, fetch, ymaps, Document, Window, attachEvent */
 
 const cardImageW = 512,
-        cardImageH = 328,
-        cardImageSRC = "app/assets/backs/card_back.jpg";
+      cardImageH = 328,
+      cardImageSRC = "app/assets/backs/card_back.jpg";
 const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
@@ -11,16 +11,17 @@ const RULES_URL = DOMAIN + "/pravila";
 const REF_RULES_URL = DOMAIN + "/pravila-akcii";
 const LS_TOKEN = "LS_BearerToken";
 const LS_CURR_UPDATE = "LS_CurrentUpdate";
+const LS_CONTENTS = "LS_Contents";
+const LS_NEED_UPDATE = "LS_NeedUpdate";
 const LS_SECTION = "section";
 const SOURCE = "WEB2";
 
-let lastPhone = "";
-let secondsInterval = null;
-let secondsLeft = 0;
-let d = document;
-
-let resetCodeTimer = null;
-let resetCodeTimerValue = 0;
+let lastPhone = "",
+    secondsInterval = null,
+    secondsLeft = 0,
+    d = document,
+    resetCodeTimer = null,
+    resetCodeTimerValue = 0;
 
 let sections = {
     "adult": {},
@@ -91,17 +92,16 @@ let sections = {
 };
 
 let currentSection = "",
-        bearerToken = "",
-        currentUpdates = {
-            "personalHash": "",
-            "walletHash": "",
-            "storesHash": "",
-            "lastNews": "",
-            "lastPurchase": "",
-            "lastTransaction": ""
-        },
-        currentCity = "",
-        userActivityTimeout = null;
+    bearerToken = "",
+    userActivityTimeout = null,
+    tempUpdate = {
+        "personalHash": "",
+        "walletHash": "",
+        "storesHash": "",
+        "lastNews": "",
+        "lastPurchase": "",
+        "lastTransaction": ""
+    };
 
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", function () {
@@ -148,7 +148,15 @@ d.addEventListener("DOMContentLoaded", function () {
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
-    //currentUpdates = JSON.parse(C().getStor(LS_CURR_UPDATE));
+    
+    C().setStor(LS_NEED_UPDATE, JSON.stringify({
+            "news": 1,
+            "personal": 1,
+            "stores": 1,
+            "wallet": 1,
+            "purchases": 1
+        }));
+    
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach(inp => {
         mask(inp);
@@ -313,14 +321,14 @@ d.addEventListener("DOMContentLoaded", function () {
             el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
         }, 500);
     });
-
-    checkUpdates(currentUpdates, () => {
+    
+    renderSections();
+    drawSection((bearerToken) ? 'wallet' : C().getStor(LS_SECTION));
+    
+    checkUpdates(() => {
         if (bearerToken) {
-            drawSection('wallet');
             d.body.addEventListener("pointerover", userActivity);
             d.body.addEventListener("pointerdown", userActivity);
-        } else {
-            drawSection(localStorage.getItem(LS_SECTION));
         }
     });
 });
@@ -362,9 +370,9 @@ function initPopups() {
     });
 }
 
-function userActivity(e) {
+function userActivity() {
     if (!userActivityTimeout) {
-        userActivityTimeout = setTimeout(checkUpdates, 3333, currentUpdates);
+        userActivityTimeout = setTimeout(checkUpdates, 3333);
     }
 }
 
@@ -394,10 +402,22 @@ function removeChildrens(el) {
 }
 
 function routePrevSection() {
-    let section = localStorage.getItem(LS_SECTION);
+    let section = C().getStor(LS_SECTION);
 
     if (sections[section] && sections[section].prevSection) {
         drawSection(sections[section].prevSection);
+    }
+}
+
+function renderSections() {
+    if (!isEmpty(C().getStor(LS_CONTENTS))) {
+        let contents = JSON.parse(C().getStor(LS_CONTENTS));
+        
+        drawPersonal(contents.personal);
+        drawNews(contents.news);
+        drawStores(contents.stores);
+        drawWallet(contents.wallet);
+        drawPurchases(contents.purchases);
     }
 }
 
@@ -503,7 +523,7 @@ function drawSection(section) {
         }
     });
 
-    localStorage.setItem(LS_SECTION, section);
+    C().setStor(LS_SECTION, section);
 }
 
 function renderReferSection() {
@@ -558,7 +578,7 @@ function renderReferSection() {
 }
 
 function confirmAdult() {
-    drawSection(localStorage.getItem(LS_SECTION));
+    drawSection(C().getStor(LS_SECTION));
 }
 
 function showPopup(title, desc, message, buttonText, callback) {
@@ -694,8 +714,8 @@ async function auth() {
     if (result.status) {
         clearLocalStorage();
 
-        localStorage.setItem(LS_TOKEN, result.data.token);
-        localStorage.setItem(LS_SECTION, "wallet");
+        C().setStor(LS_TOKEN, result.data.token);
+        C().setStor(LS_SECTION, "wallet");
         //drawSection("wallet");
 
         location.reload();
@@ -706,10 +726,10 @@ async function auth() {
 
 function checkReg() {
     let regPhoneEl = C("#reg-phone-mask"),
-            regBdEl = C("#reg-birthdate").el,
-            regPassEl = C("#reg-pass"),
-            regPassConfEl = C("#reg-pass-confirm"),
-            phone = getPhoneNumbers(regPhoneEl.val());
+        regBdEl = C("#reg-birthdate").el,
+        regPassEl = C("#reg-pass"),
+        regPassConfEl = C("#reg-pass-confirm"),
+        phone = getPhoneNumbers(regPhoneEl.val());
 
     if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
@@ -737,10 +757,10 @@ function checkReg() {
 
 async function reg() {
     let regPhoneEl = C("#reg-phone-mask"),
-            regBdEl = C("#reg-birthdate"),
-            regButtonEl = C("#reg-button").el,
-            trueDate = null,
-            phone = getPhoneNumbers(regPhoneEl.val());
+        regBdEl = C("#reg-birthdate"),
+        regButtonEl = C("#reg-button").el,
+        trueDate = null,
+        phone = getPhoneNumbers(regPhoneEl.val());
 
     if (regBdEl.val()) {
         let td = regBdEl.val().split("-");
@@ -779,6 +799,7 @@ async function reg() {
     if (result.status) {
         if (result.data && result.data.need_confirmation) {
             let regConfCode = C("#reg-confirmation-code");
+            
             hide("#registration_cont");
             show("#reg_confirmation");
             regConfCode.el.scrollIntoView();
@@ -789,15 +810,19 @@ async function reg() {
             setConfirmationTimeout(result);
         }
     } else {
-        if (result.description)
-            showPopup("", result.description);
+        
+        if (result.description) {
+            promiseTimeout(function () {
+                showPopup("", result.description);
+            }, 1000);
+        }
     }
 }
 
 function setConfirmationTimeout(result) {
     let regConfRemindEl = C("#reg_confirmation_remind"),
-            regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-            regConfInfoEl = C("#reg_confirmation_info");
+        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+        regConfInfoEl = C("#reg_confirmation_info");
 
     hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
@@ -822,8 +847,8 @@ function setConfirmationTimeout(result) {
 
 async function confirmation() {
     let regConfCodeEl = C("#reg-confirmation-code"),
-            regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-            confButtonEl = C("#confirmation_button");
+        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
+        confButtonEl = C("#confirmation_button");
 
     if (regConfCodeEl.val().length < 4) {
         regConfCodeEl.el.scrollIntoView();
@@ -859,8 +884,8 @@ async function confirmation() {
         if (result.status) {
             clearLocalStorage();
 
-            localStorage.setItem(LS_SECTION, "reg_success");
-            localStorage.setItem(LS_TOKEN, result.data.token);
+            C().setStor(LS_SECTION, "reg_success");
+            C().setStor(LS_TOKEN, result.data.token);
 
             location.reload();
             // if (result.data.setNewPassword == undefined) {
@@ -1031,8 +1056,8 @@ async function checkResetConfirmationCode() {
     resConfButEl.el.disabled = false;
 
     if (result.status) {
-        localStorage.setItem(LS_SECTION, "wallet");
-        localStorage.setItem(LS_TOKEN, result.data.token);
+        C().setStor(LS_SECTION, "wallet");
+        C().setStor(LS_TOKEN, result.data.token);
 
         location.reload();
     } else {
@@ -1128,8 +1153,8 @@ function dropFail(el) {
 }
 
 function clearLocalStorage() {
-    localStorage.removeItem(LS_TOKEN);
-    localStorage.removeItem(LS_SECTION);
+    C().delStor(LS_TOKEN);
+    C().delStor(LS_SECTION);
 }
 
 function loadScript(src) {
@@ -1256,55 +1281,82 @@ function API_setFeedback(body) {
             });
 }
 
+function isEmpty(obj) {
+    if (!obj || obj==="undefined") {
+        return true;
+    }
+    
+    return Object.keys(JSON.parse(obj)).length === 0;
+}
+
 function onErrorCatch(error) {
     showPopup("Внимание", error.description);
     console.warn(error);
 }
 
-function checkUpdates(lastUpdates, callback) {
+function setNeedUpdate(contents, result, section) {
+    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+
+    if (contents[section] !== result.data[section] ) {
+        needUp[section] = 1;
+    }
+    
+    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
+}
+
+function checkUpdates(callback) {
     if (!bearerToken && callback) {
         callback();
     }
 
-    getUpdates(lastUpdates).then(result => {
-        let currentSection = localStorage.getItem(LS_SECTION);
+    getUpdates().then(result => {
+        let currentSection = C().getStor(LS_SECTION),
+            updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
+            contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"news": "", "personal": "", "stores": "", "wallet": "", "purchases": "", "transactions": ""};
+        
         if (result.status) {
             if (result.data.news.length) {
-                drawNews(result.data.news);
-                currentUpdates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : currentUpdates.lastNews), currentUpdates.lastNews);
+                setNeedUpdate(contents, result, 'news');
+                contents.news = result.data.news;
+                updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
             }
             if (result.data.personalHash) {
-                drawPersonal(result.data.personal);
-                currentUpdates.personalHash = result.data.personalHash;
+                setNeedUpdate(contents, result, 'personal');
+                contents.personal = result.data.personal;
+                updates.personalHash = result.data.personalHash;
 
                 let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
                 C("#feedback-name").val((userName ? userName : ""));
-
-                if (result.data.personal.city) {
-                    currentCity = result.data.personal.city;
-                }
             }
             if (result.data.storesHash) {
-                drawStores(result.data.stores);
-                currentUpdates.storesHash = result.data.storesHash;
+                setNeedUpdate(contents, result, 'stores');
+                contents.stores = result.data.stores;
+                updates.storesHash = result.data.storesHash;
             }
             if (result.data.walletHash) {
-                drawWallet(result.data.wallet);
-                currentUpdates.walletHash = result.data.walletHash;
+                setNeedUpdate(contents, result, 'wallet');
+                contents.wallet = result.data.wallet;
+                updates.walletHash = result.data.walletHash;
             }
             if (result.data.lastPurchase) {
-                drawPurchases(result.data.purchases);
-                currentUpdates.lastPurchase = result.data.lastPurchase;
+                setNeedUpdate(contents, result, 'purchases');
+                contents.purchases = result.data.purchases;
+                updates.lastPurchase = result.data.lastPurchase;
             }
 
             if (result.data.transactions.length) {
-                currentUpdates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
+                contents.transactions = result.data.transactions;
+                updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
             }
 
             // Всех авторизованных отправляем на страницу кошелька
             if (sections[currentSection] && !sections[currentSection].needAuth) {
-                localStorage.setItem(LS_SECTION, "wallet");
+                C().setStor(LS_SECTION, "wallet");
             }
+            
+            C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
+            C().setStor(LS_CONTENTS, JSON.stringify(contents));
+            renderSections();
         } else {
             // Не авторизованных отправляем на авторизацию
             if (sections[currentSection] && sections[currentSection].needAuth) {
@@ -1322,7 +1374,7 @@ function checkUpdates(lastUpdates, callback) {
             });
 }
 
-function getUpdates(lastUpdates) {
+function getUpdates() {
     return fetch(API_URL, {
         method: "POST",
         headers: {
@@ -1331,7 +1383,7 @@ function getUpdates(lastUpdates) {
         },
         body: JSON.stringify({
             "method": "getUpdates",
-            "data": lastUpdates,
+            "data": !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
             "source": SOURCE
         })
     })
@@ -1609,6 +1661,10 @@ var C = function (s, p) {
                     }
                 }
 
+                return this;
+            },
+            this.delStor = function (key) {
+                localStorage.removeItem(key);
                 return this;
             },
             this.setStor = function (key, val) {

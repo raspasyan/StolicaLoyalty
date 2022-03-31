@@ -1,8 +1,19 @@
 /* global C, d, DOMAIN */
 
 function drawNews(newsList) {
+    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    
+    if (needUp.news === 0) {
+        return;
+    }
+    
+    needUp.news = 0;
+    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
+    
     let container = C(".news>div.container").el;
-
+    if (!newsList) {
+        return false;
+    }
     newsList.forEach(news => {
         let imageSrc = DOMAIN + "/" + news.image,
             dateObj = new Date((news.date).replace(new RegExp("-", 'g'), "/")),

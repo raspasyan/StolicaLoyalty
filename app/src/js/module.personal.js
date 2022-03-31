@@ -41,6 +41,15 @@ function updatePersonalData() {
 }
 
 function drawPersonal(personal) {
+    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    
+    if (needUp.personal === 0) {
+        return;
+    }
+    
+    needUp.personal = 0;
+    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
+        
     if (personal.firstname || personal.middlename || personal.lastname) {
         C("#personal_name").text([personal.firstname, personal.middlename, personal.lastname].join(" "));
     }

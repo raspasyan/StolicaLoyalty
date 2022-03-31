@@ -1,9 +1,22 @@
-/* global C, d, fetch, currentCity, API_URL */
+/* global C, d, fetch, API_URL */
 
 function drawStores(stores) {
-    let cities = [];
+    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    
+    if (needUp.stores === 0) {
+        return;
+    }
+    
+    needUp.stores = 0;
+    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
+        
+    let cities = [],
+        contents = JSON.parse(C().getStor(LS_CONTENTS)),
+        currentCity = contents.personal.city;
     stores.forEach(item => {
-        if (cities.indexOf(item.id) === -1) cities.push(item.id);
+        if (cities.indexOf(item.id) === -1) {
+            cities.push(item.id);
+        }
     });
 
     cities.forEach(cityId => {
