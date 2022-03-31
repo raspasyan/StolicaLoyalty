@@ -3,7 +3,6 @@
 const cardImageW = 512,
       cardImageH = 328,
       cardImageSRC = "app/assets/backs/card_back.jpg";
-const DOMAIN = "";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
@@ -14,7 +13,6 @@ const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_CONTENTS = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
 const LS_SECTION = "section";
-const SOURCE = "APP_213";
 
 let lastPhone = "",
     secondsInterval = null,
@@ -1311,7 +1309,7 @@ function checkUpdates(callback) {
     }
 
     getUpdates().then(result => {
-        if (result.data.versionApp !== SOURCE && viewNewApp) {
+        if (result.data.versionApp !== SOURCE && viewNewApp && IS_APP) {
             showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
             viewNewApp = null;
         }

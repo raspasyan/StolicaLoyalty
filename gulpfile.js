@@ -23,7 +23,8 @@ var path = {
     css: 'app/src/scss/styles.scss',
     vendors: 'app/src/scss/vendors/*.css',
     indx: 'app/php/templates/index.html',
-    manif: 'manifest.json'
+    manif: 'manifest.json',
+    const: ['app/src/js/const/cordova.const.js', 'app/src/js/module.main.js']
   },
   
   build_desktop: {
@@ -34,7 +35,8 @@ var path = {
   src_desktop: {
     js:   ['app/src/js/*.js'],
     css: 'app/src/scss/styles.scss',
-    vendors: 'app/src/scss/vendors/*.css'
+    vendors: 'app/src/scss/vendors/*.css',
+    const: ['app/src/js/const/site.const.js', 'app/src/js/module.main.js']
   },
   
   clean: './build'
@@ -61,7 +63,15 @@ gulp.task('js:build', function (done) {
     //.pipe(concat('desktop.js'))
     //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_app.js));
-    
+  gulp.src(path.src_app.const)
+    .pipe(uglify())
+    .pipe(concat('module.main.js'))
+    .pipe(gulp.dest(path.build_app.js));
+  gulp.src(path.src_desktop.const)
+    .pipe(uglify())
+    .pipe(concat('module.main.js'))
+    .pipe(gulp.dest(path.build_desktop.js));
+        
     done();
 });
 
