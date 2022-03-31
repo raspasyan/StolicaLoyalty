@@ -14,14 +14,15 @@ const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_CONTENTS = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
 const LS_SECTION = "section";
-const SOURCE = "WEB2";
+const SOURCE = "APP_213";
 
 let lastPhone = "",
     secondsInterval = null,
     secondsLeft = 0,
     d = document,
     resetCodeTimer = null,
-    resetCodeTimerValue = 0;
+    resetCodeTimerValue = 0,
+    viewNewApp = 1;
 
 let sections = {
     "adult": {},
@@ -1310,6 +1311,11 @@ function checkUpdates(callback) {
     }
 
     getUpdates().then(result => {
+        if (result.data.versionApp !== SOURCE && viewNewApp) {
+            showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+            viewNewApp = null;
+        }
+        
         let currentSection = C().getStor(LS_SECTION),
             updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
             contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"news": "", "personal": "", "stores": "", "wallet": "", "purchases": "", "transactions": ""};

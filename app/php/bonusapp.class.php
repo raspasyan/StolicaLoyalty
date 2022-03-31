@@ -1,5 +1,8 @@
 <?php
+define("APP_VERSION", "APP_213");
+
 class BonusApp {
+
     private $pdo = null;
 
     private $providers = [
@@ -1562,7 +1565,8 @@ class BonusApp {
                 "walletHash"    => "",
                 "news"          => [],
                 "purchases"     => [],
-                "transactions"  => []
+                "transactions"  => [],
+                "versionApp"    => APP_VERSION
             ]
         ];
 
