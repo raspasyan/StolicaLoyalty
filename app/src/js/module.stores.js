@@ -1,18 +1,14 @@
 /* global C, d, fetch, API_URL */
 
 function drawStores(stores) {
-    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
-    
-    if (needUp.stores === 0) {
+    if (!permitRedrawSection('stores')) {
         return;
     }
-    
-    needUp.stores = 0;
-    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
         
     let cities = [],
         contents = JSON.parse(C().getStor(LS_CONTENTS)),
         currentCity = contents.personal.city;
+
     stores.forEach(item => {
         if (cities.indexOf(item.id) === -1) {
             cities.push(item.id);
@@ -49,22 +45,16 @@ function drawStoresInCity(stores) {
     list.html("");
     
     stores.forEach(city => {
-        let blockStoreElement = C().create("div");
-        blockStoreElement.addclass(["storesList__block", "animate__animated", "animate__fadeInLeft"]);
-        blockStoreElement.attr("style", "animation-duration: " + (delay / 5) + "s");
-        blockStoreElement.el.addEventListener("click", () => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
+        const temp = '<div class="storesList__block animate__animated animate__fadeInLeft" style="animation-duration: ' + (delay / 5) + 's">\n\
+                        <div class="storesList__block_title">' + city.store_title + '</div>\n\
+                        <div class="storesList__block_shedule">' + city.shedule + '</div>\n\
+                      </div>';
+        
+        let store = C().strToNode(temp);
 
-        let storeTitle = C().create("div");
-        storeTitle.addclass("storesList__block_title");
-        storeTitle.text(city.store_title);
-        blockStoreElement.el.append(storeTitle.el);
+        store.el.addEventListener("click", () => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
 
-        let storeShedule = C().create("div");
-        storeShedule.addclass("storesList__block_shedule");
-        storeShedule.text(city.shedule);
-        blockStoreElement.el.append(storeShedule.el);
-
-        list.el.append(blockStoreElement.el);
+        list.el.append(store.el);
 
         if (delay < 10) {
             delay++;
@@ -95,53 +85,36 @@ function closeStore() {
 }
 
 function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
-    let storeMap = C().create("div");
-    storeMap.addclass("storeMap");
-
-    let storeMapBg = C().create("div");
-    storeMapBg.addclass("storeMap__bg");
-    storeMapBg.el.addEventListener("click", () => closeStore());
-    storeMap.append(storeMapBg);
-
-    let storeMapBlock = C().create("div");
-    storeMapBlock.addclass(["storeMap__block", "animate__animated", "animate__fadeInDown"]);
-    storeMap.append(storeMapBlock);
-
-    let mapCity = C().create("div");
-    mapCity.addclass("storeMap__block_city");
-    mapCity.text(city);
-    storeMapBlock.append(mapCity);
+    const temp = '<div class="storeMap">\n\
+                    <div class="storeMap__bg"></div>\n\
+                    <div class="storeMap__block animate__animated animate__fadeInDown">\n\
+                        <div class="storeMap__block_city">' + city + '<i class="icon-cancel"></i></div>\n\
+                        <div class="storeMap__block_info">\n\
+                            <div>\n\
+                                <span>Адрес:</span>\n\
+                                <span>' + title + '</span>\n\
+                            </div>\n\
+                            <div>\n\
+                                <span>Время работы:</span>\n\
+                                <span>' + shedule + '</span>\n\
+                            </div>\n\
+                            <div>\n\
+                                <span>Телефон:</span>\n\
+                                <span><a href="tel:+7' + phone.slice(1) + '">' + phone + '</a></span>\n\
+                            </div>\n\
+                        </div>\n\
+                        <div id="map"></div>\n\
+                    </div>\n\
+                  </div>';
     
-    let mapClose = C().create("i");
-    mapClose.addclass("icon-cancel");
-    mapClose.id = "closeStore";
-    mapCity.append(mapClose);
-    mapClose.el.addEventListener("click", () => closeStore());
+    let storeMap = C().strToNode(temp);
     
-    let mapInfo = C().create("div");
-    mapInfo.addclass("storeMap__block_info");
-    storeMapBlock.append(mapInfo);
-
-    let mapInfoItem = C().create("div");
-    mapInfoItem.html("<span>Адрес:</span><span>" + title + "</span>");
-    mapInfo.append(mapInfoItem);
-
-    mapInfoItem = C().create("div");
-    mapInfoItem.html("<span>Время работы:</span><span>" + shedule + "</span>");
-    mapInfo.append(mapInfoItem);
-
-    mapInfoItem = C().create("div");
-    mapInfoItem.html("<span>Телефон:</span><span><a href='tel:+7" + phone.slice(1) + "'>" + phone + "</a></span>");
-    mapInfo.append(mapInfoItem);
-
-    let map = C().create("div");
-    map.attr("id", "map");
-    storeMapBlock.append(map);
-
+    C("div>div", storeMap).el.addEventListener("click", () => closeStore());
+    C("i", storeMap).el.addEventListener("click", () => closeStore());
     d.body.appendChild(storeMap.el);
 
     let x = parseFloat(coordinates.split(',')[0]),
-            y = parseFloat(coordinates.split(',')[1]);
+        y = parseFloat(coordinates.split(',')[1]);
 
     var myMap = new ymaps.Map("map", {
         center: [x, y],

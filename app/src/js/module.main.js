@@ -333,6 +333,20 @@ d.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+function permitRedrawSection(section) {
+    let permit = true,
+        needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    
+    if (needUp[section] === 0) {
+        permit = false;
+    }
+    
+    needUp[section] = 0;
+    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
+    
+    return permit;
+}
+
 function clearStorage() {
     if (!C().getStor('crash_clear')) {
         C().delStor(LS_CURR_UPDATE);
@@ -1325,12 +1339,14 @@ function checkUpdates(callback) {
         
         let currentSection = C().getStor(LS_SECTION),
             updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-            contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"news": "", "personal": "", "stores": "", "wallet": "", "purchases": "", "transactions": ""};
+            contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"news": [], "personal": "", "stores": "", "wallet": "", "purchases": "", "transactions": ""};
         
         if (result.status) {
             if (result.data.news.length) {
                 setNeedUpdate(contents, result, 'news');
-                contents.news = result.data.news;
+                result.data.news.forEach(nw =>{
+                    contents.news.push(nw);
+                });
                 updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
             }
             if (result.data.personalHash) {
@@ -1538,221 +1554,238 @@ var C = function (s, p) {
                 (typeof nodes.length === 'number') &&
                 (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
     },
-            this.isNode = function (obj) {
-                //return obj instanceof HTMLElement;
-                if (obj && obj.nodeType) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            this.isDocument = function (obj) {
-                return obj instanceof Document || obj instanceof Window;
-            },
-            this.isclass = function (cl) {
-                return this.els[0].classList.contains(cl);
-            },
-            this.defineEls = function () {
-                if (this.isNode(s) || this.isDocument(s)) {
-                    return [s];
-                } else if (this.isNodeList(s)) {
-                    return s;
-                } else {
-                    if (p && p.isC) {
-                        p = p.els[0];
-                    }
+    this.isNode = function (obj) {
+        //return obj instanceof HTMLElement;
+        if (obj && obj.nodeType) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    this.isDocument = function (obj) {
+        return obj instanceof Document || obj instanceof Window;
+    },
+    this.isclass = function (cl) {
+        return this.els[0].classList.contains(cl);
+    },
+    this.defineEls = function () {
+        if (this.isNode(s) || this.isDocument(s)) {
+            return [s];
+        } else if (this.isNodeList(s)) {
+            return s;
+        } else {
+            if (p && p.isC) {
+                p = p.els[0];
+            }
 
-                    return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
-                }
-            },
-            this.defineEl = function () {
-                return this.els[0];
-            },
-            this.els = this.defineEls(),
-            this.el = this.defineEl(),
-            this.on = function (type, s, fn, except) {
-                var p = this;
+            return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
+        }
+    },
+    this.defineEl = function () {
+        return this.els[0];
+    },
+    this.els = this.defineEls(),
+    this.el = this.defineEl(),
+    this.on = function (type, s, fn, except) {
+        var p = this;
 
-                this.bind(type, function (e) {
-                    var el;
+        this.bind(type, function (e) {
+            var el;
 
-                    if (p.isNode(s) || p.isNodeList(s)) {
-                        el = s;
-                    } else {
-                        el = C(s).els;
-                    }
+            if (p.isNode(s) || p.isNodeList(s)) {
+                el = s;
+            } else {
+                el = C(s).els;
+            }
 
-                    var t = e.target,
-                            ex = except || false;
+            var t = e.target,
+                    ex = except || false;
 
-                    while (t && t !== this) {
-                        if (ex) {
-                            var goto = false;
-                            C(ex).els.forEach(function (item, index, array) {
-                                if (item === t) {
-                                    goto = true;
-                                }
-                            });
-                            if (goto) {
-                                break;
-                            }
+            while (t && t !== this) {
+                if (ex) {
+                    var goto = false;
+                    C(ex).els.forEach(function (item, index, array) {
+                        if (item === t) {
+                            goto = true;
                         }
-
-                        for (var i = 0; i < el.length; i++) {
-                            if (t === el[i]) {
-                                fn(e, t);
-                                break;
-                            }
-                        }
-
-                        if (t) {
-                            t = t.parentNode;
-                        } else {
-                            break;
-                        }
-                    }
-                });
-
-                return this;
-            },
-            this.attr = function (attr, value) {
-                if (value === "undefined") {
-                    return this.el.getAttribute(attr);
-                }
-
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].setAttribute(attr, value);
-                }
-
-                return this;
-            },
-            this.create = function (tag) {
-                var el = document.createElement(tag);
-                this.els = [el];
-                this.el = el;
-
-                return this;
-            },
-            this.append = function (el) {
-                this.el.append(el.el);
-            },
-            this.style = function (st, val) {
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].style[st] = val;
-                }
-
-                return this;
-            },
-            this.addclass = function (cl) {
-                if (!Array.isArray(cl)) {
-                    cl = [cl];
-                }
-
-                for (var i = 0; i < this.els.length; i++) {
-                    for (var y = 0; y < cl.length; y++) {
-                        this.els[i].classList.add(cl[y]);
+                    });
+                    if (goto) {
+                        break;
                     }
                 }
 
-                return this;
-            },
-            this.togclass = function (cl) {
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].classList.toggle(cl);
-                }
-
-                return this;
-            },
-            this.delclass = function (cl) {
-                if (!Array.isArray(cl)) {
-                    cl = [cl];
-                }
-
-                for (var i = 0; i < this.els.length; i++) {
-                    for (var y = 0; y < cl.length; y++) {
-                        this.els[i].classList.remove(cl[y]);
+                for (var i = 0; i < el.length; i++) {
+                    if (t === el[i]) {
+                        fn(e, t);
+                        break;
                     }
                 }
 
-                return this;
-            },
-            this.delStor = function (key) {
-                localStorage.removeItem(key);
-                return this;
-            },
-            this.setStor = function (key, val) {
-                localStorage.setItem(key, val);
-                return this;
-            },
-            this.getStor = function (key) {
-                return localStorage.getItem(key);
-            },
-            this.bind = function (type, fn) {
-                var addEvent, z;
-
-                if (!type || !fn) {
-                    return this;
-                }
-
-                if (typeof addEventListener === "function") {
-                    addEvent = function (el, type, fn) {
-                        el.addEventListener(type, fn, false);
-                    };
-                } else if (typeof attachEvent === "function") {
-                    addEvent = function (el, type, fn) {
-                        el.attachEvent("on" + type, fn);
-                    };
+                if (t) {
+                    t = t.parentNode;
                 } else {
-                    return this;
+                    break;
                 }
+            }
+        });
 
-                if (this.isNodeList(this.els)) {
-                    for (z = 0; z < this.els.length; z++) {
-                        addEvent(this.els[z], type, fn);
-                    }
-                } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
-                    addEvent(this.els[0], type, fn);
-                } else if (this.els.length > 0) {
-                    for (z = 0; z < this.els.length; z++) {
-                        addEvent(this.els[z], type, fn);
-                    }
-                }
+        return this;
+    },
+    this.strToNode = function (h) {
+      var terk;
 
-                return this;
-            },
-            this.html = function (text) {
-                if (!arguments.length && text !== '') {
-                    return this.els[0].innerHTML;
-                }
+      if (!this.isNode(h)) {
+        var div = this.create('div');
 
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].innerHTML = text;
-                }
+        div.html(h);
+        terk = [div.el.children[0]];
+      } else {
+        terk = [h];
+      }
 
-                return this;
-            },
-            this.text = function (text) {
-                if (!arguments.length && text !== '') {
-                    return this.els[0].innerText;
-                }
+      this.els = terk;
+      this.el  = terk[0];
 
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].innerText = text;
-                }
+      return this;
+    },
+    this.attr = function (attr, value) {
+        if (value === "undefined") {
+            return this.el.getAttribute(attr);
+        }
 
-                return this;
-            },
-            this.val = function (value) {
-                if (!arguments.length && value !== '') {
-                    return this.els[0].value;
-                }
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].setAttribute(attr, value);
+        }
 
-                for (var i = 0; i < this.els.length; i++) {
-                    this.els[i].value = value;
-                }
+        return this;
+    },
+    this.create = function (tag) {
+        var el = document.createElement(tag);
+        this.els = [el];
+        this.el = el;
 
-                return this;
+        return this;
+    },
+    this.append = function (el) {
+        this.el.append(el.el);
+    },
+    this.style = function (st, val) {
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].style[st] = val;
+        }
+
+        return this;
+    },
+    this.addclass = function (cl) {
+        if (!Array.isArray(cl)) {
+            cl = [cl];
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            for (var y = 0; y < cl.length; y++) {
+                this.els[i].classList.add(cl[y]);
+            }
+        }
+
+        return this;
+    },
+    this.togclass = function (cl) {
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].classList.toggle(cl);
+        }
+
+        return this;
+    },
+    this.delclass = function (cl) {
+        if (!Array.isArray(cl)) {
+            cl = [cl];
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            for (var y = 0; y < cl.length; y++) {
+                this.els[i].classList.remove(cl[y]);
+            }
+        }
+
+        return this;
+    },
+    this.delStor = function (key) {
+        localStorage.removeItem(key);
+        return this;
+    },
+    this.setStor = function (key, val) {
+        localStorage.setItem(key, val);
+        return this;
+    },
+    this.getStor = function (key) {
+        return localStorage.getItem(key);
+    },
+    this.bind = function (type, fn) {
+        var addEvent, z;
+
+        if (!type || !fn) {
+            return this;
+        }
+
+        if (typeof addEventListener === "function") {
+            addEvent = function (el, type, fn) {
+                el.addEventListener(type, fn, false);
             };
+        } else if (typeof attachEvent === "function") {
+            addEvent = function (el, type, fn) {
+                el.attachEvent("on" + type, fn);
+            };
+        } else {
+            return this;
+        }
+
+        if (this.isNodeList(this.els)) {
+            for (z = 0; z < this.els.length; z++) {
+                addEvent(this.els[z], type, fn);
+            }
+        } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
+            addEvent(this.els[0], type, fn);
+        } else if (this.els.length > 0) {
+            for (z = 0; z < this.els.length; z++) {
+                addEvent(this.els[z], type, fn);
+            }
+        }
+
+        return this;
+    },
+    this.html = function (text) {
+        if (!arguments.length && text !== '') {
+            return this.els[0].innerHTML;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].innerHTML = text;
+        }
+
+        return this;
+    },
+    this.text = function (text) {
+        if (!arguments.length && text !== '') {
+            return this.els[0].innerText;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].innerText = text;
+        }
+
+        return this;
+    },
+    this.val = function (value) {
+        if (!arguments.length && value !== '') {
+            return this.els[0].value;
+        }
+
+        for (var i = 0; i < this.els.length; i++) {
+            this.els[i].value = value;
+        }
+
+        return this;
+    };
 
     if (this instanceof C) {
         return this.C;

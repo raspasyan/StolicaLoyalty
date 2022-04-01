@@ -1,14 +1,9 @@
 /* global C, Intl, d, cardImageSRC, cardImageW, cardImageH */
 
 function drawWallet(walletData) {
-    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
-    
-    if (needUp.wallet === 0) {
+    if (!permitRedrawSection('wallet')) {
         return;
     }
-    
-    needUp.wallet = 0;
-    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
     
     let cardEl   = C("#cardNumber"),
         qrEl     = C("#qrcode").el,
@@ -153,14 +148,9 @@ function drawWallet(walletData) {
 }
 
 function drawPurchases(purchases) {
-    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
-    
-    if (needUp.purchases === 0) {
+    if (!permitRedrawSection('wallet')) {
         return;
     }
-    
-    needUp.purchases = 0;
-    C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
     
    if (!purchases) {
         return false;
