@@ -6,5 +6,8 @@ nbproject/*
 app/assets/news/*
 vendor/*
 app/build/*
-cordova-www/*
+cordova/www/*
+cordova/platforms/*
+cordova/node_modules/*
+cordova/plugins/*
 node_modules/*

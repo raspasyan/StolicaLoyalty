@@ -10,20 +10,18 @@ var gulp = require('gulp'),
      
 var path = {
   build_app: {
-    assets: 'cordova-www/app/assets/',
-    js: 'cordova-www/app/build/js/',
-    css: 'cordova-www/app/build/styles/',
-    indx: 'cordova-www/'
+    assets: 'cordova/www/app/assets/',
+    js: 'cordova/www/app/build/js/',
+    css: 'cordova/www/app/build/styles/',
+    indx: 'cordova/www/'
   },
   
   src_app: {
-    assets: 'app/assets/*/*',
-    asset: 'app/assets/*.*',
+    assets: ['app/assets/*/*', 'app/assets/*.*'],
     js:   'app/src/js/*.js',
     css: 'app/src/scss/styles.scss',
     vendors: 'app/src/scss/vendors/*.css',
-    indx: 'app/php/templates/index.html',
-    manif: 'manifest.json',
+    indx: ['app/php/templates/index.html', 'manifest.json'],
     const: ['app/src/js/const/cordova.const.js', 'app/src/js/module.main.js']
   },
   
@@ -44,8 +42,6 @@ var path = {
 
 gulp.task('assets:build', function (done) {
   gulp.src(path.src_app.assets)
-    .pipe(gulp.dest(path.build_app.assets));
-  gulp.src(path.src_app.asset)
     .pipe(gulp.dest(path.build_app.assets));
     done();
 });
@@ -93,18 +89,8 @@ gulp.task('vendors:build', function (done) {
   gulp.src(path.src_app.vendors)
     .pipe(prefixer())
     .pipe(cssmin())
-    .pipe(gulp.dest(path.build_app.css));    
-    done();
-});
-
-gulp.task('indx:build', function (done) {
+    .pipe(gulp.dest(path.build_app.css));
   gulp.src(path.src_app.indx)
-    .pipe(gulp.dest(path.build_app.indx));
-    done();
-});
-
-gulp.task('manif:build', function (done) {
-  gulp.src(path.src_app.manif)
     .pipe(gulp.dest(path.build_app.indx));
     done();
 });
@@ -117,8 +103,7 @@ gulp.task('build', gulp.series(
   'assets:build',
   'js:build',
   'css:build',
-  'vendors:build',
-  'indx:build'
+  'vendors:build'
 ));
 
 gulp.task('default', gulp.series('build'));
