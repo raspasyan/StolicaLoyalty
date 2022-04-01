@@ -143,7 +143,8 @@ d.addEventListener("DOMContentLoaded", function () {
      }
      notifySet();
      */
-
+    
+    clearStorage();
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
@@ -331,6 +332,14 @@ d.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function clearStorage() {
+    if (isEmpty(C().getStor('crash_clear'))) {
+        C().delStor(LS_CURR_UPDATE);
+        C().delStor(LS_CONTENTS);
+        C().setStor('crash_clear', 1)
+    }
+}
 
 function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach(el => {
@@ -1220,11 +1229,11 @@ function showInputPopup(id) {
 }
 
 function setFeedback() {
-    let phone = getPhoneNumbers(C("#feedback-phone-mask").val()),
+    let phone = C("#feedback-phone-mask").val(),
         message = C("#feedback-message").val(),
         fbSubmitBut = C("#feedback-submit").el;
 
-    if (phone.length !== 11) {
+    if (getPhoneNumbers(phone).length !== 11) {
         showInputPopup("feedback-phone-mask");
         return;
     }

@@ -882,16 +882,16 @@ class BonusApp {
     }
 
     private function API_setFeedback($data) {
-        if (preg_match("/^[7]\d{10}$/", $data["phone"])) {
+        //if (preg_match("/^[7]\d{10}$/", $data["phone"])) {
             $phone = ""; 
             $authResult = $this->checkAuthorization();
             if ($authResult["status"]) $phone = $authResult["data"]["phone"];
             $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
             
             return $this->setFeedback($phone, $data);
-        } else {
-            return ["status" => false];
-        }
+        //} else {
+        //    return ["status" => false];
+        //}
     }
 
     private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount) {
