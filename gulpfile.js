@@ -19,7 +19,7 @@ var path = {
   src_app: {
     assets: 'app/assets/*/*',
     asset: 'app/assets/*.*',
-    js:   ['app/src/js/*.js'],
+    js:   'app/src/js/*.js',
     css: 'app/src/scss/styles.scss',
     vendors: 'app/src/scss/vendors/*.css',
     indx: 'app/php/templates/index.html',
@@ -33,9 +33,9 @@ var path = {
   },
   
   src_desktop: {
-    js:   ['app/src/js/*.js'],
+    js:   'app/src/js/*.js',
     css: 'app/src/scss/styles.scss',
-    vendors: 'app/src/scss/vendors/*.css',
+    vendors: ['app/src/scss/vendors/*.css', 'app/src/scss/static_page/*.css'],
     const: ['app/src/js/const/site.const.js', 'app/src/js/module.main.js']
   },
   
@@ -54,14 +54,10 @@ gulp.task('js:build', function (done) {
   gulp.src(path.src_desktop.js)
     //.pipe(sourcemaps.init())
     .pipe(uglify())
-    //.pipe(concat('desktop.js'))
     //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_desktop.js));
   gulp.src(path.src_app.js)
-    //.pipe(sourcemaps.init())
     .pipe(uglify())
-    //.pipe(concat('desktop.js'))
-    //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_app.js));
   gulp.src(path.src_app.const)
     .pipe(uglify())
@@ -77,18 +73,14 @@ gulp.task('js:build', function (done) {
 
 gulp.task('css:build', function (done) {
   gulp.src(path.src_desktop.css)
-    //.pipe(sourcemaps.init())
     .pipe(sass())
     .pipe(prefixer())
     .pipe(cssmin())
-    //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_desktop.css));
   gulp.src(path.src_app.css)
-    //.pipe(sourcemaps.init())
     .pipe(sass())
     .pipe(prefixer())
     .pipe(cssmin())
-    //.pipe(sourcemaps.write())
     .pipe(gulp.dest(path.build_app.css));    
     done();
 });

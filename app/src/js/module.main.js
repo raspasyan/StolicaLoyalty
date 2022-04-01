@@ -334,7 +334,7 @@ d.addEventListener("DOMContentLoaded", function () {
 });
 
 function clearStorage() {
-    if (isEmpty(C().getStor('crash_clear'))) {
+    if (!C().getStor('crash_clear')) {
         C().delStor(LS_CURR_UPDATE);
         C().delStor(LS_CONTENTS);
         C().setStor('crash_clear', 1)

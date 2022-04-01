@@ -16,10 +16,10 @@
 
   <title>Столица: Лояльность</title>
 
-  <link rel="stylesheet" href="app/assets/styles/google-open-sans.css" />
-  <link rel="stylesheet" href="app/assets/styles/normalize.css" />
-  <link rel="stylesheet" href="app/assets/styles/skeleton_new.css" />
-  <link rel="stylesheet" href="app/assets/styles/style_desktop.css" />
+  <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
+  <link rel="stylesheet" href="app/build/styles/normalize.css" />
+  <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
+  <link rel="stylesheet" href="app/build/styles/style_desktop.css" />
 </head>
 
 <body>
