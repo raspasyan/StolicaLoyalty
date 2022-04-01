@@ -148,174 +148,92 @@ function drawWallet(walletData) {
 }
 
 function drawPurchases(purchases) {
-    if (!permitRedrawSection('wallet')) {
+    if (!permitRedrawSection('purchases')) {
         return;
     }
     
-   if (!purchases) {
+    if (!purchases) {
         return false;
     }
+    
     purchases.forEach(purchase => drawPurchase(purchase));
 }
 
 function drawPurchase(purchase) {
-    let payEl     = C().create("div"),
-        payRowEl  = C().create("div"),
-        spanEl    = C().create("span"),
-        totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount));
+    let totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount)),
+        cashback  = Math.trunc(purchase.cashback_amount),
+        amount    = Math.trunc(purchase.payment_amount),
+        date      = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/")),
+        dater     = (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
+                    + String(date.getDate()) + " "
+                    + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
+                    + String(date.getFullYear()) + " года, "
+                    + String(date.getHours()) + ":"
+                    + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
+                    + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds());
 
-    payEl.addclass(["animate__animated", "animate__fadeIn"]);
-    spanEl.el.style.fontWeight = "bold";
-    spanEl.text("Всего скидка: ");
-    payRowEl.append(spanEl);
-
-    spanEl = C().create("span");
-    spanEl.addclass("bad");
-    spanEl.text((totalDisc ? "-" : "") + totalDisc + " руб");
-    payRowEl.append(spanEl);
-
-    // Чек-возврата
-    if (!purchase.operation_type) {
-        spanEl = C().create("span");
-        spanEl.addclass("bad");
-        spanEl.style("fontWeight", "bold");
-        spanEl.style("textAlign", "right");
-        spanEl.style("fontSize", "12px");
-        spanEl.text("чек возврата");
-        payRowEl.append(spanEl);
-    }
-
-    payEl.append(payRowEl);
-
-    payRowEl = C().create("div");
-    spanEl = C().create("span");
-    spanEl.addclass("payment-amount");
-    spanEl.style("fontWeight", "bold");
-    spanEl.style("marginLeft", "20px");
-    spanEl.text("из них бонусами: ");
-    payRowEl.append(spanEl);
-
-    spanEl = C().create("span");
-    spanEl.addclass("bad");
-    spanEl.text(Math.trunc(purchase.payment_amount));
-    payRowEl.append(spanEl);
-
-    payEl.append(payRowEl);
-
-    // Начислено бонусов
-    payRowEl = C().create("div");
-
-    spanEl = C().create("span");
-    spanEl.addclass("payment-amount");
-    spanEl.style("fontWeight", "bold");
-    spanEl.text("Начислено бонусов: ");
-    payRowEl.append(spanEl);
-
-    let cashbackAmount = Math.trunc(purchase.cashback_amount);
-    spanEl = C().create("span");
-    spanEl.addclass("good");
-    spanEl.text((cashbackAmount > 0 ? "+" : "") + cashbackAmount);
-    payRowEl.append(spanEl);
-
-    payEl.append(payRowEl);
-
-    // Дата
-    payRowEl = C().create("div");
-    payRowEl.addclass("payment-row-date");
-
-    spanEl = C().create("span");
-    spanEl.addclass("payment-amount");
-    spanEl.text("Дата: ");
-    payRowEl.append(spanEl);
-
-    let date = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/"));
-
-    spanEl = C().create("span");
-    spanEl.text(
-        (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
-        + String(date.getDate()) + " "
-        + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
-        + String(date.getFullYear()) + " года, "
-        + String(date.getHours()) + ":"
-        + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
-        + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds()));
-    payRowEl.append(spanEl);
-
-    payEl.append(payRowEl);
-
-    // Источник начисления
-    payRowEl = C().create("div");
-    payRowEl.addclass("payment-row-date");
-
-    spanEl = C().create("span");
-    spanEl.addclass("payment-amount");
-    spanEl.text("Магазин: ");
-    payRowEl.append(spanEl);
-
-    if (purchase.store_title && purchase.store_description) {
-        payRowEl.append(getGeolink(purchase.store_title, purchase.store_description));
-    } else {
-        spanEl = C().create("span");
-        spanEl.text(purchase.store_title);
-        payRowEl.append(spanEl);
-    }
-
-    payEl.append(payRowEl);
-
+    let refund = (!purchase.operation_type) ? '<span class="bad b" style="font-size: 12px;text-align: right;">чек возврата</span>' : '';
+    let linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
+    let tempDetails     = "";
+    
     // Детализация чека
     if (purchase.positions.length) {
-        let payDetailsEl = C().create("details"),
-            sumEl        = C().create("summary"),
-            detDataEl    = C().create("div"),
-            payRowEl     = C().create("div");
-        
-        payEl.append(payDetailsEl);
-
-        sumEl.text("Подробнее");
-        payDetailsEl.append(sumEl);
-
-        detDataEl.addclass("details-data");
-        payDetailsEl.append(detDataEl); 
-
-        payRowEl.addclass(["payment-details", "neutral"]);
-        
-        ["Оплачено", "Скидка", "Начислено"].forEach(element => {
-            let spanEl = C().create("span");
-            spanEl.text(element);
-            payRowEl.append(spanEl);
-        });
-        detDataEl.append(payRowEl);
+        let tempPositions = '';
 
         purchase.positions.forEach((position) => {
-            let spanEl   = C().create("span"),
-                payRowEl = C().create("div");
-                
-            payRowEl.addclass(["payment-details", "important"]);
-            spanEl.text(Math.trunc(position.cost) + " руб");
-            payRowEl.append(spanEl);
-
-            spanEl = C().create("span");
-            if (position.discount_amount) {
-                spanEl.text(Math.trunc(position.discount_amount * -1) + " руб");
-            } else {
-                spanEl.text(Math.trunc(position.payment_amount) + " бонусов");
-            }
-
             let posCashAmount = Math.trunc(position.cashback_amount);
-            payRowEl.append(spanEl);
-            spanEl = C().create("span");
-            spanEl.text((posCashAmount > 0 ? "+" : "") + posCashAmount + " бонусов");
-            payRowEl.append(spanEl);
 
-            detDataEl.append(payRowEl);
-
-            payRowEl = C().create("div");
-            payRowEl.addclass(["payment-details", "payment-details-full"]);
-            payRowEl.text((position.product_title ? position.product_title : "Загрузка.."));
-            detDataEl.append(payRowEl);
+            tempPositions += '<div class="payment-details important">\n\
+                                <span>' + Math.trunc(position.cost) + ' руб</span>\n\
+                                <span>' + ((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов")) + '</span>\n\
+                                <span>' + (posCashAmount > 0 ? "+" : "") + posCashAmount + ' бонусов</span>\n\
+                        </div>\n\
+                        <div class="payment-details payment-details-full">' + (position.product_title ? position.product_title : "Загрузка..") + '</div>\n\
+                        ';
         });
-    }
+        
+        tempDetails = '<details>\n\
+                        <summary>Подробнее</summary>\n\
+                        <div class="details-data">\n\
+                            <div class="payment-details neutral">\n\
+                                <span>Оплачено</span>\n\
+                                <span>Скидка</span>\n\
+                                <span>Начислено</span>\n\
+                            </div>\n\
+                            ' + tempPositions + '\n\
+                        </div>\n\
+                    </details>';
 
+    }
+    
+    const temp = '<div class="animate__animated animate__fadeIn">\n\
+                    <div>\n\
+                        <span class="b">Всего скидка: </span>\n\
+                        <span class="bad">' + (totalDisc ? "-" : "") + totalDisc + ' руб</span>\n\
+                        ' + refund + '\n\
+                    </div>\n\
+                    <div>\n\
+                        <span class="payment-amount b" style="margin-left: 20px;">из них бонусами: </span>\n\
+                        <span class="bad">' + amount + '</span>\n\
+                    </div>\n\
+                    <div>\n\
+                        <span class="payment-amount b">Начислено бонусов: </span>\n\
+                        <span class="good">' + (cashback > 0 ? "+" : "") + cashback + '</span>\n\
+                    </div>\n\
+                    <div class="payment-row-date">\n\
+                        <span class="payment-amount">Дата: </span>\n\
+                        <span>' + dater + '</span>\n\
+                    </div>\n\
+                    <div class="payment-row-date">\n\
+                        <span class="payment-amount">Магазин: </span>\n\
+                        <div>\n\
+                            ' + linkStore + '\n\
+                        </div>\n\
+                    </div>\n\
+                    ' + tempDetails + '\n\
+                </div>';
+    
+    let payEl = C().strToNode(temp);
     C("#transactions").el.prepend(payEl.el);
 }
 
@@ -326,7 +244,6 @@ function drawBonusCard(cardNumber) {
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
     cardImg.addEventListener("load", () => {
-
         let qrCanvas = C().create("img"),
             qr = new QRious({
                 element: qrCanvas.el,
@@ -364,17 +281,4 @@ function drawBonusCard(cardNumber) {
             link.click();
         });
     });
-}
-
-function getGeolink(title, desc) {
-    let wrap   = C().create("div"),
-        linkEl = C().create("span");
-
-    linkEl.addclass("ymaps-geolink");
-    linkEl.attr("data-description", desc);
-    linkEl.text(title);
-
-    wrap.append(linkEl);
-
-    return wrap;
 }
