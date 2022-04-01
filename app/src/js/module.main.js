@@ -1243,11 +1243,11 @@ function showInputPopup(id) {
 }
 
 function setFeedback() {
-    let phone = C("#feedback-phone-mask").val(),
+    let phone = getPhoneNumbers(C("#feedback-phone-mask").val()),
         message = C("#feedback-message").val(),
         fbSubmitBut = C("#feedback-submit").el;
 
-    if (getPhoneNumbers(phone).length !== 11) {
+    if (phone.length !== 11) {
         showInputPopup("feedback-phone-mask");
         return;
     }
