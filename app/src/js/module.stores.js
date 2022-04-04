@@ -1,10 +1,6 @@
-/* global C, d, fetch, API_URL */
+/* global C, d, fetch, API_URL, LS_CONTENTS, SOURCE */
 
 function drawStores(stores) {
-    if (!permitRedrawSection('stores')) {
-        return;
-    }
-        
     let cities = [],
         contents = JSON.parse(C().getStor(LS_CONTENTS)),
         currentCity = contents.personal.city;
@@ -69,7 +65,8 @@ function getStores() {
             "Content-Type": "application/json;charset=utf-8"
         },
         body: JSON.stringify({
-            "method": "getStores"
+            "method": "getStores",
+            "source": SOURCE
         })
     }).then(response => response.json()).catch(error => {
         return {

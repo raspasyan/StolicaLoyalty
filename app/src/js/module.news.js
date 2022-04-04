@@ -1,9 +1,6 @@
 /* global C, d, DOMAIN */
 
 function drawNews(newsList) {
-    if (!permitRedrawSection('news')) {
-        return;
-    }
     
     if (!newsList) {
         return false;

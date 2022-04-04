@@ -93,6 +93,7 @@ let sections = {
 let currentSection = "",
     bearerToken = "",
     userActivityTimeout = null,
+    initApp = true,
     tempUpdate = {
         "personalHash": "",
         "walletHash": "",
@@ -359,7 +360,7 @@ function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach(el => {
         el.addEventListener("click", e => {
             let i = e.currentTarget,
-                    inp = i.parentNode.children[0];
+                inp = i.parentNode.children[0];
 
             i.classList.remove("icon-eye", "icon-eye-off");
 
@@ -436,8 +437,6 @@ function renderSections() {
         let contents = JSON.parse(C().getStor(LS_CONTENTS));
         
         drawPersonal(contents.personal);
-        drawNews(contents.news);
-        drawStores(contents.stores);
         drawWallet(contents.wallet);
         drawPurchases(contents.purchases);
     }
@@ -676,7 +675,8 @@ function checkAuthorization() {
             "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
         },
         body: JSON.stringify({
-            "method": "checkAuthorization"
+            "method": "checkAuthorization",
+            "source": SOURCE
         })
     })
             .then(response => response.json())
@@ -718,7 +718,8 @@ async function auth() {
         "data": {
             "phone": phone,
             "pass": authPassEl.val()
-        }
+        },
+        "source": SOURCE
     };
 
     let response = await fetch(API_URL, {
@@ -809,7 +810,8 @@ async function reg() {
                 "discount": (C("#discount").el.checked ? 1 : 0),
                 "email": C("#reg_email").val(),
                 "city": C("#city").val()
-            }
+            },
+            "source": SOURCE
         })
     });
 
@@ -889,7 +891,8 @@ async function confirmation() {
             "data": {
                 "phone": lastPhone,
                 "code": regConfCodeEl.val()
-            }
+            },
+            "source": SOURCE
         },
                 response = await fetch(API_URL, {
                     method: "POST",
@@ -933,7 +936,8 @@ async function confirmationReset() {
             "method": "confirmationReset",
             "data": {
                 "phone": lastPhone
-            }
+            },
+            "source": SOURCE
         };
 
         let response = await fetch(API_URL, {
@@ -981,7 +985,8 @@ async function getResetConfirmationCode() {
             "method": "getResetConfirmationCode",
             "data": {
                 "phone": resPhoneEl.val()
-            }
+            },
+            "source": SOURCE
         };
 
         let response = await fetch(API_URL, {
@@ -1062,7 +1067,8 @@ async function checkResetConfirmationCode() {
             "data": {
                 "phone": resPhoneEl.val(),
                 "code": resConfCodeEl.val()
-            }
+            },
+            "source": SOURCE
         };
 
     let response = await fetch(API_URL, {
@@ -1093,7 +1099,8 @@ async function checkResetConfirmationCode() {
 
 async function getReferLink() {
     let body = {
-            "method": "getReferLink"
+            "method": "getReferLink",
+            "source": SOURCE
         };
 
     let response = await fetch(API_URL, {
@@ -1119,7 +1126,8 @@ function attentionFocus(el) {
 
 async function logOff() {
     let body = {
-            "method": "logOff"
+            "method": "logOff",
+            "source": SOURCE
         },
         response = await fetch(API_URL, {
             method: "POST",
@@ -1144,15 +1152,16 @@ async function updateCities() {
 
     if (!city.el.children.length) {
         let response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify({
-                "method": "getCities"
-            })
-        }),
-                result = await response.json();
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    body: JSON.stringify({
+                        "method": "getCities",
+                        "source": SOURCE
+                    })
+                }),
+            result = await response.json();
 
         if (result.status) {
             result.data.forEach(el => {
@@ -1268,7 +1277,8 @@ function setFeedback() {
             "email": C("#feedback-email").val(),
             "reason": C("#feedback-reason").val(),
             "message": C("#feedback-message").val()
-        }
+        },
+        "source": SOURCE
     }))
             .then(result => {
                 if (result.status) {
@@ -1286,13 +1296,13 @@ function setFeedback() {
 }
 
 function API_setFeedback(body) {
-    return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: body
-    })
+            return fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                body: body
+            })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1332,67 +1342,63 @@ function checkUpdates(callback) {
     }
 
     getUpdates().then(result => {
-        if (result.data.versionApp !== SOURCE && viewNewApp && IS_APP) {
-            showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
-            viewNewApp = null;
-        }
-        
-        let currentSection = C().getStor(LS_SECTION),
-            updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-            contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"news": [], "personal": "", "stores": "", "wallet": "", "purchases": "", "transactions": ""};
-        
-        if (result.status) {
-            if (result.data.news.length) {
-                setNeedUpdate(contents, result, 'news');
-                result.data.news.forEach(nw =>{
-                    contents.news.push(nw);
-                });
-                updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
-            }
-            if (result.data.personalHash) {
-                setNeedUpdate(contents, result, 'personal');
-                contents.personal = result.data.personal;
-                updates.personalHash = result.data.personalHash;
+                if (viewNewApp && SOURCE && SOURCE !== result.data.versionApp) {
+                    showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+                    viewNewApp = null;
+                }
 
-                let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
-                C("#feedback-name").val((userName ? userName : ""));
-            }
-            if (result.data.storesHash) {
-                setNeedUpdate(contents, result, 'stores');
-                contents.stores = result.data.stores;
-                updates.storesHash = result.data.storesHash;
-            }
-            if (result.data.walletHash) {
-                setNeedUpdate(contents, result, 'wallet');
-                contents.wallet = result.data.wallet;
-                updates.walletHash = result.data.walletHash;
-            }
-            if (result.data.lastPurchase) {
-                setNeedUpdate(contents, result, 'purchases');
-                contents.purchases = result.data.purchases;
-                updates.lastPurchase = result.data.lastPurchase;
-            }
+                let currentSection = C().getStor(LS_SECTION),
+                    updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
+                    contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": "", "purchases": "", "transactions": ""};
 
-            if (result.data.transactions.length) {
-                contents.transactions = result.data.transactions;
-                updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
-            }
+                if (result.status) {
+                    if (result.data.news.length) {
+                        updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
+                        drawNews(result.data.news);
+                    }
+                    if (result.data.storesHash) {
+                        updates.storesHash = result.data.storesHash;
+                        drawStores(result.data.stores);
+                    }
+                    if (result.data.personalHash) {
+                        setNeedUpdate(contents, result, 'personal');
+                        contents.personal = result.data.personal;
+                        updates.personalHash = result.data.personalHash;
 
-            // Всех авторизованных отправляем на страницу кошелька
-            if (sections[currentSection] && !sections[currentSection].needAuth) {
-                C().setStor(LS_SECTION, "wallet");
-            }
-            
-            C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
-            C().setStor(LS_CONTENTS, JSON.stringify(contents));
-            renderSections();
-        } else {
-            // Не авторизованных отправляем на авторизацию
-            if (sections[currentSection] && sections[currentSection].needAuth) {
-                logOff();
-            }
-        }
-    })
+                        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
+                        C("#feedback-name").val((userName ? userName : ""));
+                    }
+                    if (result.data.walletHash) {
+                        setNeedUpdate(contents, result, 'wallet');
+                        contents.wallet = result.data.wallet;
+                        updates.walletHash = result.data.walletHash;
+                    }
+                    if (result.data.lastPurchase) {
+                        setNeedUpdate(contents, result, 'purchases');
+                        contents.purchases = result.data.purchases;
+                        updates.lastPurchase = result.data.lastPurchase;
+                    }
+
+                    if (result.data.transactions.length) {
+                        contents.transactions = result.data.transactions;
+                        updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
+                    }
+
+                    // Всех авторизованных отправляем на страницу кошелька
+                    if (sections[currentSection] && !sections[currentSection].needAuth) {
+                        C().setStor(LS_SECTION, "wallet");
+                    }
+
+                    C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
+                    C().setStor(LS_CONTENTS, JSON.stringify(contents));
+                    renderSections();
+                } else {
+                    // Не авторизованных отправляем на авторизацию
+                    if (sections[currentSection] && sections[currentSection].needAuth) {
+                        logOff();
+                    }
+                }
+            })
             .finally(() => {
                 if (callback) {
                     callback();
@@ -1404,18 +1410,26 @@ function checkUpdates(callback) {
 }
 
 function getUpdates() {
+    let data = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    
+    if (initApp) {
+        data.lastNews = 0;
+        data.storesHash = "";
+        initApp = false;
+    }
+    
     return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "getUpdates",
-            "data": !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-            "source": SOURCE
-        })
-    })
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "getUpdates",
+                    "data": data,
+                    "source": SOURCE
+                })
+            })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1428,15 +1442,16 @@ function getUpdates() {
 
 async function updateWalletData() {
     return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "updateWalletData"
-        })
-    })
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "updateWalletData",
+                    "source": SOURCE
+                })
+            })
             .then(response => response.json())
             .catch(error => {
                 return {

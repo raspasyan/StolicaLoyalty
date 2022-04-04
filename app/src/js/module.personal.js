@@ -1,4 +1,4 @@
-/* global C, fetch, API_URL, bearerToken */
+/* global C, fetch, API_URL, bearerToken, SOURCE */
 
 function updatePersonalData() {
     getProfileData().then(result => {
@@ -87,7 +87,8 @@ function getProfileData() {
             "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
         },
         body: JSON.stringify({
-            "method": "getProfileData"
+            "method": "getProfileData",
+            "source": SOURCE
         })
     })
     .then(response => response.json())
@@ -127,7 +128,8 @@ async function changePassword() {
             "method": "changePassword",
             "data": {
                 "new_password": C("#personal-new-pass").val()
-            }
+            },
+            "source": SOURCE
         })
     });
 
@@ -156,7 +158,8 @@ async function changeCard() {
             "method": "changeCard",
             "data": {
                 "new_card": C("#personal_new_card").val()
-            }
+            },
+            "source": SOURCE
         })
     });
 
@@ -184,7 +187,8 @@ function changeCardType() {
             "method": "changeCardType",
             "data": {
                 "discount": C('input[name="systemChange"]:checked').val()
-            }
+            },
+            "source": SOURCE
         })
     }).then(response => response.json()).catch(error => {
         return {
@@ -243,7 +247,8 @@ async function setCard() {
         "method": "setCard",
         "data": {
             "card_number": C("#plasticNumber").val()
-        }
+        },
+        "source": SOURCE
     };
 
     let response = await fetch(API_URL, {

@@ -1,4 +1,3 @@
-const SOURCE = "WEB2";
-const IS_APP = false;
+const SOURCE = null;
 const DOMAIN = "";
 
