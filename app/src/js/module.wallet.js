@@ -148,10 +148,6 @@ function drawWallet(walletData) {
 }
 
 function drawPurchases(purchases) {
-    if (!permitRedrawSection('purchases')) {
-        return;
-    }
-    
     if (!purchases) {
         return false;
     }

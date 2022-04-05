@@ -1355,7 +1355,7 @@ function checkUpdates(callback) {
 
                 let currentSection = C().getStor(LS_SECTION),
                     updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-                    contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": "", "purchases": "", "transactions": ""};
+                    contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
 
                 if (result.status) {
                     if (result.data.news.length) {

@@ -3,7 +3,11 @@
 function drawStores(stores) {
     let cities = [],
         contents = JSON.parse(C().getStor(LS_CONTENTS)),
+        currentCity = 'Хабаровск';
+
+    if (contents && contents.personal) {
         currentCity = contents.personal.city;
+    }
 
     stores.forEach(item => {
         if (cities.indexOf(item.id) === -1) {
