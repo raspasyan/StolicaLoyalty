@@ -28,25 +28,33 @@
     
     .wallet__content_data_balance {
         display: block;
-        color: #FFF;
-        background-color: #28a960;
-        border-color: #28a960;
         font-size: 2rem;
-        margin: 0 auto 15px auto;
+        margin: 0 auto 50px;
         text-transform: none;
         padding: 0 10px;
+        /* color: #FFF; */
+        /* background-color: #28a960; */
+        /* border-color: #28a960; */
+        border: none;
+        font-weight: normal;
+        
+        #bonuses {
+            color: #4062b7;
+            font-weight: 600;
+        }
+        
+        .currencyType {
+            /*font-size: 11px;*/
+            /*font-weight: 100;*/
+        }
     }
 }
 
 .currentBalance {
+    display: none;
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 4rem;
-}
-
-.currencyType {
-    font-size: 11px;
-    font-weight: 100;
 }
 
 .wallet__balanceDetail {
