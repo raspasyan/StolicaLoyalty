@@ -438,7 +438,6 @@ function renderSections() {
         
         drawPersonal(contents.personal);
         drawWallet(contents.wallet);
-        drawPurchases(contents.purchases);
     }
 }
 
@@ -669,16 +668,16 @@ function hideLoader() {
 
 function checkAuthorization() {
     return fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "checkAuthorization",
-            "source": SOURCE
-        })
-    })
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8",
+                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                },
+                body: JSON.stringify({
+                    "method": "checkAuthorization",
+                    "source": SOURCE
+                })
+            })
             .then(response => response.json())
             .catch(error => {
                 return {
@@ -1188,6 +1187,8 @@ function dropFail(el) {
 function clearLocalStorage() {
     C().delStor(LS_TOKEN);
     C().delStor(LS_SECTION);
+    C().delStor(LS_CURR_UPDATE);
+    C().delStor(LS_CONTENTS);
 }
 
 function loadScript(src) {
@@ -1376,13 +1377,11 @@ function checkUpdates(callback) {
                         updates.walletHash = result.data.walletHash;
                     }
                     if (result.data.lastPurchase) {
-                        setNeedUpdate(contents, result, 'purchases');
-                        contents.purchases = result.data.purchases;
                         updates.lastPurchase = result.data.lastPurchase;
+                        drawPurchases(result.data.purchases);
                     }
 
                     if (result.data.transactions.length) {
-                        contents.transactions = result.data.transactions;
                         updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
                     }
 
