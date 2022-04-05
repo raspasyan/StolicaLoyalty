@@ -1419,6 +1419,8 @@ function getUpdates() {
     if (initApp) {
         data.lastNews = 0;
         data.storesHash = "";
+        data.lastPurchase = "";
+        data.lastTransaction = "";
         initApp = false;
     }
     
