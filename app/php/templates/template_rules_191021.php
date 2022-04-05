@@ -122,7 +122,7 @@
       <table width="100%">
           <tbody>
           <tr>
-              <td width="25%" style="border: 1px solid #E1E1E1;padding: 12px 15px">
+              <td width="25%" style="border: 1px solid #E1E1E1;">
                   <p><strong>Тип ценника</strong></p>
               </td>
               <td width="25%" style="border: 1px solid #E1E1E1;">
@@ -133,7 +133,7 @@
               </td>
           </tr>
           <tr>
-              <td width="25%" style="border: 1px solid #E1E1E1;padding: 12px 15px">
+              <td width="25%" style="border: 1px solid #E1E1E1;">
                   <p>Белый ценник</p>
               </td>
               <td width="25%" style="border: 1px solid #E1E1E1;">
@@ -144,7 +144,7 @@
               </td>
           </tr>
           <tr>
-              <td width="25%" style="border: 1px solid #E1E1E1;padding: 12px 15px">
+              <td width="25%" style="border: 1px solid #E1E1E1;">
                   <p>Желтый ценник</p>
               </td>
               <td width="25%" style="border: 1px solid #E1E1E1;">
@@ -155,7 +155,7 @@
               </td>
           </tr>
           <tr>
-              <td width="25%" style="border: 1px solid #E1E1E1;padding: 12px 15px">
+              <td width="25%" style="border: 1px solid #E1E1E1;">
                   <p>Зеленый ценник</p>
               </td>
               <td width="25%" style="border: 1px solid #E1E1E1;">
@@ -230,7 +230,7 @@
       <table width="100%">
           <tbody>
           <tr>
-              <td width="5%" style="border: 1px solid #E1E1E1;padding: 12px 15px;">
+              <td width="5%" style="border: 1px solid #E1E1E1;">
                   <p>№№</p>
               </td>
               <td width="45%" style="border: 1px solid #E1E1E1;">
@@ -244,7 +244,7 @@
               </td>
           </tr>
           <tr>
-              <td width="5%" style="border: 1px solid #E1E1E1;padding: 12px 15px;">
+              <td width="5%" style="border: 1px solid #E1E1E1;">
                   <p>1</p>
               </td>
               <td width="45%" style="border: 1px solid #E1E1E1;">
@@ -258,7 +258,7 @@
               </td>
           </tr>
           <tr>
-              <td width="5%" style="border: 1px solid #E1E1E1;padding: 12px 15px;">
+              <td width="5%" style="border: 1px solid #E1E1E1;">
                   <p>2</p>
               </td>
               <td width="45%" style="border: 1px solid #E1E1E1;">
@@ -272,7 +272,7 @@
               </td>
           </tr>
           <tr>
-              <td width="5%" style="border: 1px solid #E1E1E1;padding: 12px 15px;">
+              <td width="5%" style="border: 1px solid #E1E1E1;">
                   <p>3</p>
               </td>
               <td width="45%" style="border: 1px solid #E1E1E1;">
@@ -286,7 +286,7 @@
               </td>
           </tr>
           <tr>
-              <td width="5%" style="border: 1px solid #E1E1E1;padding: 12px 15px;">
+              <td width="5%" style="border: 1px solid #E1E1E1;">
                   <p>4</p>
               </td>
               <td width="45%" style="border: 1px solid #E1E1E1;">

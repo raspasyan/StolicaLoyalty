@@ -1128,8 +1128,11 @@ async function logOff() {
     let body = {
             "method": "logOff",
             "source": SOURCE
-        },
-        response = await fetch(API_URL, {
+        };
+        
+    showLoader();
+    
+    let response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json;charset=utf-8"
@@ -1137,10 +1140,9 @@ async function logOff() {
             body: JSON.stringify(body)
         }),
         result = await response.json();
-
+    
     if (result.status) {
         clearLocalStorage();
-
         location.reload();
     }
 
