@@ -396,8 +396,12 @@ function userActivity() {
 }
 
 function removeLoadOption(id) {
-    let select = C(id),
-        b = C("option:disabled", select);
+    let parent = C(id),
+        b = C("option:disabled, div.temporary", parent);
+
+    if (!b.el) {
+        return;
+    }
     
     b.el.parentNode.removeChild(b.el);
 }

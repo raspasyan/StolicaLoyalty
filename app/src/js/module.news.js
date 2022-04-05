@@ -7,7 +7,7 @@ function drawNews(newsList) {
     }
     
     let container = C(".news>div.container").el;
-
+    removeLoadOption("#news>div.container");
     newsList.forEach(news => {
         let imageSrc = DOMAIN + "/" + news.image,
             date = news.date.split("-").reverse().join(".");
