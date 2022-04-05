@@ -145,7 +145,7 @@ d.addEventListener("DOMContentLoaded", function () {
      notifySet();
      */
     
-    clearStorage();
+    crashClearStorage();
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
@@ -348,11 +348,14 @@ function permitRedrawSection(section) {
     return permit;
 }
 
-function clearStorage() {
-    if (!C().getStor('crash_clear')) {
+function crashClearStorage() {
+    if (!C().getStor('crash')) {
         C().delStor(LS_CURR_UPDATE);
         C().delStor(LS_CONTENTS);
-        C().setStor('crash_clear', 1)
+        C().setStor('crash', 1);
+        if (C().getStor('crash_clear')) {
+            C().delStor('crash_clear');
+        }
     }
 }
 
