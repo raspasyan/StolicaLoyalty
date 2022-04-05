@@ -1,8 +1,5 @@
-/* global Notification, fetch, ymaps, Document, Window, attachEvent */
+/* global Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE */
 
-const cardImageW = 512,
-      cardImageH = 328,
-      cardImageSRC = "app/assets/backs/card_back.jpg";
 // const DOMAIN = "https://bonus.stolica-dv.ru";
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
@@ -180,7 +177,7 @@ d.addEventListener("DOMContentLoaded", function () {
                 dropFail(e.target);
                 C("#" + e.target.id + "-popup").delclass("show");
             });
-        })
+        });
     });
 
     C("#auth-button").el.addEventListener("click", () => auth());
@@ -228,25 +225,21 @@ d.addEventListener("DOMContentLoaded", function () {
 
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
         addEventListener("input", () => {
-            let but = C("#personal_changePassword_button").el;
-
-            if (C("#personal-new-pass").val() === C("#personal-new-pass-confirmation").val()) {
-                but.disabled = false;
-            } else {
-                but.disabled = true;
-            }
+            let but = C("#personal_changePassword_button").el,
+                idInp = "#personal-new-pass",
+                valEl = C(idInp).val(),
+                valConf = C(idInp + "-confirmation").val();
+                
+            but.disabled = (valEl === valConf) ? false : true;
         });
     });
 
     C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
         let but = C("#personal_changePassword_button").el,
-                el = e.currentTarget;
-
-        if (C("#" + el.id.replace("-confirmation", "")).val() === el.value) {
-            but.disabled = false;
-        } else {
-            but.disabled = true;
-        }
+            el = e.currentTarget,
+            valPass = C("#personal-new-pass").val();
+            
+        but.disabled = (valPass === el.value) ? false : true;
     });
 
     passViewToggle();
@@ -400,6 +393,13 @@ function userActivity() {
     if (!userActivityTimeout) {
         userActivityTimeout = setTimeout(checkUpdates, 3333);
     }
+}
+
+function removeLoadOption(id) {
+    let select = C(id),
+        b = C("option:disabled", select);
+    
+    b.el.parentNode.removeChild(b.el);
 }
 
 function modifyInput(el) {
@@ -1154,32 +1154,38 @@ async function logOff() {
 async function updateCities() {
     let city = C("#city");
 
-    if (!city.el.children.length) {
-        let response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json;charset=utf-8"
-                    },
-                    body: JSON.stringify({
-                        "method": "getCities",
-                        "source": SOURCE
-                    })
-                }),
-            result = await response.json();
+    if (city.el.children.length > 2) {
+        return;
+    }
+    
+    let response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    "method": "getCities",
+                    "source": SOURCE
+                })
+            }),
+        result = await response.json();
 
-        if (result.status) {
-            result.data.forEach(el => {
-                let option = C().create("option");
+    if (result.status) {
+        removeLoadOption("#city");
 
-                option.val(el.id);
-                option.text(el.title);
-                option.attr("default-discount", el.default_discount);
+        result.data.forEach(el => {
+            let option = C().create("option");
 
-                if (el.status === 2)
-                    option.el.selected = "selected";
-                city.append(option);
-            });
-        }
+            option.val(el.id);
+            option.text(el.title);
+            option.attr("default-discount", el.default_discount);
+
+            if (el.status === 2) {
+                option.el.selected = "selected";
+            }
+
+            city.append(option);
+        });
     }
 }
 

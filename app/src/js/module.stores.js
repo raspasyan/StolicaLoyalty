@@ -5,7 +5,7 @@ function drawStores(stores) {
         contents = JSON.parse(C().getStor(LS_CONTENTS)),
         currentCity = 'Хабаровск';
 
-    if (contents && contents.personal) {
+    if (contents && contents.personal && contents.personal.city) {
         currentCity = contents.personal.city;
     }
 
@@ -14,7 +14,9 @@ function drawStores(stores) {
             cities.push(item.id);
         }
     });
-
+    
+    removeLoadOption("#store_cities");
+    
     cities.forEach(cityId => {
         let storesInCity = [];
         stores.forEach(item => {

@@ -1,4 +1,8 @@
-/* global C, Intl, d, cardImageSRC, cardImageW, cardImageH */
+/* global C, Intl, d */
+
+const cardImageW = 512,
+      cardImageH = 328,
+      cardImageSRC = "app/assets/backs/card_back.jpg";
 
 function drawWallet(walletData) {
     if (!permitRedrawSection('wallet')) {

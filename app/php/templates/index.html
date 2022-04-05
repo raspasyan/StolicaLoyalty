@@ -17,17 +17,17 @@
 
         <link rel="stylesheet" href="app/build/styles/normalize.css" />
         <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
-        <link rel="stylesheet" href="app/build/styles/styles.css?v=0504221" />
+        <link rel="stylesheet" href="app/build/styles/styles.css?v=0504222" />
         <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
         <link rel="stylesheet" href="app/build/styles/fontello.css" />
 
         <script src="app/build/js/qrious.min.js"></script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-        <script src="app/build/js/module.main.js?v=0504221" defer></script>
-        <script src="app/build/js/module.news.js?v=0504221" defer></script>
-        <script src="app/build/js/module.stores.js?v=0504221" defer></script>
-        <script src="app/build/js/module.personal.js?v=0504221" defer></script>
-        <script src="app/build/js/module.wallet.js?v=0504221" defer></script>
+        <script src="app/build/js/module.main.js?v=0504222" defer></script>
+        <script src="app/build/js/module.news.js?v=0504222" defer></script>
+        <script src="app/build/js/module.stores.js?v=0504222" defer></script>
+        <script src="app/build/js/module.personal.js?v=0504222" defer></script>
+        <script src="app/build/js/module.wallet.js?v=0504222" defer></script>
     </head>
 
     <body>
@@ -228,7 +228,9 @@
                     <div class="container">
                         <img src="app/assets/backs/city.png">
                         <p>Выберите город</p>
-                        <select id="city" name="card_discount" class="reg_city"></select>
+                        <select id="city" name="card_discount" class="reg_city">
+                            <option value="" disabled selected>Загрузка...</option>
+                        </select>
                         <p class="link">
                             <button class="button button-primary" style="width: 100%;"
                                     onclick="drawSection('registration')">Готово</button>
@@ -516,7 +518,9 @@
                         <div class="main-logo">
                             <img src="app/assets/backs/city.png">
                             <p>Выберите город</p>
-                            <select id="store_cities" name="store_cities" class="u-full-width"></select>
+                            <select id="store_cities" name="store_cities" class="u-full-width">
+                                <option value="" disabled selected>Загрузка...</option>
+                            </select>
                         </div>
                         <div class="storesList"></div>
                     </div>
