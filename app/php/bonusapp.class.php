@@ -2114,12 +2114,69 @@ class BonusApp {
         return $countPhone;
     }
 
+    private function countLastDayConfirmations($koeff) {
+        $query = $this->pdo->prepare("SELECT 
+                    count(`sent_at`)
+                FROM 
+                    `confirmations` 
+                WHERE 
+                    `sent_at` > DATE_ADD(NOW(), INTERVAL -1 DAY)
+                    ;");
+        $query->execute();
+        $count = $query->fetchColumn();
+        
+        return $count/($koeff/100 + 1);
+    }
+    
+    private function averageWeekConfirmations() {
+        $query = $this->pdo->prepare("SELECT 
+                    count(`sent_at`)/7
+                FROM 
+                    `confirmations` 
+                WHERE (
+                    `sent_at` < DATE_ADD(NOW(), INTERVAL -1 DAY) 
+                        AND
+                    `sent_at` > DATE_ADD(DATE_ADD(NOW(), INTERVAL -1 DAY), INTERVAL -6 DAY)
+                    );");
+        $query->execute();
+        $count = $query->fetchColumn();
+        
+        return $count;
+    }
+    
+    private function existAlarmJournal() {
+        $query = $this->pdo->prepare("SELECT 
+                    count(`id`)
+                FROM 
+                    `journal` 
+                WHERE (
+                    `time` > DATE_ADD(NOW(), INTERVAL -1 DAY) 
+                        AND
+                    `source` = 'ALARM'
+                    );");
+        $query->execute();
+        $count = $query->fetchColumn();
+        
+        return ($count > 0) ? true : false;
+    }
+    
     private function canSendConfirmationCode($phone) {
+        $percent = 25;
         $result = ["status" => false, "data" => null];
         $countInstant = $this->checkInstantRegistration($phone);
         
         if ($countInstant > 2) {
             $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
+                 "header" => getallheaders(),
+                 "get" => $_GET,
+                 "post" => $_POST,
+                 "json" => file_get_contents('php://input')
+            ]));
+        }
+        
+        if ($this->countLastDayConfirmations($percent) > $this->averageWeekConfirmations() && !$this->existAlarmJournal()) {
+            $this->tg("Превышен лимит запросов на звонки, исходя из среднего количества за прошлую неделю, на " . $percent . "%");
+            $this->journal("ALARM", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
                  "header" => getallheaders(),
                  "get" => $_GET,
                  "post" => $_POST,
@@ -4038,4 +4095,3 @@ class BonusApp {
         return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
     }
 }
-?>
