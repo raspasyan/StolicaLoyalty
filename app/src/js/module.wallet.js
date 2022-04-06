@@ -1,4 +1,4 @@
-/* global C, Intl, d */
+/* global C, Intl, d, SOURCE */
 
 const cardImageW = 512,
       cardImageH = 328,
@@ -272,13 +272,17 @@ function drawBonusCard(cardNumber) {
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
 
-        show("#downloadCard");
-        C("#downloadCard").el.addEventListener("click", () => {
-            var dataURL = cardCanvas.toDataURL("image/jpeg"),
-                link = d.createElement("a");
-            link.href = dataURL;
-            link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
-            link.click();
-        });
+        if (!SOURCE) {
+            show("#downloadCard");
+            C("#downloadCard").el.addEventListener("click", () => {
+                let dataURL = cardCanvas.toDataURL("image/jpeg"),
+                    link = d.createElement("a");
+
+                link.href = dataURL;
+                link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
+
+                link.click();
+            });
+        }
     });
 }
