@@ -1,4 +1,8 @@
-/* global C, Intl, d, cardImageSRC, cardImageW, cardImageH */
+/* global C, Intl, d, SOURCE */
+
+const cardImageW = 512,
+      cardImageH = 328,
+      cardImageSRC = "app/assets/backs/card_back.jpg";
 
 function drawWallet(walletData) {
     if (!permitRedrawSection('wallet')) {
@@ -148,10 +152,6 @@ function drawWallet(walletData) {
 }
 
 function drawPurchases(purchases) {
-    if (!permitRedrawSection('purchases')) {
-        return;
-    }
-    
     if (!purchases) {
         return false;
     }
@@ -272,13 +272,17 @@ function drawBonusCard(cardNumber) {
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
 
-        show("#downloadCard");
-        C("#downloadCard").el.addEventListener("click", () => {
-            var dataURL = cardCanvas.toDataURL("image/jpeg"),
-                link = d.createElement("a");
-            link.href = dataURL;
-            link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
-            link.click();
-        });
+        if (!SOURCE) {
+            show("#downloadCard");
+            C("#downloadCard").el.addEventListener("click", () => {
+                let dataURL = cardCanvas.toDataURL("image/jpeg"),
+                    link = d.createElement("a");
+
+                link.href = dataURL;
+                link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
+
+                link.click();
+            });
+        }
     });
 }

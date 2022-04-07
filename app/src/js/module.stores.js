@@ -3,14 +3,20 @@
 function drawStores(stores) {
     let cities = [],
         contents = JSON.parse(C().getStor(LS_CONTENTS)),
+        currentCity = 'Хабаровск';
+
+    if (contents && contents.personal && contents.personal.city) {
         currentCity = contents.personal.city;
+    }
 
     stores.forEach(item => {
         if (cities.indexOf(item.id) === -1) {
             cities.push(item.id);
         }
     });
-
+    
+    removeLoadOption("#store_cities");
+    
     cities.forEach(cityId => {
         let storesInCity = [];
         stores.forEach(item => {
