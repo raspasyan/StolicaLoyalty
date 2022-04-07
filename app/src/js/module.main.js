@@ -720,21 +720,21 @@ async function auth() {
     authButton.disabled = true;
 
     let body = {
-        "method": "authorization",
-        "data": {
-            "phone": phone,
-            "pass": authPassEl.val()
-        },
-        "source": SOURCE
-    };
+            "method": "authorization",
+            "data": {
+                "phone": phone,
+                "pass": authPassEl.val()
+            },
+            "source": SOURCE
+        };
 
     let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(body)
-    });
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        });
 
     let result = await response.json();
 

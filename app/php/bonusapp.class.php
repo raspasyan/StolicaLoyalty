@@ -325,7 +325,15 @@ class BonusApp {
                     
                     break;
                 }
-
+                
+                case "disablePurchase": {
+                    $resultData = $this->checkAuthorization($requestData["method"]);
+                    if ($resultData["status"]) {
+                        $resultData = $this->API_disablePurchase($resultData["data"], $requestData["data"]);
+                    }
+                    break;
+                }
+                
                 case "getUpdates": {
                     $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
                     if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
@@ -601,6 +609,18 @@ class BonusApp {
     }
 
     /* Обработчики API */
+    
+    private function API_disablePurchase($data, $id) {
+        $result = ["status" => false, "description" => ""];
+        
+        if ($id > 0) {
+            $query = $this->pdo->prepare("UPDATE purchases SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query->execute([$id['id'], $data['personId']]);
+            $result["status"] = true;
+       }
+        
+        return $result;
+    }
 
     private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
@@ -2892,7 +2912,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                profile_ext_id = ? AND sale_time > ?
+                profile_ext_id = ? AND sale_time > ? AND isActive = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
@@ -3005,7 +3025,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                purchases.profile_ext_id = ?
+                purchases.profile_ext_id = ? AND isActive = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?

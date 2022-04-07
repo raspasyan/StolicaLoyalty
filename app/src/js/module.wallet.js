@@ -1,4 +1,4 @@
-/* global C, Intl, d, SOURCE */
+/* global C, Intl, d, SOURCE, API_URL, bearerToken */
 
 const cardImageW = 512,
       cardImageH = 328,
@@ -157,6 +157,36 @@ function drawPurchases(purchases) {
     }
     
     purchases.forEach(purchase => drawPurchase(purchase));
+    
+    C("div[data-disable-purchase]").els.forEach((el) => {
+        el.addEventListener("click", () => {
+            disablePurchase(el.dataset.disablePurchase);
+        });
+    });
+}
+
+async function disablePurchase(id) {
+    let result = false;
+    let response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify({
+            "method": "disablePurchase",
+            "data": {
+                "id": id
+            },
+            "source": SOURCE
+        })
+    });
+
+    result = await response.json();
+    let purEl = C("div[data-purchase-id='" + id + "']").el;
+    purEl.parentNode.removeChild(purEl);
+
+    return result;
 }
 
 function drawPurchase(purchase) {
@@ -174,7 +204,7 @@ function drawPurchase(purchase) {
 
     let refund = (!purchase.operation_type) ? '<span class="bad b" style="font-size: 12px;text-align: right;">чек возврата</span>' : '';
     let linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
-    let tempDetails     = "";
+    let tempDetails = "";
     
     // Детализация чека
     if (purchase.positions.length) {
@@ -206,7 +236,7 @@ function drawPurchase(purchase) {
 
     }
     
-    const temp = '<div class="animate__animated animate__fadeIn">\n\
+    const temp = '<div class="animate__animated animate__fadeIn" data-purchase-id="' + purchase.id + '">\n\
                     <div>\n\
                         <span class="b">Всего скидка: </span>\n\
                         <span class="bad">' + (totalDisc ? "-" : "") + totalDisc + ' руб</span>\n\
@@ -230,6 +260,7 @@ function drawPurchase(purchase) {
                             ' + linkStore + '\n\
                         </div>\n\
                     </div>\n\
+                    <div class="delete" data-disable-purchase="' + purchase.id + '">Удалить</div>\n\
                     ' + tempDetails + '\n\
                 </div>';
     

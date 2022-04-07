@@ -5,6 +5,24 @@
     overflow: hidden;
     margin: 2rem 0;
     
+    &.shadow {
+        width: 100%;
+        height: 390px;
+        background: linear-gradient(0deg, rgb(0 0 0 / 3%), rgb(0 0 0 / 34%));
+        border: none;
+        box-shadow: none;
+        animation: background 10s infinite;
+    }
+
+    @keyframes background {
+      from {
+        background: linear-gradient(0deg, rgb(0 0 0 / 3%), rgb(0 0 0 / 33%));
+      }
+      to {
+        background: linear-gradient(360deg, rgb(0 0 0 / 3%), rgb(0 0 0 / 33%));
+      }
+    }
+    
     img {
         width:100%;
     }
