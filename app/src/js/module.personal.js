@@ -168,11 +168,15 @@ async function changeCard() {
     C("#personal_changeCard_button").el.disabled = false;
 
     if (result.status) {
-        if (result.description) showPopup("", result.description);
+        if (result.description) {
+            showPopup("", result.description);
+        }
         C("#personal_new_pass").val("");
         C("#personal_new_pass_confirmation").val("");
     } else {
-        if (result.description) showPopup("Внимание", result.description);
+        if (result.description) {
+            showPopup("Внимание", result.description);
+        }
     }
 }
 
@@ -269,8 +273,12 @@ async function setCard() {
     C("#plasticNumber").val("");
 
     if (result.status) {
-        if (result.description) showPopup("", result.description);
+        if (result.description) {
+            showPopup("", result.description);
+        }
     } else {
-        if (result.description) showPopup("Внимание", result.description);
+        if (result.description) {
+            showPopup("Внимание", result.description);
+        }
     }
 }

@@ -47,7 +47,7 @@ function drawStoresInCity(stores) {
     list.html("");
     
     stores.forEach(city => {
-        const temp = '<div class="storesList__block animate__animated animate__fadeInLeft" style="animation-duration: ' + (delay / 5) + 's">\n\
+        const temp = '<div class="storesList__block animated animate__fadeInLeft" style="animation-duration: ' + (delay / 5) + 's">\n\
                         <div class="storesList__block_title">' + city.store_title + '</div>\n\
                         <div class="storesList__block_shedule">' + city.shedule + '</div>\n\
                       </div>';
@@ -90,7 +90,7 @@ function closeStore() {
 function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
     const temp = '<div class="storeMap">\n\
                     <div class="storeMap__bg"></div>\n\
-                    <div class="storeMap__block animate__animated animate__fadeInDown">\n\
+                    <div class="storeMap__block animated animate__fadeInDown">\n\
                         <div class="storeMap__block_city">' + city + '<i class="icon-cancel"></i></div>\n\
                         <div class="storeMap__block_info">\n\
                             <div>\n\

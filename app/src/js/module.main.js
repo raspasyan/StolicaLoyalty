@@ -304,15 +304,16 @@ d.addEventListener("DOMContentLoaded", function () {
     C("#popupOverlay").el.addEventListener("click", function (e) {
         var el = e.currentTarget.classList;
 
-        el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
-        el.add("animate__animated", "animate__fadeOut", "animate__furious");
-        if (e.currentTarget.callback) {
-            e.currentTarget.callback();
-            e.currentTarget.callback = null;
-        }
+        el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
+        el.add("animated", "animate__fadeOut", "animate__furious");
+
         promiseTimeout(function () {
+            let cancel = C('#cancelText').el;
+            if (cancel) {
+                cancel.parentNode.removeChild(cancel);
+            }
             hide("#popupOverlay");
-            el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
+            el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
         }, 500);
     });
     
@@ -403,7 +404,9 @@ function removeLoadOption(id) {
         return;
     }
     
-    b.el.parentNode.removeChild(b.el);
+    b.els.forEach(el => {
+        el.parentNode.removeChild(el);
+    });
 }
 
 function modifyInput(el) {
@@ -566,7 +569,7 @@ function renderReferSection() {
                         });
 
                 referQr.appendChild(qrCanvas);
-                qrCanvas.classList.add("animate__animated", "animate__fadeIn");
+                qrCanvas.classList.add("animated", "animate__fadeIn");
 
                 show("#referLink");
 
@@ -613,16 +616,16 @@ function showPopup(title, desc, message, buttonText, callback) {
         popupTitle = C("#popupTitle"),
         popupDesc = C("#popupDescription"),
         popupMessage = C("#popupMessage"),
-        popupButton = C("#popupButton");
-
+        popupButton = C("#popupButton"),
+        cancelText  = null;
+        
+    if (Array.isArray(buttonText)) {
+        cancelText = buttonText[1];
+        buttonText = buttonText[0];
+    }
+    
     if (!buttonText) {
         buttonText = "Ок";
-    }
-
-    if (!callback) {
-        callback = null;
-    } else {
-        popupOverlay.el.callback = callback;
     }
 
     hideLoader();
@@ -644,15 +647,30 @@ function showPopup(title, desc, message, buttonText, callback) {
     }
 
     if (message) {
-        popupMessage.text(message);
+        popupMessage.html(message);
         show("#popupMessage");
     } else {
         hide("#popupMessage");
     }
+    
+    if (cancelText) {
+        let but = C().create('button');
+        but.addclass('button');
+        but.text(cancelText);
+        but.el.id = "cancelText";
+        C('#popupCont').append(but);
+    }
+    
+    popupButton.el.addEventListener("click", () => {
+        if (callback) {
+            callback();
+            callback = null;
+        }
+    });
 
     popupButton.text(buttonText);
-    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious"]);
-    popupOverlay.addclass(["animate__animated", "animate__fadeIn", "animate__furious"]);
+    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animated", "animate__furious"]);
+    popupOverlay.addclass(["animated", "animate__fadeIn", "animate__furious"]);
 
 }
 
@@ -666,10 +684,10 @@ function showLoader() {
 function hideLoader() {
     let loader = C("#loader");
 
-    loader.addclass(["animate__fadeOut", "animate__animated"]);
+    loader.addclass(["animate__fadeOut", "animated"]);
     promiseTimeout(function () {
         hide("#loader");
-        loader.delclass(["animate__fadeOut", "animate__animated"]);
+        loader.delclass(["animate__fadeOut", "animated"]);
     }, 500);
 }
 
@@ -1123,6 +1141,46 @@ async function getReferLink() {
     return result;
 }
 
+async function getResetConfirmationSms() {
+    let resPhoneEl = C("#reset-phone-mask"),
+        resButtonEl = C("#reset_button").el,
+        resConfInfoEl = C("#reset_confirmation_info");
+
+    if (resPhoneEl.val()) {
+        resButtonEl.disabled = true;
+
+        let body = {
+            "method": "getResetConfirmationSms",
+            "data": {
+                "phone": resPhoneEl.val()
+            },
+            "source": SOURCE
+        };
+
+        let response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(body)
+        });
+
+        let result = await response.json();
+
+        if (result.status) {
+            show("#reset_confirmation");
+            resConfInfoEl.text(result.description);
+            if (result.data.seconds_left)
+                restartResetConfirmationTimer(result.data.seconds_left);
+        } else {
+            resButtonEl.disabled = false;
+            promiseTimeout(function () {
+                showPopup("Внимание", result.description);
+            }, 1000);
+        }
+    }
+}
+
 function attentionFocus(el) {
     el.scrollIntoView();
     el.classList.add("fail");
@@ -1213,6 +1271,14 @@ function loadScript(src) {
         script.onerror = () => reject(new Error(`Ошибка загрузки скрипта ${src}`));
         d.head.append(script);
     });
+}
+
+function showRequestSms() {
+    showPopup("Вам не позвонили?", 
+              "", 
+              "Попробуйте получить код подтверждения с помощью СМС<br><br>Если это вам не помогло, обратитесь в <a href=\"#\" onClick=\"showFeedback()\">службу поддержки</a>", 
+              ["Отправить код", "Попробую позже"],
+              getResetConfirmationSms);
 }
 
 function showTerms() {

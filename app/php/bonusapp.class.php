@@ -485,6 +485,34 @@ class BonusApp {
                     break;
                 }
 
+                case "getResetConfirmationSms": {
+                    if (!empty($requestData["data"]["phone"])) {
+                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+
+                        $operationResult = $this->checkPhone($phone);
+                        if ($operationResult) {
+                            $operationResult = $this->canSendConfirmationCode($phone, DEFAULT_SMS_PROVIDER);
+                            if ($operationResult["status"]) {
+                                $resultData = $this->sendConfirmationCode($phone, DEFAULT_SMS_PROVIDER);
+                            } else {
+                                $resultData = [
+                                    "status" => true,
+                                    "description" => "Код подтверждения уже был отправлен.",
+                                    "data" => [
+                                        "need_confirmation" => true,
+                                        "seconds_left" => $operationResult["data"]["seconds_left"]
+                                    ]
+                                ];
+                            }
+                        } else {
+                            $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
+                        }
+                    } else {
+                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                    }
+                    break;
+                }
+                
                 case "getResetConfirmationCode": {
                     if (!empty($requestData["data"]["phone"])) {
                         $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
@@ -2180,10 +2208,12 @@ class BonusApp {
         return ($count > 0) ? true : false;
     }
     
-    private function canSendConfirmationCode($phone) {
+    private function canSendConfirmationCode($phone, $provider = null) {
         $percent = 25;
         $result = ["status" => false, "data" => null];
         $countInstant = $this->checkInstantRegistration($phone);
+        
+        $provider = $provider ?? DEFAULT_PROVIDER;
         
         if ($countInstant > 2) {
             $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
@@ -2212,12 +2242,15 @@ class BonusApp {
                 confirmations
             WHERE
                 phone = ?
+                    AND
+                provider = ?
             ORDER BY
                 sent_at
             DESC LIMIT 1
         ");
-        $query->execute([$phone, $phone]);
+        $query->execute([$phone, $phone, $provider]);
         $queryResult = $query->fetchAll();
+        
         if (count($queryResult)) {
             $cd = new DateTime();
             $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
@@ -2241,7 +2274,7 @@ class BonusApp {
 
         return $result;
     }
-
+    
     private function sendConfirmationCode($phone, $provider = null) {
         $result = ["status" => false, "description" => ""];
 

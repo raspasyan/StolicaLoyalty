@@ -236,7 +236,7 @@ function drawPurchase(purchase) {
 
     }
     
-    const temp = '<div class="animate__animated animate__fadeIn" data-purchase-id="' + purchase.id + '">\n\
+    const temp = '<div class="animated animate__fadeIn" data-purchase-id="' + purchase.id + '">\n\
                     <div>\n\
                         <span class="b">Всего скидка: </span>\n\
                         <span class="bad">' + (totalDisc ? "-" : "") + totalDisc + ' руб</span>\n\

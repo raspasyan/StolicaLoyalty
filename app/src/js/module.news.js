@@ -12,7 +12,7 @@ function drawNews(newsList) {
         let imageSrc = DOMAIN + "/" + news.image,
             date = news.date.split("-").reverse().join(".");
             
-        const temp = '<div class="news__container">\n\
+        const temp = '<div class="news__container animated animate__fadeIn">\n\
                         <img src="' + imageSrc + '">\n\
                         <div class="news__container_details">\n\
                             <p class="news__container_details_date">' + date + '</p>\n\
