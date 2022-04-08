@@ -486,12 +486,12 @@ class BonusApp {
                 }
 
                 case "getResetConfirmationSms": {
-                    $resultData = $this->API_sendConfirmation(DEFAULT_SMS_PROVIDER);
+                    $resultData = $this->API_sendConfirmation($requestData, DEFAULT_SMS_PROVIDER);
                     break;
                 }
                 
                 case "getResetConfirmationCode": {
-                    $resultData = $this->API_sendConfirmation();
+                    $resultData = $this->API_sendConfirmation($requestData);
                     break;
                 }
 
@@ -592,7 +592,7 @@ class BonusApp {
 
     /* Обработчики API */
     
-    private function API_sendConfirmation($provider = null) {
+    private function API_sendConfirmation($requestData, $provider = null) {
         if (!empty($requestData["data"]["phone"])) {
             $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
