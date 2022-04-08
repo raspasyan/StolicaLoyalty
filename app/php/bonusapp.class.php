@@ -486,58 +486,12 @@ class BonusApp {
                 }
 
                 case "getResetConfirmationSms": {
-                    if (!empty($requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
-
-                        $operationResult = $this->checkPhone($phone);
-                        if ($operationResult) {
-                            $operationResult = $this->canSendConfirmationCode($phone, DEFAULT_SMS_PROVIDER);
-                            if ($operationResult["status"]) {
-                                $resultData = $this->sendConfirmationCode($phone, DEFAULT_SMS_PROVIDER);
-                            } else {
-                                $resultData = [
-                                    "status" => true,
-                                    "description" => "Код подтверждения уже был отправлен.",
-                                    "data" => [
-                                        "need_confirmation" => true,
-                                        "seconds_left" => $operationResult["data"]["seconds_left"]
-                                    ]
-                                ];
-                            }
-                        } else {
-                            $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
-                        }
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
-                    }
+                    $resultData = $this->API_sendConfirmation(DEFAULT_SMS_PROVIDER);
                     break;
                 }
                 
                 case "getResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
-
-                        $operationResult = $this->checkPhone($phone);
-                        if ($operationResult) {
-                            $operationResult = $this->canSendConfirmationCode($phone);
-                            if ($operationResult["status"]) {
-                                $resultData = $this->sendConfirmationCode($phone);
-                            } else {
-                                $resultData = [
-                                    "status" => true,
-                                    "description" => "Код подтверждения уже был отправлен.",
-                                    "data" => [
-                                        "need_confirmation" => true,
-                                        "seconds_left" => $operationResult["data"]["seconds_left"]
-                                    ]
-                                ];
-                            }
-                        } else {
-                            $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
-                        }
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
-                    }
+                    $resultData = $this->API_sendConfirmation();
                     break;
                 }
 
@@ -637,6 +591,35 @@ class BonusApp {
     }
 
     /* Обработчики API */
+    
+    private function API_sendConfirmation($provider = null) {
+        if (!empty($requestData["data"]["phone"])) {
+            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+
+            $operationResult = $this->checkPhone($phone);
+            if ($operationResult) {
+                $operationResult = $this->canSendConfirmationCode($phone, $provider);
+                if ($operationResult["status"]) {
+                    $resultData = $this->sendConfirmationCode($phone, $provider);
+                } else {
+                    $resultData = [
+                        "status" => true,
+                        "description" => "Код подтверждения уже был отправлен.",
+                        "data" => [
+                            "need_confirmation" => true,
+                            "seconds_left" => $operationResult["data"]["seconds_left"]
+                        ]
+                    ];
+                }
+            } else {
+                $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
+            }
+        } else {
+            $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+        }
+        
+        return $resultData;
+    }
     
     private function API_disablePurchase($data, $id) {
         $result = ["status" => false, "description" => ""];
