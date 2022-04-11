@@ -1,4 +1,4 @@
-/* global C, Intl, d, SOURCE, API_URL, bearerToken */
+/* global C, d, SOURCE */
 
 const cardImageW = 512,
       cardImageH = 328,
@@ -9,13 +9,13 @@ function drawWallet(walletData) {
         return;
     }
     
-    let cardEl   = C("#cardNumber"),
-        qrEl     = C("#qrcode").el,
-        typeEl   = C("#cardType"),
-        infoEl   = C("#cardInfo"),
-        curEl    = C("#currencyType"),
-        bonusEl  = C("#bonuses"),
-        systemEl = C("#changeDiscountSystemValue");
+    const cardEl   = C("#cardNumber"),
+          qrEl     = C("#qrcode").el,
+          typeEl   = C("#cardType"),
+          infoEl   = C("#cardInfo"),
+          curEl    = C("#currencyType"),
+          bonusEl  = C("#bonuses"),
+          systemEl = C("#changeDiscountSystemValue");
     
     if (walletData.cardNumber) {
         hide("#wallet-placeholder");
@@ -24,6 +24,7 @@ function drawWallet(walletData) {
 
         if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
             cardEl.text(walletData.cardNumber);
+            
             if (qrEl.codeNumber !== walletData.cardNumber) {
                 if (qrEl.children.length) {
                     removeChildrens(qrEl);
@@ -41,8 +42,6 @@ function drawWallet(walletData) {
             typeEl.text("Дисконтная карта");
             infoEl.text("Ваша скидка");
             curEl.text("%");
-            
-            C("#cardDataDiscount").el.style.display = "flex";
             discountBalance = true;
         } else if (!walletData.discount && !walletData.preferredDiscount) {
             // Текущая: бонусы, предпочитаемая: бонусы
@@ -77,34 +76,34 @@ function drawWallet(walletData) {
             systemEl.text("");
         }
         
-        let balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
+        const balance = (walletData.discount && discountBalance) ? walletData.discountValue : walletData.balance;
         if (balance !== undefined) {
             if (bonusEl.text !== balance) {
                 bonusEl.el.classList.remove("load");
                 
                 for (let i = 1; i < 101; i=i+3) {
-                    promiseTimeout(function(){
+                    promiseTimeout(() => {
                         bonusEl.text(Math.trunc(balance * (i/100)));
                     }, (10*i));
                 }
-                promiseTimeout(function(){
+                promiseTimeout(() => {
                     bonusEl.text(Math.trunc(balance));
                 }, 1000);
             }
             
-            var activation = 0;
+            let activation = 0;
 
             if (walletData.activation !== undefined) {
-                let blockBalanceEl = C().create("div"),
-                    dateField      = C().create("span"),
-                    amountField    = C().create("span"),
-                    bonusField     = C().create("span");
+                const blockBalanceEl = C().create("div"),
+                      dateField      = C().create("span"),
+                      amountField    = C().create("span"),
+                      bonusField     = C().create("span");
+                let today = new Date();
                 
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
                 activation = Math.trunc(walletData.activation);
                 
-                var today = new Date();
                 today.setDate(today.getDate()+1);
                                 
                 dateField.text(today.toLocaleString('ru-Ru').replace(", ", "\r\n"));
@@ -124,10 +123,10 @@ function drawWallet(walletData) {
                 show(".wallet__balanceDetail");
 
                 walletData.life_times.forEach(el => {
-                    let blockBalanceEl = C().create("div"),
-                        dateField      = C().create("span"),
-                        amountField    = C().create("span"),
-                        bonusField     = C().create("span");
+                    const blockBalanceEl = C().create("div"),
+                          dateField      = C().create("span"),
+                          amountField    = C().create("span"),
+                          bonusField     = C().create("span");
                     
                     dateField.text(new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n"));
                     amountField.text((el.amount > 0 ? "+" : "") + Math.trunc(el.amount));
@@ -166,23 +165,10 @@ function drawPurchases(purchases) {
 }
 
 async function disablePurchase(id) {
-    let result = false;
-    let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": "disablePurchase",
-            "data": {
-                "id": id
-            },
-            "source": SOURCE
-        })
-    });
+    let result = await api("disablePurchase", {
+                            id
+                        });
 
-    result = await response.json();
     let purEl = C("div[data-purchase-id='" + id + "']").el;
     purEl.parentNode.removeChild(purEl);
 
@@ -190,20 +176,19 @@ async function disablePurchase(id) {
 }
 
 function drawPurchase(purchase) {
-    let totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount)),
-        cashback  = Math.trunc(purchase.cashback_amount),
-        amount    = Math.trunc(purchase.payment_amount),
-        date      = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/")),
-        dater     = (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
-                    + String(date.getDate()) + " "
-                    + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
-                    + String(date.getFullYear()) + " года, "
-                    + String(date.getHours()) + ":"
-                    + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
-                    + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds());
-
-    let refund = (!purchase.operation_type) ? '<span class="bad b" style="font-size: 12px;text-align: right;">чек возврата</span>' : '';
-    let linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
+    const totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount)),
+          cashback  = Math.trunc(purchase.cashback_amount),
+          amount    = Math.trunc(purchase.payment_amount),
+          date      = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/")),
+          dater     = (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
+                        + String(date.getDate()) + " "
+                        + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
+                        + String(date.getFullYear()) + " года, "
+                        + String(date.getHours()) + ":"
+                        + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
+                        + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds()),
+          refund = (!purchase.operation_type) ? '<span class="bad b" style="font-size: 12px;text-align: right;">чек возврата</span>' : '',
+          linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
     let tempDetails = "";
     
     // Детализация чека
@@ -213,75 +198,74 @@ function drawPurchase(purchase) {
         purchase.positions.forEach((position) => {
             let posCashAmount = Math.trunc(position.cashback_amount);
 
-            tempPositions += '<div class="payment-details important">\n\
-                                <span>' + Math.trunc(position.cost) + ' руб</span>\n\
-                                <span>' + ((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов")) + '</span>\n\
-                                <span>' + (posCashAmount > 0 ? "+" : "") + posCashAmount + ' бонусов</span>\n\
-                        </div>\n\
-                        <div class="payment-details payment-details-full">' + (position.product_title ? position.product_title : "Загрузка..") + '</div>\n\
-                        ';
+            tempPositions += `<div class="payment-details important">
+                                <span>${Math.trunc(position.cost)} руб</span>
+                                <span>${((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов"))}</span>
+                                <span>${(posCashAmount > 0 ? "+" : "")}${posCashAmount} бонусов</span>
+                            </div>
+                            <div class="payment-details payment-details-full">${(position.product_title ? position.product_title : "Загрузка..")}</div>`;
         });
         
-        tempDetails = '<details>\n\
-                        <summary>Подробнее</summary>\n\
-                        <div class="details-data">\n\
-                            <div class="payment-details neutral">\n\
-                                <span>Оплачено</span>\n\
-                                <span>Скидка</span>\n\
-                                <span>Начислено</span>\n\
-                            </div>\n\
-                            ' + tempPositions + '\n\
-                        </div>\n\
-                    </details>';
+        tempDetails = `<details>
+                        <summary>Подробнее</summary>
+                        <div class="details-data">
+                            <div class="payment-details neutral">
+                                <span>Оплачено</span>
+                                <span>Скидка</span>
+                                <span>Начислено</span>
+                            </div>
+                            ${tempPositions}
+                        </div>
+                    </details>`;
 
     }
     
-    const temp = '<div class="animated animate__fadeIn" data-purchase-id="' + purchase.id + '">\n\
-                    <div>\n\
-                        <span class="b">Всего скидка: </span>\n\
-                        <span class="bad">' + (totalDisc ? "-" : "") + totalDisc + ' руб</span>\n\
-                        ' + refund + '\n\
-                    </div>\n\
-                    <div>\n\
-                        <span class="payment-amount b" style="margin-left: 20px;">из них бонусами: </span>\n\
-                        <span class="bad">' + amount + '</span>\n\
-                    </div>\n\
-                    <div>\n\
-                        <span class="payment-amount b">Начислено бонусов: </span>\n\
-                        <span class="good">' + (cashback > 0 ? "+" : "") + cashback + '</span>\n\
-                    </div>\n\
-                    <div class="payment-row-date">\n\
-                        <span class="payment-amount">Дата: </span>\n\
-                        <span>' + dater + '</span>\n\
-                    </div>\n\
-                    <div class="payment-row-date">\n\
-                        <span class="payment-amount">Магазин: </span>\n\
-                        <div>\n\
-                            ' + linkStore + '\n\
-                        </div>\n\
-                    </div>\n\
-                    <div class="delete" data-disable-purchase="' + purchase.id + '">Удалить</div>\n\
-                    ' + tempDetails + '\n\
-                </div>';
+    const temp = `<div class="animated animate__fadeIn" data-purchase-id="${purchase.id}">
+                    <div>
+                        <span class="b">Всего скидка: </span>
+                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} руб</span>
+                        ${refund}
+                    </div>
+                    <div>
+                        <span class="payment-amount b" style="margin-left: 20px;">из них бонусами: </span>
+                        <span class="bad">${amount}</span>
+                    </div>
+                    <div>
+                        <span class="payment-amount b">Начислено бонусов: </span>
+                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback}</span>
+                    </div>
+                    <div class="payment-row-date">
+                        <span class="payment-amount">Дата: </span>
+                        <span>${dater}</span>
+                    </div>
+                    <div class="payment-row-date">
+                        <span class="payment-amount">Магазин: </span>
+                        <div>
+                            ${linkStore}
+                        </div>
+                    </div>
+                    <div class="delete" data-disable-purchase="${purchase.id}">Удалить</div>
+                    ${tempDetails}
+                </div>`;
     
-    let payEl = C().strToNode(temp);
+    const payEl = C().strToNode(temp);
     C("#transactions").el.prepend(payEl.el);
 }
 
 function drawBonusCard(cardNumber) {
-    let cardImg = new Image(),
-        qrEl    = C("#qrcode");
+    const cardImg = new Image(),
+          qrEl    = C("#qrcode");
     
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
     cardImg.addEventListener("load", () => {
-        let qrCanvas = C().create("img"),
-            qr = new QRious({
-                element: qrCanvas.el,
-                size: 256,
-                value: cardNumber,
-                foreground: "#4062b7"
-            });
+        const qrCanvas = C().create("img"),
+              qr = new QRious({
+                    element: qrCanvas.el,
+                    size: 256,
+                    value: cardNumber,
+                    foreground: "#4062b7"
+                });
 
         qrCanvas.el.width = "128";
         qrCanvas.el.height = "128";
@@ -290,11 +274,11 @@ function drawBonusCard(cardNumber) {
         qrEl.append(qrCanvas);
         show("#qrcode");
 
-        let cardCanvas = d.createElement("canvas");
+        const cardCanvas = d.createElement("canvas");
         cardCanvas.width = cardImageW;
         cardCanvas.height = cardImageH;
 
-        let cardCanvasCtx = cardCanvas.getContext("2d");
+        const cardCanvasCtx = cardCanvas.getContext("2d");
         cardCanvasCtx.imageSmoothingEnabled = false;
         cardCanvasCtx.drawImage(cardImg, 0, 0, cardImageW, cardImageH);
         cardCanvasCtx.drawImage(qrCanvas.el, 192, 48, 128, 128);
@@ -306,8 +290,8 @@ function drawBonusCard(cardNumber) {
         if (!SOURCE) {
             show("#downloadCard");
             C("#downloadCard").el.addEventListener("click", () => {
-                let dataURL = cardCanvas.toDataURL("image/jpeg"),
-                    link = d.createElement("a");
+                const dataURL = cardCanvas.toDataURL("image/jpeg"),
+                      link    = d.createElement("a");
 
                 link.href = dataURL;
                 link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
