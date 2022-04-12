@@ -170,7 +170,7 @@ d.addEventListener("DOMContentLoaded", () => {
     C('span[id*="-popup"]').els.forEach((pop) => {
         const inp = C("#" + pop.id.replace("-popup", "")).el;
 
-        ["blur", "input"].forEach((evt) => {
+        ["blur", "input"].map((evt) => {
             inp.addEventListener(evt, (e) => {
                 dropFail(e.target);
                 C("#" + e.target.id + "-popup").delclass("show");
@@ -186,9 +186,9 @@ d.addEventListener("DOMContentLoaded", () => {
                   elCs     = el.parentNode.parentNode.children[1].children,
                   tabHeads = el.parentNode.children;
            
-            [...tabHeads].forEach((tab) => tab.classList.remove("tab_h_active"));
+            [...tabHeads].map((tab) => tab.classList.remove("tab_h_active"));
             
-            [...elCs].forEach((el) => el.classList.remove("tab_c_active"));
+            [...elCs].map((el) => el.classList.remove("tab_c_active"));
 
             el.classList.add("tab_h_active");
             elCs[el.dataset.tab].classList.add("tab_c_active");
@@ -327,12 +327,8 @@ function permitRedrawSection(section) {
     return permit;
 }
 
-async function api(method, data) {
-    if (!data) {
-        data = "";
-    }
-    
-    let response = await fetch(API_URL, {
+async function api(method, data = "") {
+    const response = await fetch(API_URL, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json;charset=utf-8",
@@ -560,7 +556,7 @@ async function renderReferSection() {
     const referQr = C("#referQr").el;
 
     if (response.status) {
-        const data = response.data;
+        const {data} = response;
         
         if (!referQr.children.length) {
             const qrCanvas = C().create("canvas").el;
@@ -580,7 +576,7 @@ async function renderReferSection() {
         }
 
         if (data.referrals && data.referrals.length)
-            data.referrals.forEach((ref_row) => {
+            data.referrals.map((ref_row) => {
                 const tr = C().create("tr"),
                       td = C().create("td");
 
@@ -1085,7 +1081,7 @@ async function updateCities() {
     if (result.status) {
         removeLoadOption("#city");
 
-        result.data.forEach((el) => {
+        result.data.map((el) => {
             let option = C().create("option");
 
             option.val(el.id);
@@ -1106,10 +1102,7 @@ function dropFail(el) {
 }
 
 function clearLocalStorage() {
-    C().delStor(LS_TOKEN);
-    C().delStor(LS_SECTION);
-    C().delStor(LS_CURR_UPDATE);
-    C().delStor(LS_CONTENTS);
+    localStorage.clear();
 }
 
 function showRequestSms() {
@@ -1379,7 +1372,7 @@ function getValueByMask(value, mask, full) {
     const phone = value.match(/\d/g);
     let newPhone = mask;
 
-    phone.forEach((e) => newPhone = newPhone.replace(/_/, e));
+    phone.map((e) => newPhone = newPhone.replace(/_/, e));
 
     if (!full) {
         newPhone = newPhone.replace(/\)_|-_|_/g, "");
