@@ -9,7 +9,7 @@ function drawNews(newsList) {
     const container = C(".news>div.container").el;
     
     removeLoadOption("#news>div.container");
-    newsList.forEach(news => {
+    newsList.forEach((news) => {
         const imageSrc = DOMAIN + "/" + news.image,
               date     = news.date.split("-").reverse().join(".");
             
@@ -40,7 +40,7 @@ function drawNews(newsList) {
     });
 }
 
-C(".newsOverlay").el.addEventListener("click", e => {
+C(".newsOverlay").el.addEventListener("click", (e) => {
     if (e.target === e.currentTarget || e.target.type === "submit") {
         hide(".newsOverlay");
         d.body.classList.remove("hideOverflow");

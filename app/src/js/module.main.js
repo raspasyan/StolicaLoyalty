@@ -105,11 +105,9 @@ d.addEventListener("DOMContentLoaded", () => {
     /*
      if ('serviceWorker' in navigator) {
      window.addEventListener('load', () => {
-     navigator.serviceWorker.register('/sw.js').then(registration => {
+     navigator.serviceWorker.register('/sw.js').then((registration) => {
      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-     }, err => {
-     console.log('ServiceWorker registration failed: ', err);
-     });
+     }, (err) => console.log('ServiceWorker registration failed: ', err) );
      });
      } else {
      console.log('ServiceWorker do not work');
@@ -129,7 +127,7 @@ d.addEventListener("DOMContentLoaded", () => {
      } else if (Notification.permission === "granted") {
      //setTimeout(notifyMe, 2000);
      } else if (Notification.permission !== "denied") {
-     Notification.requestPermission(permission => {
+     Notification.requestPermission((permission) => {
      if (!('permission' in Notification)) {
      Notification.permission = permission;
      }
@@ -156,11 +154,11 @@ d.addEventListener("DOMContentLoaded", () => {
         }));
     
     // Применим маску ко всем полям ввода номера телефона
-    C('input[id*="-mask"]').els.forEach(inp => {
+    C('input[id*="-mask"]').els.forEach((inp) => {
         mask(inp);
-        inp.addEventListener("input", e => {
+        inp.addEventListener("input", (e) => {
             let phone = e.currentTarget.value;
-            C('input[id*="-phone-mask"]').els.forEach(phn => {
+            C('input[id*="-phone-mask"]').els.forEach((phn) => {
                 phn.value = phone;
                 setPhoneMask(phn);
             });
@@ -169,11 +167,11 @@ d.addEventListener("DOMContentLoaded", () => {
     });
 
     // Подключаем обработчики для Popup
-    C('span[id*="-popup"]').els.forEach(pop => {
+    C('span[id*="-popup"]').els.forEach((pop) => {
         const inp = C("#" + pop.id.replace("-popup", "")).el;
 
-        ["blur", "input"].forEach(evt => {
-            inp.addEventListener(evt, e => {
+        ["blur", "input"].forEach((evt) => {
+            inp.addEventListener(evt, (e) => {
                 dropFail(e.target);
                 C("#" + e.target.id + "-popup").delclass("show");
             });
@@ -188,13 +186,9 @@ d.addEventListener("DOMContentLoaded", () => {
                   elCs     = el.parentNode.parentNode.children[1].children,
                   tabHeads = el.parentNode.children;
            
-            [...tabHeads].forEach((tab) => {
-                tab.classList.remove("tab_h_active");
-            });
+            [...tabHeads].forEach((tab) => tab.classList.remove("tab_h_active"));
             
-            [...elCs].forEach((el) => {
-                el.classList.remove("tab_c_active");
-            });
+            [...elCs].forEach((el) => el.classList.remove("tab_c_active"));
 
             el.classList.add("tab_h_active");
             elCs[el.dataset.tab].classList.add("tab_c_active");
@@ -212,17 +206,11 @@ d.addEventListener("DOMContentLoaded", () => {
     C("#set_card").el.addEventListener("click", () => setCard());
 
     // Вход без пароля
-    C("#reset_confirmation_code").el.addEventListener("input", (e) => {
-        C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
-    });
+    C("#reset_confirmation_code").el.addEventListener("input", (e) => C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reg-confirmation-code").el.addEventListener("input", (e) => {
-        C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
-    });
+    C("#reg-confirmation-code").el.addEventListener("input", (e) => C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reset-phone-mask").el.addEventListener("input", (e) => {
-        C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true);
-    });
+    C("#reset-phone-mask").el.addEventListener("input", (e) => C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true));
 
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
         addEventListener("input", () => {
@@ -278,14 +266,10 @@ d.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    C("#feedback-submit").el.addEventListener("click", () => {
-        setFeedback();
-    });
+    C("#feedback-submit").el.addEventListener("click", () => setFeedback());
 
     // Выбор города
-    C("#store_cities").el.addEventListener("change", (e) => {
-        drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores")));
-    });
+    C("#store_cities").el.addEventListener("change", (e) => drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores"))));
 
     // Навигация
     C(".bottomNav>li, .mainMenu__content_nav>li").els.forEach((el) => {
@@ -330,8 +314,8 @@ d.addEventListener("DOMContentLoaded", () => {
 });
 
 function permitRedrawSection(section) {
-    let permit = true,
-        needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    let permit = true;
+    const needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
     
     if (needUp[section] === 0) {
         permit = false;
@@ -404,8 +388,9 @@ function show(selector) {
 function initPopups() {
     C(".popup-text").els.forEach((el) => {
         el.addEventListener("click", () => {
-            if (el.classList.contains("show"))
+            if (el.classList.contains("show")) {
                 el.classList.remove("show");
+            }
         });
     });
 }
@@ -423,9 +408,7 @@ function removeLoadOption(id) {
         return;
     }
     
-    b.els.forEach((el) => {
-        el.parentNode.removeChild(el);
-    });
+    b.els.forEach((el) => el.parentNode.removeChild(el));
 }
 
 function modifyInput(el) {
@@ -598,8 +581,8 @@ async function renderReferSection() {
 
         if (data.referrals && data.referrals.length)
             data.referrals.forEach((ref_row) => {
-                let tr = C().create("tr"),
-                    td = C().create("td");
+                const tr = C().create("tr"),
+                      td = C().create("td");
 
                 td.text(ref_row.last_sync);
                 tr.append(td);
@@ -1254,47 +1237,52 @@ async function checkUpdates(callback) {
     if (!bearerToken && callback) {
         callback();
     }
-
-    let result = await getUpdates();
     
-    if (viewNewApp && SOURCE && SOURCE !== result.data.versionApp) {
+    if (!bearerToken) {
+        return;
+    }
+
+    const result = await getUpdates();
+    const {data, status} = result;
+    
+    if (viewNewApp && SOURCE && SOURCE !== data.versionApp) {
         showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
         viewNewApp = null;
     }
 
-    let curSection = C().getStor(LS_SECTION),
-        updates    = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-        contents   = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
+    const curSection = C().getStor(LS_SECTION),
+          updates    = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
 
-    if (result.status) {
-        if (result.data.news.length) {
-            updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
-            drawNews(result.data.news);
+    if (status) {
+        if (data.news.length) {
+            updates.lastNews = data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
+            drawNews(data.news);
         }
-        if (result.data.storesHash) {
-            updates.storesHash = result.data.storesHash;
-            drawStores(result.data.stores);
+        if (data.storesHash) {
+            updates.storesHash = data.storesHash;
+            drawStores(data.stores);
         }
-        if (result.data.personalHash) {
+        if (data.personalHash) {
             setNeedUpdate(contents, result, 'personal');
-            contents.personal = result.data.personal;
-            updates.personalHash = result.data.personalHash;
+            contents.personal = data.personal;
+            updates.personalHash = data.personalHash;
 
-            let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
+            let userName = data.personal.firstname + " " + data.personal.middlename;
             C("#feedback-name").val((userName ? userName : ""));
         }
-        if (result.data.walletHash) {
+        if (data.walletHash) {
             setNeedUpdate(contents, result, 'wallet');
-            contents.wallet = result.data.wallet;
-            updates.walletHash = result.data.walletHash;
+            contents.wallet = data.wallet;
+            updates.walletHash = data.walletHash;
         }
-        if (result.data.lastPurchase) {
-            updates.lastPurchase = result.data.lastPurchase;
-            drawPurchases(result.data.purchases);
+        if (data.lastPurchase) {
+            updates.lastPurchase = data.lastPurchase;
+            drawPurchases(data.purchases);
         }
 
-        if (result.data.transactions.length) {
-            updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
+        if (data.transactions.length) {
+            updates.lastTransaction = data.transactions[data.transactions.length - 1].date;
         }
 
         // Всех авторизованных отправляем на страницу кошелька
@@ -1324,6 +1312,11 @@ async function checkUpdates(callback) {
 
 async function getUpdates() {
     let data = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    const contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
+    
+    if (contents.personal === "") {
+        data = tempUpdate;
+    }
     
     if (initApp) {
         data.lastNews = 0;

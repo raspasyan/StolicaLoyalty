@@ -122,7 +122,7 @@ function drawWallet(walletData) {
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
 
-                walletData.life_times.forEach(el => {
+                walletData.life_times.forEach((el) => {
                     const blockBalanceEl = C().create("div"),
                           dateField      = C().create("span"),
                           amountField    = C().create("span"),
@@ -155,12 +155,10 @@ function drawPurchases(purchases) {
         return false;
     }
     
-    purchases.forEach(purchase => drawPurchase(purchase));
+    purchases.forEach((purchase) => drawPurchase(purchase));
     
     C("div[data-disable-purchase]").els.forEach((el) => {
-        el.addEventListener("click", () => {
-            disablePurchase(el.dataset.disablePurchase);
-        });
+            el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase));
     });
 }
 

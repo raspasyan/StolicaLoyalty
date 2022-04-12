@@ -9,7 +9,7 @@ function drawStores(stores) {
         currentCity = contents.personal.city;
     }
 
-    stores.forEach(item => {
+    stores.forEach((item) => {
         if (cities.indexOf(item.id) === -1) {
             cities.push(item.id);
         }
@@ -17,10 +17,10 @@ function drawStores(stores) {
     
     removeLoadOption("#store_cities");
     
-    cities.forEach(cityId => {
+    cities.forEach((cityId) => {
         const storesInCity = [];
         
-        stores.forEach(item => {
+        stores.forEach((item) => {
             if (item.id === cityId) {
                 storesInCity.push(item);
             }
@@ -47,7 +47,7 @@ function drawStoresInCity(stores) {
     
     list.html("");
     
-    stores.forEach(city => {
+    stores.forEach((city) => {
         const temp = `<div class="storesList__block animated animate__fadeInLeft" style="animation-duration: ${(delay / 5)}s">
                         <div class="storesList__block_title">${city.store_title}</div>
                         <div class="storesList__block_shedule">${city.shedule}</div>
