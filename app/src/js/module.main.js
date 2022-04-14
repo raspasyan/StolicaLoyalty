@@ -455,19 +455,16 @@ async function drawSection(section) {
     }
 
     switch (section) {
-        default:
-        {
+        default: {
             break;
         }
 
-        case "pre-registration":
-        {
+        case "pre-registration": {
             await updateCities();
             break;
         }
 
-        case "registration":
-        {
+        case "registration": {
             await updateCities();
             const city = C("#city").el;
 
@@ -486,34 +483,28 @@ async function drawSection(section) {
             break;
         }
 
-        case "personal":
-        {
+        case "personal": {
             break;
         }
 
-        case "stores":
-        {
+        case "stores": {
             break;
         }
 
-        case "wallet":
-        {
+        case "wallet": {
             break;
         }
 
-        case "refer":
-        {
+        case "refer": {
             renderReferSection();
             break;
         }
 
-        case "reg_success":
-        {
+        case "reg_success": {
             break;
         }
 
-        case "news":
-        {
+        case "news": {
             break;
         }
     }

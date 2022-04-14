@@ -163,14 +163,16 @@ function drawPurchases(purchases) {
 }
 
 async function disablePurchase(id) {
-    let result = await api("disablePurchase", {
-                            id
-                        });
+    //showPopup(title, desc, message, buttonText, callback)
+    showPopup('','', 'Вы уверены, что хотите скрыть чек? <p><small>Для того, чтобы вернуть чек напишите в <a href="#" onClick="showFeedback();return false;">службу технической поддержки</a>.</small></p>', ["Да","Нет"], async () => {
+        let result = await api("disablePurchase", {
+                                id
+                            });
 
-    let purEl = C("div[data-purchase-id='" + id + "']").el;
-    purEl.parentNode.removeChild(purEl);
-
-    return result;
+        let purEl = C("div[data-purchase-id='" + id + "']").el;
+        purEl.parentNode.removeChild(purEl);
+        return result;
+    });
 }
 
 function drawPurchase(purchase) {
