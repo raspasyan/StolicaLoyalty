@@ -1327,6 +1327,7 @@ function mask(inp) {
 
     inp.parentNode.insertBefore(underlay, inp);
     setPhoneMask(inp, false);
+    inp.addEventListener("click", () => { inp.selectionStart = inp.value.length; });
     inp.addEventListener("input", (e) => setPhoneMask(e.target));
 }
 
