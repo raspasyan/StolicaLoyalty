@@ -24,34 +24,94 @@
 
 <body>
     <style>
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #222;
+        }
         input, textarea {
             display: block;
             width:100%;
         }
         label {
-            color: #222;
+            position: relative;
             font-weight: 300;
+            top: -4.5rem;
+            margin-left: 1rem;
+            transition: 0.3s font-size, 0.3s top;
+        }
+        textarea + label {
+            top: -8rem;
+        }
+        label[for=date] {
+            top: 0rem;
+        }
+        label[for=img] {
+            top: 2rem;
+        }
+        input#img, input#date {
+            width: 60%;
+            display: inline-block;
+            float: right;
+        }
+        .file {
+            margin-bottom: 7rem;
+        }
+        .activeINPUT {
+            top: -7.5rem;
+            font-size: 1.25rem;
+        }
+        .activeTEXTAREA {
+            top: -10.5rem;
+            font-size: 1.25rem;
         }
     </style>
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
-            <label>Номер новости:
-                <input type="text" name="id" value=""/>
-            </label><label>Название:
-                <input type="text" name="title" value=""/>
-            </label><label>Текст:
-                <textarea name="desc"></textarea>
-            </label><label>Маленький текст(со звездочкой):
-                <textarea name="small"></textarea>
-            </label><label>Дата:
-                <input type="date" name="date" value=""/>
-            </label><label>Картинка:
-                <input type="file" name="img" value=""/>
-            </label><label>Ключ:
-                <input type="text" name="key" value=""/>
-            </label>
-                <input type="submit" value="Отправить" style="margin-top:5rem;"/>
+            <div>
+                <input id="id" type="text" name="id" value="" required/>
+                <label for="id">Номер новости</label>
+            </div>
+            <div>
+                <input id="title" type="text" name="title" value="" required/>
+                <label for="title">Название</label>
+            </div>
+            <div>
+                <textarea id="desc" name="desc" required></textarea>
+                <label for="desc">Текст</label>
+             </div>
+            <div>
+               <textarea id="small" name="small"></textarea>
+                <label for="small">Маленький текст(со звездочкой)</label>
+             </div>
+            <div>
+               <input id="date" type="date" name="date" value="" required/>
+                <label for="date">Дата публикации:</label>
+             </div>
+            <div class="file">
+               <input id="img" type="file" name="img" value="" required/>
+                <label for="img">Картинка:</label>
+             </div>
+            <div>
+               <input id="key" type="text" name="key" value="" required/>
+                <label for="key">Ключ</label>
+             </div>
+            <button type="submit" style="margin-top:5rem;">Отправить</button>
         </form>
     </div>
+    <script>
+        let d = document;
+        d.querySelectorAll("input, textarea").forEach((el) => {
+            let clas  = "active" + el.tagName,
+                label = d.querySelector("[for=" + el.id + "]").classList,
+                exc   = ["date", "img"];
+            
+            if (!exc.includes(el.id)) {
+                el.addEventListener("focus", () => label.add(clas));
+                el.addEventListener("blur",  () => {
+                    if (!el.value) label.remove(clas);
+                });
+            }
+        });
+    </script>
 </body>
 </html>
