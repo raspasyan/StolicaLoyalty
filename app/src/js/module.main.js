@@ -628,7 +628,7 @@ function showPopup(title, desc, message, buttonText, callback) {
     }
 
     if (desc) {
-        pDesc.text(desc);
+        pDesc.html(desc);
         show("#popupDescription");
     } else {
         hide("#popupDescription");
@@ -804,7 +804,7 @@ async function reg() {
         
         if (result.description) {
             promiseTimeout(() => {
-                showPopup("", result.description);
+                showPopup("", `${result.description}, возможно вам нужно <a href="" onclick="drawSection('reset');return false;">восстановить пароль</a>?`);
             }, 1000);
         }
     }
@@ -1592,7 +1592,7 @@ const C = function(s, p) {
         return this;
     },
     this.html = (html) => {
-        if (!html) {
+        if (html!=="" && !html) {
             return this.els[0].innerHTML;
         }
 
@@ -1603,7 +1603,7 @@ const C = function(s, p) {
         return this;
     },
     this.text = (text) => {
-        if (!text) {
+        if (text!=="" && !text) {
             return this.els[0].innerText;
         }
 
