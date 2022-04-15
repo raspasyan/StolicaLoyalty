@@ -11,10 +11,11 @@ function drawNews(newsList) {
     removeLoadOption("#news>div.container");
     newsList.forEach((news) => {
         const imageSrc = DOMAIN + "/" + news.image,
-              date     = news.date.split("-").reverse().join(".");
+              date     = news.date.split("-").reverse().join("."),
+              imgElem  = news.image ? `<img src="${imageSrc}">` : '';
             
         const temp = `<div class="news__container animated animate__fadeIn">
-                        <img src="${imageSrc}">
+                        ${imgElem}
                         <div class="news__container_details">
                             <p class="news__container_details_date">${date}</p>
                             <h4>${news.title}</h4>

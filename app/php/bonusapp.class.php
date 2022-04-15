@@ -65,6 +65,16 @@ class BonusApp {
                 require_once 'templates/index.html';
                 break;
             }
+            
+            case "add-news": {
+                if (!empty($_POST)) {
+                    $this->sendNewsToServer();
+                } else {
+                    require_once 'templates/forms/template_form_add_news.php';
+                }
+                
+                break;
+            }
 
             case "application-apple": {
                 $this->mobileDetectHandler();
@@ -117,7 +127,7 @@ class BonusApp {
                 require_once 'templates/template_drawing.php';
                 break;
             }
-
+            
             case "api": {
                 $rawRequestData = file_get_contents('php://input');
                 if (!empty($rawRequestData)) {
@@ -590,8 +600,69 @@ class BonusApp {
         echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
 
-    /* Обработчики API */
+    private function checkDuplicateNews($id) {
+        $query = $this->pdo->prepare("SELECT 
+                                        count(`ext_id`)
+                                    FROM 
+                                        `confirmations` 
+                                    WHERE ( `ext_id` = :ext_id );");
+        $query->execute(['ext_id' => $id]);
+        
+        $count = $query->fetchColumn();
+        
+        return (bool) $count;
+    }
     
+    private function sendNewsToServer() {
+        $result = FALSE;
+        $data   = $_POST;
+        
+        if (YANDEX_NEWS_FORM_KEY !== $data["key"]) {
+            return $result;
+        }
+        
+        if ($this->checkDuplicateNews($data["id"])) {
+            return $result;
+        }
+        
+        
+
+        
+        $dir  = dirname(__DIR__) . "/assets/news";
+        $name = date("dmy") . $data["id"] . '.jpg';
+        @$rawImage = file_get_contents($data["img"]);
+        
+        if ($rawImage) {
+            file_put_contents($dir . DIRECTORY_SEPARATOR . $name, $rawImage);
+        }
+        
+        $tmpArr = explode("\r\n", $data["desc"]);
+        $text   = "<p>" . implode("</p><p>", $tmpArr) . "</p>";
+        
+        if ((bool) $data["small"]) {
+            $text .= "<p><small>" . $data["small"] . "</small></p>";
+        }
+        
+        $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
+        $query->execute([
+                        date("Y-m-d"), 
+                        $data["date"], 
+                        $data["title"], 
+                        "app/assets/news/" . $name, 
+                        $text, 
+                        $data["id"]
+                ]);
+        
+        if ($this->pdo->lastInsertId() > 0) {
+            $result = TRUE;
+        }
+        
+        return $result;
+    }
+
+    
+    /* Обработчики API */
+        
     private function API_sendConfirmation($requestData, $provider = null) {
         if (!empty($requestData["data"]["phone"])) {
             $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);

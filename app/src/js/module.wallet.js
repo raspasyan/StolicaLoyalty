@@ -170,7 +170,11 @@ async function disablePurchase(id) {
                             });
 
         let purEl = C("div[data-purchase-id='" + id + "']").el;
-        purEl.parentNode.removeChild(purEl);
+        purEl.classList.remove("animated", "animate__fadeIn");
+        purEl.classList.add("animated", "animate__fadeOut");
+        promiseTimeout(() => {
+            purEl.parentNode.removeChild(purEl);
+        }, 2000);
         return result;
     });
 }

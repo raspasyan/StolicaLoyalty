@@ -1614,7 +1614,7 @@ const C = function(s, p) {
         return this;
     },
     this.val = (value) => {
-        if (!value) {
+        if (value!=="" && !value) {
             return this.els[0].value;
         }
 
