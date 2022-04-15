@@ -67,8 +67,16 @@ class BonusApp {
             }
             
             case "add-news": {
+                $result = $this->initPDO();
+                
                 if (!empty($_POST)) {
-                    $this->sendNewsToServer();
+                    echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
+                    if ($this->sendNewsToServer()) {
+                        echo '<h1>Новость добавлена!</h1> <p><a href="/add-news">Добавить еще новость</a></p>';
+                    } else {
+                        echo '<h1>Произошла ошибка!</h1> <p><a href="/add-news">Попробовать еще раз</a></p>';
+                    }
+                    echo '</div>';
                 } else {
                     require_once 'templates/forms/template_form_add_news.php';
                 }
@@ -604,7 +612,7 @@ class BonusApp {
         $query = $this->pdo->prepare("SELECT 
                                         count(`ext_id`)
                                     FROM 
-                                        `confirmations` 
+                                        `news` 
                                     WHERE ( `ext_id` = :ext_id );");
         $query->execute(['ext_id' => $id]);
         
@@ -625,38 +633,33 @@ class BonusApp {
             return $result;
         }
         
-        
+        $uploaddir  = dirname(__DIR__) . "/assets/news/";
+        $name       = date("dmy") . $data["id"] . '.jpg';
+        $uploadfile = $uploaddir . $name;
 
-        
-        $dir  = dirname(__DIR__) . "/assets/news";
-        $name = date("dmy") . $data["id"] . '.jpg';
-        @$rawImage = file_get_contents($data["img"]);
-        
-        if ($rawImage) {
-            file_put_contents($dir . DIRECTORY_SEPARATOR . $name, $rawImage);
+        if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+            $tmpArr = explode("\r\n", $data["desc"]);
+            $text   = "<p>" . implode("</p><p>", $tmpArr) . "</p>";
+
+            if ((bool) $data["small"]) {
+                $text .= "<p><small>" . $data["small"] . "</small></p>";
+            }
+
+            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $query->execute([
+                            date("Y-m-d"), 
+                            $data["date"], 
+                            $data["title"], 
+                            "app/assets/news/" . $name, 
+                            $text, 
+                            $data["id"]
+                    ]);
+
+            if ($this->pdo->lastInsertId() > 0) {
+                $result = TRUE;
+            }
         }
-        
-        $tmpArr = explode("\r\n", $data["desc"]);
-        $text   = "<p>" . implode("</p><p>", $tmpArr) . "</p>";
-        
-        if ((bool) $data["small"]) {
-            $text .= "<p><small>" . $data["small"] . "</small></p>";
-        }
-        
-        $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
-        $query->execute([
-                        date("Y-m-d"), 
-                        $data["date"], 
-                        $data["title"], 
-                        "app/assets/news/" . $name, 
-                        $text, 
-                        $data["id"]
-                ]);
-        
-        if ($this->pdo->lastInsertId() > 0) {
-            $result = TRUE;
-        }
-        
+                
         return $result;
     }
 
