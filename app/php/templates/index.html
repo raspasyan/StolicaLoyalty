@@ -17,17 +17,17 @@
 
         <link rel="stylesheet" href="app/build/styles/normalize.css" />
         <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
-        <link rel="stylesheet" href="app/build/styles/styles.css?v=0504222" />
+        <link rel="stylesheet" href="app/build/styles/styles.css?v=1404223" />
         <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
         <link rel="stylesheet" href="app/build/styles/fontello.css" />
 
         <script src="app/build/js/qrious.min.js"></script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-        <script src="app/build/js/module.main.js?v=0504222" defer></script>
-        <script src="app/build/js/module.news.js?v=0504222" defer></script>
-        <script src="app/build/js/module.stores.js?v=0504222" defer></script>
-        <script src="app/build/js/module.personal.js?v=0504222" defer></script>
-        <script src="app/build/js/module.wallet.js?v=0504222" defer></script>
+        <script src="app/build/js/module.main.js?v=1404223" defer></script>
+        <script src="app/build/js/module.news.js?v=1404223" defer></script>
+        <script src="app/build/js/module.stores.js?v=1404223" defer></script>
+        <script src="app/build/js/module.personal.js?v=1404223" defer></script>
+        <script src="app/build/js/module.wallet.js?v=1404223" defer></script>
     </head>
 
     <body>
@@ -46,7 +46,7 @@
         </div>
 
         <div class="newsOverlay" style="display: none;">
-            <div class="newsOverlay__cont animate__animated animate__fadeInDown">
+            <div class="newsOverlay__cont animated animate__fadeInDown">
                 <img class="newsOverlay__image" src="" alt="">
                 <div class="newsOverlay__details">
                     <p class="newsOverlay__details_date"></p>
@@ -57,7 +57,7 @@
             </div>
         </div>
 
-        <div class="mainMenu animate__animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
+        <div class="mainMenu animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
             <div class="mainMenu__head">
                 <div class="mainMenu__head_left"></div>
                 <div class="mainMenu__head_title"><span>Меню</span></div>
@@ -84,7 +84,7 @@
             </div>
         </div>
 
-        <div class="feedback animate__animated animate__slideInDown" id="feedback" style="display: none;">
+        <div class="feedback animated animate__slideInDown" id="feedback" style="display: none;">
             <div class="container">
                 <div class="row">
                     <div class="six columns">
@@ -205,13 +205,13 @@
                         </div>
                         <button class="button button-primary" style="width: 100%;" id="reset_button" disabled>Получить код для входа</button>
                         <!-- Блок подтверждения входа -->
-                        <div id="reset_confirmation" style="display: none;" class="animate__animated animate__fadeIn">
+                        <div id="reset_confirmation" style="display: none;" class="animated animate__fadeIn">
                             <div id="reset_confirmation_info" style="font-weight: bold;"></div>
                             <input class="u-full-width" maxlength="4" type="tel" placeholder="Код" id="reset_confirmation_code" />
                             <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
                             <p class="link">
                                 <span>Мне не позвонили,</span>
-                                <a href="#" onclick="showFeedback()">что мне делать?</a>
+                                <a href="#" onclick="showRequestSms()">что мне делать?</a>
                             </p>
                             <button class="button button-primary" style="width: 100%;" onclick="checkResetConfirmationCode()"
                                     id="reset_confirmation_button" disabled>Войти</button>
@@ -449,7 +449,25 @@
 
                 <div id="news" class="news">
                     <div class="container">
-                        <div class="temporary">Загрузка...</div>
+                        <!--<div class="temporary">Загрузка...</div>-->
+                        
+                        <div class="news__container shadow temporary">
+                            <p class="img" style="height: 30%;"></p>
+                            <div class="news__container_details" style="height: 42%;">
+                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);height: 3rem;margin-bottom:1rem;"></span>
+                                <span class="news__container_details_date" style="width: 93%;background-color: rgb(0 0 0 / 0.05);height: 4rem;margin-top: 0rem;"></span>
+                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);width: 100%;height: 4rem;margin-top: 1rem;border-radius: 5px;"></span>
+                            </div>
+                        </div>
+                        <div class="news__container shadow temporary">
+                            <p class="img" style="height: 30%;"></p>
+                            <div class="news__container_details" style="height: 42%;">
+                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);height: 3rem;margin-bottom:1rem;"></span>
+                                <span class="news__container_details_date" style="width: 93%;background-color: rgb(0 0 0 / 0.05);height: 4rem;margin-top: 0rem;"></span>
+                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);width: 100%;height: 4rem;margin-top: 1rem;border-radius: 5px;"></span>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
 
@@ -470,12 +488,12 @@
                             </div>
                             <div class="wallet__content_data" id="wallet-data" style="display: none;">
                                 <div class="wallet__content_data_type" id="cardType"></div>
-                                <div class="wallet__content_data_qr animate__animated animate__fadeIn" id="qrcode" style="display: none;"></div>
+                                <div class="wallet__content_data_qr animated animate__fadeIn" id="qrcode" style="display: none;"></div>
                                 <div style="display: none">Ваш персональный код:</div>
                                 <div style="display: none">
                                     <span class="cardNumber neutral" id="cardNumber">Загрузка...</span>
                                 </div>
-                                <button id="downloadCard" style="display: none" class="animate__animated animate__fadeIn">Скачать QR код</button>
+                                <button id="downloadCard" style="display: none" class="animated animate__fadeIn">Скачать QR код</button>
                                 <button class="wallet__content_data_balance button">
                                     <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&mdash;&nbsp;
                                     <span id="bonuses" class="load"></span>
@@ -541,7 +559,7 @@
                             <a href="#" onClick="showRefRules();">Полные правила акции</a>
                         </p>
                         <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
-                        <p id="referLink" style="display: none" class="animate__animated animate__fadeIn">
+                        <p id="referLink" style="display: none" class="animated animate__fadeIn">
                             <a id="referLinkWA" href=""><img style="width: 64px;" loading="lazy"
                                                              src="app/assets/social/whatsapp-128x128.png" alt="WHATSAPP"></a>
                             <a id="referLinkTG" href=""><img style="width: 64px;" loading="lazy"

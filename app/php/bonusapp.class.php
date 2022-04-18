@@ -52,6 +52,24 @@ class BonusApp {
                 
                 break;
             }
+            
+            case "add-news": {
+                $result = $this->initPDO();
+                
+                if (!empty($_POST)) {
+                    echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
+                    if ($this->sendNewsToServer()) {
+                        echo '<h1>Новость добавлена!</h1> <p><a href="/add-news">Добавить еще новость</a></p>';
+                    } else {
+                        echo '<h1>Произошла ошибка!</h1> <p><a href="/add-news">Попробовать еще раз</a></p>';
+                    }
+                    echo '</div>';
+                } else {
+                    require_once 'templates/forms/template_form_add_news.php';
+                }
+                
+                break;
+            }
 
             case "application-apple": {
                 $this->mobileDetectHandler();
@@ -104,7 +122,7 @@ class BonusApp {
                 require_once 'templates/template_drawing.php';
                 break;
             }
-
+            
             case "api": {
                 $rawRequestData = file_get_contents('php://input');
                 if (!empty($rawRequestData)) {
@@ -312,7 +330,15 @@ class BonusApp {
                     
                     break;
                 }
-
+                
+                case "disablePurchase": {
+                    $resultData = $this->checkAuthorization($requestData["method"]);
+                    if ($resultData["status"]) {
+                        $resultData = $this->API_disablePurchase($resultData["data"], $requestData["data"]);
+                    }
+                    break;
+                }
+                
                 case "getUpdates": {
                     $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
                     if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
@@ -464,31 +490,13 @@ class BonusApp {
                     break;
                 }
 
+                case "getResetConfirmationSms": {
+                    $resultData = $this->API_sendConfirmation($requestData, DEFAULT_SMS_PROVIDER);
+                    break;
+                }
+                
                 case "getResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
-
-                        $operationResult = $this->checkPhone($phone);
-                        if ($operationResult) {
-                            $operationResult = $this->canSendConfirmationCode($phone);
-                            if ($operationResult["status"]) {
-                                $resultData = $this->sendConfirmationCode($phone);
-                            } else {
-                                $resultData = [
-                                    "status" => true,
-                                    "description" => "Код подтверждения уже был отправлен.",
-                                    "data" => [
-                                        "need_confirmation" => true,
-                                        "seconds_left" => $operationResult["data"]["seconds_left"]
-                                    ]
-                                ];
-                            }
-                        } else {
-                            $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
-                        }
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
-                    }
+                    $resultData = $this->API_sendConfirmation($requestData);
                     break;
                 }
 
@@ -587,7 +595,104 @@ class BonusApp {
         echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
 
+    private function checkDuplicateNews($id) {
+        $query = $this->pdo->prepare("SELECT 
+                                        count(`ext_id`)
+                                    FROM 
+                                        `news` 
+                                    WHERE ( `ext_id` = :ext_id );");
+        $query->execute(['ext_id' => $id]);
+        
+        $count = $query->fetchColumn();
+        
+        return (bool) $count;
+    }
+    
+    private function sendNewsToServer() {
+        $result = FALSE;
+        $data   = $_POST;
+        
+        if (YANDEX_NEWS_FORM_KEY !== $data["key"]) {
+            return $result;
+        }
+        
+        if ($this->checkDuplicateNews($data["id"])) {
+            return $result;
+        }
+        
+        $uploaddir  = dirname(__DIR__) . "/assets/news/";
+        $name       = date("dmy") . $data["id"] . '.jpg';
+        $uploadfile = $uploaddir . $name;
+
+        if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+            $tmpArr = explode("\r\n", $data["desc"]);
+            $text   = "<p>" . implode("</p><p>", $tmpArr) . "</p>";
+
+            if ((bool) $data["small"]) {
+                $text .= "<p><small>" . $data["small"] . "</small></p>";
+            }
+
+            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $query->execute([
+                            date("Y-m-d"), 
+                            $data["date"], 
+                            $data["title"], 
+                            "app/assets/news/" . $name, 
+                            $text, 
+                            $data["id"]
+                    ]);
+
+            if ($this->pdo->lastInsertId() > 0) {
+                $result = TRUE;
+            }
+        }
+                
+        return $result;
+    }
+
+    
     /* Обработчики API */
+        
+    private function API_sendConfirmation($requestData, $provider = null) {
+        if (!empty($requestData["data"]["phone"])) {
+            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+
+            $operationResult = $this->checkPhone($phone);
+            if ($operationResult) {
+                $operationResult = $this->canSendConfirmationCode($phone, $provider);
+                if ($operationResult["status"]) {
+                    $resultData = $this->sendConfirmationCode($phone, $provider);
+                } else {
+                    $resultData = [
+                        "status" => true,
+                        "description" => "Код подтверждения уже был отправлен.",
+                        "data" => [
+                            "need_confirmation" => true,
+                            "seconds_left" => $operationResult["data"]["seconds_left"]
+                        ]
+                    ];
+                }
+            } else {
+                $resultData = ["status" => false, "description" => "Номер телефона не зарегистрирован."];
+            }
+        } else {
+            $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+        }
+        
+        return $resultData;
+    }
+    
+    private function API_disablePurchase($data, $id) {
+        $result = ["status" => false, "description" => ""];
+        
+        if ($id > 0) {
+            $query = $this->pdo->prepare("UPDATE purchases SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query->execute([$id['id'], $data['personId']]);
+            $result["status"] = true;
+       }
+        
+        return $result;
+    }
 
     private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
@@ -2147,10 +2252,12 @@ class BonusApp {
         return ($count > 0) ? true : false;
     }
     
-    private function canSendConfirmationCode($phone) {
+    private function canSendConfirmationCode($phone, $provider = null) {
         $percent = 25;
         $result = ["status" => false, "data" => null];
         $countInstant = $this->checkInstantRegistration($phone);
+        
+        $provider = $provider ?? DEFAULT_PROVIDER;
         
         if ($countInstant > 2) {
             $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
@@ -2179,12 +2286,15 @@ class BonusApp {
                 confirmations
             WHERE
                 phone = ?
+                    AND
+                provider = ?
             ORDER BY
                 sent_at
             DESC LIMIT 1
         ");
-        $query->execute([$phone, $phone]);
+        $query->execute([$phone, $phone, $provider]);
         $queryResult = $query->fetchAll();
+        
         if (count($queryResult)) {
             $cd = new DateTime();
             $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
@@ -2208,7 +2318,7 @@ class BonusApp {
 
         return $result;
     }
-
+    
     private function sendConfirmationCode($phone, $provider = null) {
         $result = ["status" => false, "description" => ""];
 
@@ -2879,7 +2989,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                profile_ext_id = ? AND sale_time > ?
+                profile_ext_id = ? AND sale_time > ? AND isActive = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
@@ -2992,7 +3102,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                purchases.profile_ext_id = ?
+                purchases.profile_ext_id = ? AND isActive = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?

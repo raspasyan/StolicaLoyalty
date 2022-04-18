@@ -6,21 +6,23 @@ function drawNews(newsList) {
         return false;
     }
     
-    let container = C(".news>div.container").el;
+    const container = C(".news>div.container").el;
+    
     removeLoadOption("#news>div.container");
-    newsList.forEach(news => {
-        let imageSrc = DOMAIN + "/" + news.image,
-            date = news.date.split("-").reverse().join(".");
+    newsList.forEach((news) => {
+        const imageSrc = DOMAIN + "/" + news.image,
+              date     = news.date.split("-").reverse().join("."),
+              imgElem  = news.image ? `<img src="${imageSrc}">` : '';
             
-        const temp = '<div class="news__container">\n\
-                        <img src="' + imageSrc + '">\n\
-                        <div class="news__container_details">\n\
-                            <p class="news__container_details_date">' + date + '</p>\n\
-                            <h4>' + news.title + '</h4>\n\
-                            <button class="button-primary">Подробнее</button>\n\
-                        </div>\n\
-                      </div>';
-        let newsContEl = C().strToNode(temp);
+        const temp = `<div class="news__container animated animate__fadeIn">
+                        ${imgElem}
+                        <div class="news__container_details">
+                            <p class="news__container_details_date">${date}</p>
+                            <h4>${news.title}</h4>
+                            <button class="button-primary">Подробнее</button>
+                        </div>
+                      </div>`;
+        const newsContEl = C().strToNode(temp);
 
         container.prepend(newsContEl.el);
         
@@ -39,7 +41,7 @@ function drawNews(newsList) {
     });
 }
 
-C(".newsOverlay").el.addEventListener("click", e => {
+C(".newsOverlay").el.addEventListener("click", (e) => {
     if (e.target === e.currentTarget || e.target.type === "submit") {
         hide(".newsOverlay");
         d.body.classList.remove("hideOverflow");

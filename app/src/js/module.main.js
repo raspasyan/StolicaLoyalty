@@ -1,122 +1,120 @@
 /* global Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE */
 
-// const DOMAIN = "https://bonus.stolica-dv.ru";
-const API_URL = DOMAIN + "/api";
-const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
-const RULES_URL = DOMAIN + "/pravila";
-const REF_RULES_URL = DOMAIN + "/pravila-akcii";
-const LS_TOKEN = "LS_BearerToken";
+//const DOMAIN         = "https://bonus.stolica-dv.ru";
+const API_URL        = DOMAIN + "/api";
+const TERMS_URL      = DOMAIN + "/politika-konfidentsialnosti";
+const RULES_URL      = DOMAIN + "/pravila";
+const REF_RULES_URL  = DOMAIN + "/pravila-akcii";
+const LS_TOKEN       = "LS_BearerToken";
 const LS_CURR_UPDATE = "LS_CurrentUpdate";
-const LS_CONTENTS = "LS_Contents";
+const LS_CONTENTS    = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
-const LS_SECTION = "section";
+const LS_SECTION     = "section";
 
-let lastPhone = "",
-    secondsInterval = null,
-    secondsLeft = 0,
-    d = document,
-    resetCodeTimer = null,
+let lastPhone           = "",
+    secondsInterval     = null,
+    secondsLeft         = 0,
+    d                   = document,
+    resetCodeTimer      = null,
     resetCodeTimerValue = 0,
-    viewNewApp = 1;
+    viewNewApp          = 1;
 
-let sections = {
-    "adult": {},
-    "intro": {},
-    "registration": {
-        title: "Регистрация",
-        prevSection: "pre-registration"
-    },
-    "pre-registration": {
-        title: "Выбор города",
-        prevSection: "intro"
-    },
-    "authorization": {
-        title: "Вход",
-        prevSection: "intro"
-    },
-    "reset": {
-        title: "Сброс пароля",
-        prevSection: "authorization"
-    },
-    "personal": {
-        title: "Профиль",
-        showMenu: true,
-        needAuth: true
-    },
-    "wallet": {
-        title: "Кошелек",
-        showMenu: true,
-        needAuth: true
-    },
-    "news": {
-        title: "Новости",
-        showMenu: true,
-        needAuth: true
-    },
-    "refer": {
-        title: "Приглашение",
-        showMenu: true,
-        needAuth: true
-    },
-    "stores": {
-        title: "Магазины",
-        showMenu: true,
-        needAuth: true
-    },
-    "reg_success": {
-        title: "Регистрация завершена",
-        showMenu: true,
-        needAuth: true
-    },
-    "alerts": {
-        title: "Подписки и уведомления",
-        showMenu: true,
-        needAuth: true
-    },
-    "personal_update": {
-        title: "Смена данных",
-        showMenu: true,
-        prevSection: "personal",
-        needAuth: true
-    },
-    "set_plastic": {
-        title: "Привязка карты",
-        showMenu: true,
-        prevSection: "personal_update",
-        needAuth: true
-    }
-};
+const sections = {
+        "adult": {},
+        "intro": {},
+        "registration": {
+            title:       "Регистрация",
+            prevSection: "pre-registration"
+        },
+        "pre-registration": {
+            title:       "Выбор города",
+            prevSection: "intro"
+        },
+        "authorization": {
+            title:       "Вход",
+            prevSection: "intro"
+        },
+        "reset": {
+            title:       "Сброс пароля",
+            prevSection: "authorization"
+        },
+        "personal": {
+            title: "Профиль",
+            showMenu: true,
+            needAuth: true
+        },
+        "wallet": {
+            title:    "Кошелек",
+            showMenu: true,
+            needAuth: true
+        },
+        "news": {
+            title:    "Новости",
+            showMenu: true,
+            needAuth: true
+        },
+        "refer": {
+            title:    "Приглашение",
+            showMenu: true,
+            needAuth: true
+        },
+        "stores": {
+            title:    "Магазины",
+            showMenu: true,
+            needAuth: true
+        },
+        "reg_success": {
+            title:    "Регистрация завершена",
+            showMenu: true,
+            needAuth: true
+        },
+        "alerts": {
+            title:    "Подписки и уведомления",
+            showMenu: true,
+            needAuth: true
+        },
+        "personal_update": {
+            title:       "Смена данных",
+            showMenu:    true,
+            prevSection: "personal",
+            needAuth:    true
+        },
+        "set_plastic": {
+            title:       "Привязка карты",
+            showMenu:    true,
+            prevSection: "personal_update",
+            needAuth:    true
+        }
+    };
 
 let currentSection = "",
     bearerToken = "",
     userActivityTimeout = null,
     initApp = true,
     tempUpdate = {
-        "personalHash": "",
-        "walletHash": "",
-        "storesHash": "",
-        "lastNews": "",
-        "lastPurchase": "",
-        "lastTransaction": ""
+        personalHash:    "",
+        walletHash:      "",
+        storesHash:      "",
+        lastNews:        "",
+        lastPurchase:    "",
+        lastTransaction: ""
     };
 
 // Инициализация св-в приложения
-d.addEventListener("DOMContentLoaded", function () {
+d.addEventListener("DOMContentLoaded", () => {
     /*
      if ('serviceWorker' in navigator) {
-     window.addEventListener('load', function () {
-     navigator.serviceWorker.register('/sw.js').then(function (registration) {
+     window.addEventListener('load', () => {
+     navigator.serviceWorker.register('/sw.js').then((registration) => {
      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-     }, function (err) {
-     console.log('ServiceWorker registration failed: ', err);
-     });
+     }, (err) => console.log('ServiceWorker registration failed: ', err) );
      });
      } else {
      console.log('ServiceWorker do not work');
      }
      
      function notifyMe() {
-     var notification = new Notification("Все еще работаешь?", {
+     let notification = new Notification("Все еще работаешь?", {
      tag: "ache-mail",
      body: "Пора сделать паузу и отдохнуть"
      //icon : "https://itproger.com/img/notify.png"
@@ -129,7 +127,7 @@ d.addEventListener("DOMContentLoaded", function () {
      } else if (Notification.permission === "granted") {
      //setTimeout(notifyMe, 2000);
      } else if (Notification.permission !== "denied") {
-     Notification.requestPermission(function (permission) {
+     Notification.requestPermission((permission) => {
      if (!('permission' in Notification)) {
      Notification.permission = permission;
      }
@@ -148,19 +146,19 @@ d.addEventListener("DOMContentLoaded", function () {
     bearerToken = C().getStor(LS_TOKEN);
     
     C().setStor(LS_NEED_UPDATE, JSON.stringify({
-            "news": 1,
-            "personal": 1,
-            "stores": 1,
-            "wallet": 1,
-            "purchases": 1
+            news:      1,
+            personal:  1,
+            stores:    1,
+            wallet:    1,
+            purchases: 1
         }));
     
     // Применим маску ко всем полям ввода номера телефона
-    C('input[id*="-mask"]').els.forEach(inp => {
+    C('input[id*="-mask"]').els.forEach((inp) => {
         mask(inp);
-        inp.addEventListener("input", e => {
+        inp.addEventListener("input", (e) => {
             let phone = e.currentTarget.value;
-            C('input[id*="-phone-mask"]').els.forEach(phn => {
+            C('input[id*="-phone-mask"]').els.forEach((phn) => {
                 phn.value = phone;
                 setPhoneMask(phn);
             });
@@ -169,11 +167,11 @@ d.addEventListener("DOMContentLoaded", function () {
     });
 
     // Подключаем обработчики для Popup
-    C('span[id*="-popup"]').els.forEach(pop => {
-        let inp = C("#" + pop.id.replace("-popup", "")).el;
+    C('span[id*="-popup"]').els.forEach((pop) => {
+        const inp = C("#" + pop.id.replace("-popup", "")).el;
 
-        ["blur", "input"].forEach(evt => {
-            inp.addEventListener(evt, e => {
+        ["blur", "input"].map((evt) => {
+            inp.addEventListener(evt, (e) => {
                 dropFail(e.target);
                 C("#" + e.target.id + "-popup").delclass("show");
             });
@@ -182,25 +180,22 @@ d.addEventListener("DOMContentLoaded", function () {
 
     C("#auth-button").el.addEventListener("click", () => auth());
 
-    C(".system_tabsHead > span label").els.forEach(label => {
-        label.addEventListener("click", function (e) {
-            let el = e.currentTarget.parentNode,
-                    elCs = el.parentNode.parentNode.children[1].children,
-                    tabHeads = el.parentNode.children;
-
-            for (var i = 0; i < tabHeads.length; i++) {
-                tabHeads[i].classList.remove("tab_h_active");
-            }
-            for (var i = 0; i < elCs.length; i++) {
-                elCs[i].classList.remove("tab_c_active");
-            }
+    C(".system_tabsHead > span label").els.forEach((label) => {
+        label.addEventListener("click", (e) => {
+            const el       = e.currentTarget.parentNode,
+                  elCs     = el.parentNode.parentNode.children[1].children,
+                  tabHeads = el.parentNode.children;
+           
+            [...tabHeads].map((tab) => tab.classList.remove("tab_h_active"));
+            
+            [...elCs].map((el) => el.classList.remove("tab_c_active"));
 
             el.classList.add("tab_h_active");
             elCs[el.dataset.tab].classList.add("tab_c_active");
         });
     });
 
-    C("#reg-birthdate").el.addEventListener("input", e => validateBirthdate(e.target));
+    C("#reg-birthdate").el.addEventListener("input", (e) => validateBirthdate(e.target));
 
     // Переход на пластиковую карту
     C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
@@ -211,33 +206,26 @@ d.addEventListener("DOMContentLoaded", function () {
     C("#set_card").el.addEventListener("click", () => setCard());
 
     // Вход без пароля
-    C("#reset_confirmation_code").el.addEventListener("input", e => {
-        C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
-    });
+    C("#reset_confirmation_code").el.addEventListener("input", (e) => C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reg-confirmation-code").el.addEventListener("input", e => {
-        C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true);
-    });
+    C("#reg-confirmation-code").el.addEventListener("input", (e) => C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reset-phone-mask").el.addEventListener("input", e => {
-        C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true);
-    });
+    C("#reset-phone-mask").el.addEventListener("input", (e) => C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true));
 
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
         addEventListener("input", () => {
-            let but = C("#personal_changePassword_button").el,
-                idInp = "#personal-new-pass",
-                valEl = C(idInp).val(),
-                valConf = C(idInp + "-confirmation").val();
+            const idInp   = "#personal-new-pass",
+                  valEl   = C(idInp).val(),
+                  valConf = C(idInp + "-confirmation").val();
                 
-            but.disabled = (valEl === valConf) ? false : true;
+            C("#personal_changePassword_button").el.disabled = (valEl === valConf) ? false : true;
         });
     });
 
-    C("#personal-new-pass-confirmation").el.addEventListener("input", e => {
-        let but = C("#personal_changePassword_button").el,
-            el = e.currentTarget,
-            valPass = C("#personal-new-pass").val();
+    C("#personal-new-pass-confirmation").el.addEventListener("input", (e) => {
+        let but = C("#personal_changePassword_button").el;
+        const el      = e.currentTarget,
+              valPass = C("#personal-new-pass").val();
             
         but.disabled = (valPass === el.value) ? false : true;
     });
@@ -250,8 +238,9 @@ d.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    C('a[data-click="openBalanceView"]').el.addEventListener("click", e => {
-        let el = C('.balance-view').el.classList;
+    C('a[data-click="openBalanceView"]').el.addEventListener("click", (e) => {
+        const el = C('.balance-view').el.classList;
+        
         el.toggle('open');
         e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
     });
@@ -262,9 +251,9 @@ d.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    C("#transactions-details-button").el.addEventListener("click", e => {
-        let list = C("#transactions").el.classList,
-                t = C(e.target);
+    C("#transactions-details-button").el.addEventListener("click", (e) => {
+        const list = C("#transactions").el.classList,
+              t    = C(e.target);
 
         list.toggle("hidden");
 
@@ -277,19 +266,14 @@ d.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    C("#feedback-submit").el.addEventListener("click", function () {
-        setFeedback();
-    });
+    C("#feedback-submit").el.addEventListener("click", () => setFeedback());
 
     // Выбор города
-    C("#store_cities").el.addEventListener("change", e => {
-        drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores")));
-    });
+    C("#store_cities").el.addEventListener("change", (e) => drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores"))));
 
     // Навигация
-    let els = C(".bottomNav>li, .mainMenu__content_nav>li").els;
-    els.forEach(el => {
-        el.addEventListener("click", e => {
+    C(".bottomNav>li, .mainMenu__content_nav>li").els.forEach((el) => {
+        el.addEventListener("click", (e) => {
             let section = e.currentTarget.dataset.section;
 
             closeNav();
@@ -301,18 +285,20 @@ d.addEventListener("DOMContentLoaded", function () {
     });
 
     // Сокрытие всплывающего окна
-    C("#popupOverlay").el.addEventListener("click", function (e) {
-        var el = e.currentTarget.classList;
+    C("#popupOverlay").el.addEventListener("click", (e) => {
+        const el = e.currentTarget.classList;
 
-        el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
-        el.add("animate__animated", "animate__fadeOut", "animate__furious");
-        if (e.currentTarget.callback) {
-            e.currentTarget.callback();
-            e.currentTarget.callback = null;
-        }
-        promiseTimeout(function () {
+        el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
+        el.add("animated", "animate__fadeOut", "animate__furious");
+
+        promiseTimeout(() => {
+            const cancel = C('#cancelText').el;
+            
+            if (cancel) {
+                cancel.parentNode.removeChild(cancel);
+            }
             hide("#popupOverlay");
-            el.remove("animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious");
+            el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
         }, 500);
     });
     
@@ -328,8 +314,8 @@ d.addEventListener("DOMContentLoaded", function () {
 });
 
 function permitRedrawSection(section) {
-    let permit = true,
-        needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    let permit = true;
+    const needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
     
     if (needUp[section] === 0) {
         permit = false;
@@ -341,11 +327,28 @@ function permitRedrawSection(section) {
     return permit;
 }
 
+async function api(method, data = "") {
+    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json;charset=utf-8",
+                            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+                        },
+                        body: JSON.stringify({
+                            "method": method,
+                            "data": data,
+                            "source": SOURCE
+                        })
+                    });
+    return await response.json(); 
+}
+
 function crashClearStorage() {
     if (!C().getStor('crash')) {
         C().delStor(LS_CURR_UPDATE);
         C().delStor(LS_CONTENTS);
         C().setStor('crash', 1);
+        
         if (C().getStor('crash_clear')) {
             C().delStor('crash_clear');
         }
@@ -353,10 +356,10 @@ function crashClearStorage() {
 }
 
 function passViewToggle() {
-    C('input + i[class^="icon-eye"]').els.forEach(el => {
-        el.addEventListener("click", e => {
-            let i = e.currentTarget,
-                inp = i.parentNode.children[0];
+    C('input + i[class^="icon-eye"]').els.forEach((el) => {
+        el.addEventListener("click", (e) => {
+            const i   = e.currentTarget;
+            let inp = i.parentNode.children[0];
 
             i.classList.remove("icon-eye", "icon-eye-off");
 
@@ -379,12 +382,11 @@ function show(selector) {
 }
 
 function initPopups() {
-    let popups = C(".popup-text").els;
-
-    popups.forEach(el => {
-        el.addEventListener("click", function (e) {
-            if (el.classList.contains("show"))
+    C(".popup-text").els.forEach((el) => {
+        el.addEventListener("click", () => {
+            if (el.classList.contains("show")) {
                 el.classList.remove("show");
+            }
         });
     });
 }
@@ -396,14 +398,13 @@ function userActivity() {
 }
 
 function removeLoadOption(id) {
-    let parent = C(id),
-        b = C("option:disabled, div.temporary", parent);
+    const b = C("option:disabled, div.temporary", C(id));
 
     if (!b.el) {
         return;
     }
     
-    b.el.parentNode.removeChild(b.el);
+    b.els.forEach((el) => el.parentNode.removeChild(el));
 }
 
 function modifyInput(el) {
@@ -421,7 +422,7 @@ function closeNav() {
 }
 
 async function promiseTimeout(fn, ms) {
-    await new Promise(resolve => setTimeout(resolve, ms));
+    await new Promise((resolve) => setTimeout(resolve, ms));
     return fn();
 }
 
@@ -432,7 +433,7 @@ function removeChildrens(el) {
 }
 
 function routePrevSection() {
-    let section = C().getStor(LS_SECTION);
+    const section = C().getStor(LS_SECTION);
 
     if (sections[section] && sections[section].prevSection) {
         drawSection(sections[section].prevSection);
@@ -441,83 +442,74 @@ function routePrevSection() {
 
 function renderSections() {
     if (!isEmpty(C().getStor(LS_CONTENTS))) {
-        let contents = JSON.parse(C().getStor(LS_CONTENTS));
+        const contents = JSON.parse(C().getStor(LS_CONTENTS));
         
         drawPersonal(contents.personal);
         drawWallet(contents.wallet);
     }
 }
 
-function drawSection(section) {
+async function drawSection(section) {
     if (!section) {
         section = "adult";
     }
 
     switch (section) {
-        default:
-        {
+        default: {
             break;
         }
 
-        case "pre-registration":
-        {
-            updateCities();
+        case "pre-registration": {
+            await updateCities();
             break;
         }
 
-        case "registration":
-        {
-            updateCities().then(result => {
-                let city = C("#city").el;
+        case "registration": {
+            await updateCities();
+            const city = C("#city").el;
 
-                show("#registration_cont");
-                hide("#reg_confirmation");
+            show("#registration_cont");
+            hide("#reg_confirmation");
 
-                C("#prem").el.checked = true;
-                C("#discount").el.checked = false;
-                if (city.options[city.options.selectedIndex].getAttribute("default-discount") === 0) {
-                    hide("#loyalty-system");
-                } else {
-                    show("#loyalty-system");
-                }
-            });
+            C("#prem").el.checked = true;
+            C("#discount").el.checked = false;
+
+            if (city.options[city.options.selectedIndex].getAttribute("default-discount") === 0) {
+                hide("#loyalty-system");
+            } else {
+                show("#loyalty-system");
+            }
+
             break;
         }
 
-        case "personal":
-        {
+        case "personal": {
             break;
         }
 
-        case "stores":
-        {
+        case "stores": {
             break;
         }
 
-        case "wallet":
-        {
+        case "wallet": {
             break;
         }
 
-        case "refer":
-        {
+        case "refer": {
             renderReferSection();
             break;
         }
 
-        case "reg_success":
-        {
+        case "reg_success": {
             break;
         }
 
-        case "news":
-        {
+        case "news": {
             break;
         }
     }
 
-    let sectionEls = C(".main > div").els;
-    sectionEls.forEach(function (el) {
+    C(".main > div").els.forEach((el) => {
         if (el.id === section) {
             if (!el.classList.contains("active")) {
                 el.classList.add("active");
@@ -537,12 +529,9 @@ function drawSection(section) {
     //C(".topNav__close").el.style.display = (["alerts"].indexOf(section) === -1 ? "none" : "");
     C(".topNav__close").el.style.display = "none";
 
-    let bottomNav = C("footer").el;
+    C("footer").el.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
 
-    bottomNav.style.display = (sections[section] && sections[section].showMenu ? "" : "none");
-
-    let bottomNavEls = C(".bottomNav > li").els;
-    bottomNavEls.forEach(el => {
+    C(".bottomNav > li").els.forEach((el) => {
         el.classList.remove("current-section");
 
         if (el.dataset.section === section) {
@@ -553,55 +542,57 @@ function drawSection(section) {
     C().setStor(LS_SECTION, section);
 }
 
-function renderReferSection() {
-    getReferLink().then((response) => {
-        let referQr = C("#referQr").el;
-        if (response.status) {
-            if (!referQr.children.length) {
-                let qrCanvas = C().create("canvas").el,
-                        qr = new QRious({
-                            element: qrCanvas,
-                            size: 192,
-                            value: response.data.link
-                        });
+async function renderReferSection() {
+    let response  = await getReferLink();
+    const referQr = C("#referQr").el;
 
-                referQr.appendChild(qrCanvas);
-                qrCanvas.classList.add("animate__animated", "animate__fadeIn");
-
-                show("#referLink");
-
-                C("#referLinkTG").attr("href", "https://t.me/share/url?url=" + response.data.link + "&text=Столица: бонусы&utm_source=ref_tg");
-                C("#referLinkWA").attr("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + response.data.link + "&utm_source=ref_wa");
-            }
-
-            if (response.data.referrals && response.data.referrals.length)
-                response.data.referrals.forEach((ref_row) => {
-                    let tr = C().create("tr"),
-                            td = C().create("td");
-
-                    td.text(ref_row.last_sync);
-                    tr.append(td);
-
-                    td = C().create("td");
-                    td.text("7-***-***-" + ref_row.phone);
-                    tr.append(td);
-
-                    td = C().create("td");
-                    td.text((ref_row.gifted ? "Совершена покупка" : "Регистрация по приглашению"));
-                    tr.append(td);
-
-                    td = C().create("td");
-                    if (ref_row.gifted) {
-                        td.style("fontWeight", "bold");
-                    }
-                    td.text((ref_row.gifted ? "+" + ref_row.referral_gift : "n/a"));
-                    td.addclass(ref_row.gifted ? "good" : "bad");
-                    tr.append(td);
-
-                    C("#referrals").append(tr);
+    if (response.status) {
+        const {data} = response;
+        
+        if (!referQr.children.length) {
+            const qrCanvas = C().create("canvas").el;
+            let qr = new QRious({
+                    element: qrCanvas,
+                    size: 192,
+                    value: data.link
                 });
+
+            referQr.appendChild(qrCanvas);
+            qrCanvas.classList.add("animated", "animate__fadeIn");
+
+            show("#referLink");
+
+            C("#referLinkTG").attr("href", "https://t.me/share/url?url=" + data.link + "&text=Столица: бонусы&utm_source=ref_tg");
+            C("#referLinkWA").attr("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + data.link + "&utm_source=ref_wa");
         }
-    });
+
+        if (data.referrals && data.referrals.length)
+            data.referrals.map((ref_row) => {
+                const tr = C().create("tr"),
+                      td = C().create("td");
+
+                td.text(ref_row.last_sync);
+                tr.append(td);
+
+                td = C().create("td");
+                td.text("7-***-***-" + ref_row.phone);
+                tr.append(td);
+
+                td = C().create("td");
+                td.text((ref_row.gifted ? "Совершена покупка" : "Регистрация по приглашению"));
+                tr.append(td);
+
+                td = C().create("td");
+                if (ref_row.gifted) {
+                    td.style("fontWeight", "bold");
+                }
+                td.text((ref_row.gifted ? "+" + ref_row.referral_gift : "n/a"));
+                td.addclass(ref_row.gifted ? "good" : "bad");
+                tr.append(td);
+
+                C("#referrals").append(tr);
+            });
+    }
 }
 
 function confirmAdult() {
@@ -609,20 +600,20 @@ function confirmAdult() {
 }
 
 function showPopup(title, desc, message, buttonText, callback) {
-    let popupOverlay = C("#popupOverlay"),
-        popupTitle = C("#popupTitle"),
-        popupDesc = C("#popupDescription"),
-        popupMessage = C("#popupMessage"),
-        popupButton = C("#popupButton");
-
+    const pOverlay = C("#popupOverlay"),
+          pTitle   = C("#popupTitle"),
+          pDesc    = C("#popupDescription"),
+          pMessage = C("#popupMessage"),
+          pButton  = C("#popupButton");
+    let cancelText;
+        
+    if (Array.isArray(buttonText)) {
+        cancelText = buttonText[1];
+        buttonText = buttonText[0];
+    }
+    
     if (!buttonText) {
         buttonText = "Ок";
-    }
-
-    if (!callback) {
-        callback = null;
-    } else {
-        popupOverlay.el.callback = callback;
     }
 
     hideLoader();
@@ -631,76 +622,72 @@ function showPopup(title, desc, message, buttonText, callback) {
 
     if (title) {
         show("#popupTitle");
-        popupTitle.text(title);
+        pTitle.text(title);
     } else {
         hide("#popupTitle");
     }
 
     if (desc) {
-        popupDesc.text(desc);
+        pDesc.html(desc);
         show("#popupDescription");
     } else {
         hide("#popupDescription");
     }
 
     if (message) {
-        popupMessage.text(message);
+        pMessage.html(message);
         show("#popupMessage");
     } else {
         hide("#popupMessage");
     }
+    
+    if (cancelText) {
+        const but = C().create('button');
+        
+        but.addclass('button');
+        but.text(cancelText);
+        but.el.id = "cancelText";
+        C('#popupCont').append(but);
+    }
+    
+    pButton.el.addEventListener("click", () => {
+        if (callback) {
+            callback();
+            callback = null;
+        }
+    });
 
-    popupButton.text(buttonText);
-    popupOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animate__animated", "animate__furious"]);
-    popupOverlay.addclass(["animate__animated", "animate__fadeIn", "animate__furious"]);
+    pButton.text(buttonText);
+    pOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animated", "animate__furious"]);
+    pOverlay.addclass(["animated", "animate__fadeIn", "animate__furious"]);
 
 }
 
 function showLoader() {
-    let loader = C("#loader");
-
-    loader.style("opacity", 1);
+    C("#loader").style("opacity", 1);
     show("#loader");
 }
 
 function hideLoader() {
-    let loader = C("#loader");
+    const loader = C("#loader");
 
-    loader.addclass(["animate__fadeOut", "animate__animated"]);
-    promiseTimeout(function () {
+    loader.addclass(["animate__fadeOut", "animated"]);
+    promiseTimeout(() => {
         hide("#loader");
-        loader.delclass(["animate__fadeOut", "animate__animated"]);
+        loader.delclass(["animate__fadeOut", "animated"]);
     }, 500);
 }
 
-function checkAuthorization() {
-    return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "checkAuthorization",
-                    "source": SOURCE
-                })
-            })
-            .then(response => response.json())
-            .catch(error => {
-                return {
-                    status: false,
-                    description: error.message,
-                    error: error
-                };
-            });
+async function checkAuthorization() {
+    return await api("checkAuthorization");
 }
 
 async function auth() {
-    let authPhoneEl = C("#auth-phone-mask"),
-            authPassEl = C("#auth-pass"),
-            authPassPop = C("#auth-pass-popup"),
-            phone = getPhoneNumbers(C("#auth-phone-mask").val()),
-            authButton = C("#auth-button").el;
+    const authPhoneEl = C("#auth-phone-mask"),
+          authPassEl  = C("#auth-pass"),
+          authPassPop = C("#auth-pass-popup"),
+          phone       = getPhoneNumbers(C("#auth-phone-mask").val()),
+          authButton  = C("#auth-button").el;
 
     if (!phone || phone.length !== 11) {
         showInputPopup("auth-phone-mask");
@@ -718,25 +705,11 @@ async function auth() {
     }
 
     authButton.disabled = true;
-
-    let body = {
-        "method": "authorization",
-        "data": {
-            "phone": phone,
-            "pass": authPassEl.val()
-        },
-        "source": SOURCE
-    };
-
-    let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(body)
-    });
-
-    let result = await response.json();
+    
+    let result = await api("authorization", {
+                            phone,
+                            pass: authPassEl.val()
+                        });
 
     authButton.disabled = false;
 
@@ -745,7 +718,6 @@ async function auth() {
 
         C().setStor(LS_TOKEN, result.data.token);
         C().setStor(LS_SECTION, "wallet");
-        //drawSection("wallet");
 
         location.reload();
     } else {
@@ -754,11 +726,11 @@ async function auth() {
 }
 
 function checkReg() {
-    let regPhoneEl = C("#reg-phone-mask"),
-        regBdEl = C("#reg-birthdate").el,
-        regPassEl = C("#reg-pass"),
-        regPassConfEl = C("#reg-pass-confirm"),
-        phone = getPhoneNumbers(regPhoneEl.val());
+    const regPhoneEl    = C("#reg-phone-mask"),
+          regBdEl       = C("#reg-birthdate").el,
+          regPassEl     = C("#reg-pass"),
+          regPassConfEl = C("#reg-pass-confirm"),
+          phone         = getPhoneNumbers(regPhoneEl.val());
 
     if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
@@ -785,15 +757,16 @@ function checkReg() {
 }
 
 async function reg() {
-    let regPhoneEl = C("#reg-phone-mask"),
-        regBdEl = C("#reg-birthdate"),
+    let regPhoneEl  = C("#reg-phone-mask"),
+        regBdEl     = C("#reg-birthdate"),
         regButtonEl = C("#reg-button").el,
-        trueDate = null,
-        phone = getPhoneNumbers(regPhoneEl.val());
+        phone       = getPhoneNumbers(regPhoneEl.val()),
+        birthdate;
+
 
     if (regBdEl.val()) {
         let td = regBdEl.val().split("-");
-        trueDate = [td[2], td[1], td[0]].join("-");
+        birthdate = [td[2], td[1], td[0]].join("-");
     }
 
     lastPhone = phone;
@@ -801,27 +774,15 @@ async function reg() {
     regButtonEl.disabled = true;
     showLoader();
 
-    let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify({
-            "method": "registration",
-            "data": {
-                "phone": phone,
-                "pass": C("#reg-pass").val(),
-                "firstname": C("#reg_firstname").val(),
-                "birthdate": trueDate,
-                "discount": (C("#discount").el.checked ? 1 : 0),
-                "email": C("#reg_email").val(),
-                "city": C("#city").val()
-            },
-            "source": SOURCE
-        })
-    });
-
-    let result = await response.json();
+    let result = await api("registration", {
+                            phone,
+                            birthdate,
+                            pass:      C("#reg-pass").val(),
+                            firstname: C("#reg_firstname").val(),
+                            discount:  (C("#discount").el.checked ? 1 : 0),
+                            email:     C("#reg_email").val(),
+                            city:      C("#city").val()
+                        });
 
     regButtonEl.disabled = false;
     hideLoader();
@@ -842,8 +803,8 @@ async function reg() {
     } else {
         
         if (result.description) {
-            promiseTimeout(function () {
-                showPopup("", result.description);
+            promiseTimeout(() => {
+                showPopup("", `${result.description}, возможно вам нужно <a href="" onclick="drawSection('reset');return false;">восстановить пароль</a>?`);
             }, 1000);
         }
     }
@@ -892,22 +853,10 @@ async function confirmation() {
         confButtonEl.el.disabled = true;
         showLoader();
 
-        let body = {
-            "method": "confirmation",
-            "data": {
-                "phone": lastPhone,
-                "code": regConfCodeEl.val()
-            },
-            "source": SOURCE
-        },
-                response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json;charset=utf-8"
-                    },
-                    body: JSON.stringify(body)
-                }),
-                result = await response.json();
+        let result = await api("confirmation", {
+                                phone: lastPhone,
+                                code: regConfCodeEl.val()
+                            });
 
         confButtonEl.el.disabled = false;
         hideLoader();
@@ -938,23 +887,9 @@ async function confirmationReset() {
     if (lastPhone) {
         confButtonReset.disabled = true;
 
-        let body = {
-            "method": "confirmationReset",
-            "data": {
-                "phone": lastPhone
-            },
-            "source": SOURCE
-        };
-
-        let response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(body)
-        });
-
-        let result = await response.json();
+        let result = await api("confirmationReset", {
+                                phone: lastPhone
+                            });
 
         confButtonReset.disabled = false;
 
@@ -987,23 +922,9 @@ async function getResetConfirmationCode() {
     if (resPhoneEl.val()) {
         resButtonEl.disabled = true;
 
-        let body = {
-            "method": "getResetConfirmationCode",
-            "data": {
-                "phone": resPhoneEl.val()
-            },
-            "source": SOURCE
-        };
-
-        let response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(body)
-        });
-
-        let result = await response.json();
+        let result = await api("getResetConfirmationCode", {
+                                phone: resPhoneEl.val()
+                            });
 
         if (result.status) {
             show("#reset_confirmation");
@@ -1012,7 +933,7 @@ async function getResetConfirmationCode() {
                 restartResetConfirmationTimer(result.data.seconds_left);
         } else {
             resButtonEl.disabled = false;
-            promiseTimeout(function () {
+            promiseTimeout(() => {
                 showPopup("Внимание", result.description);
             }, 1000);
         }
@@ -1068,24 +989,10 @@ async function checkResetConfirmationCode() {
 
     resConfButEl.el.disabled = true;
 
-    let body = {
-            "method": "checkResetConfirmationCode",
-            "data": {
-                "phone": resPhoneEl.val(),
-                "code": resConfCodeEl.val()
-            },
-            "source": SOURCE
-        };
-
-    let response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(body)
-        });
-
-    let result = await response.json();
+    let result = await api("checkResetConfirmationCode", {
+                            phone: resPhoneEl.val(),
+                            code: resConfCodeEl.val()
+                        });
 
     resConfButEl.el.disabled = false;
 
@@ -1095,7 +1002,7 @@ async function checkResetConfirmationCode() {
 
         location.reload();
     } else {
-        showPopup("Внимание", result.description, null, null, function () {
+        showPopup("Внимание", result.description, null, null, () => {
             resConfCodeEl.val("");
             resConfCodeEl.el.focus();
             C("#reset_confirmation_button").el.disabled = true;        
@@ -1104,23 +1011,33 @@ async function checkResetConfirmationCode() {
 }
 
 async function getReferLink() {
-    let body = {
-            "method": "getReferLink",
-            "source": SOURCE
-        };
+    return await api("getReferLink");
+}
 
-    let response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify(body)
-    });
+async function getResetConfirmationSms() {
+    const resPhoneEl    = C("#reset-phone-mask"),
+          resButtonEl   = C("#reset_button").el,
+          resConfInfoEl = C("#reset_confirmation_info");
 
-    let result = await response.json();
+    if (resPhoneEl.val()) {
+        resButtonEl.disabled = true;
 
-    return result;
+        let result = await api("getResetConfirmationSms", {
+                                "phone": resPhoneEl.val()
+                            });
+
+        if (result.status) {
+            show("#reset_confirmation");
+            resConfInfoEl.text(result.description);
+            if (result.data.seconds_left)
+                restartResetConfirmationTimer(result.data.seconds_left);
+        } else {
+            resButtonEl.disabled = false;
+            promiseTimeout(() => {
+                showPopup("Внимание", result.description);
+            }, 1000);
+        }
+    }
 }
 
 function attentionFocus(el) {
@@ -1131,21 +1048,9 @@ function attentionFocus(el) {
 }
 
 async function logOff() {
-    let body = {
-            "method": "logOff",
-            "source": SOURCE
-        };
-        
     showLoader();
     
-    let response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(body)
-        }),
-        result = await response.json();
+    let result = await api("logOff");
     
     if (result.status) {
         clearLocalStorage();
@@ -1156,28 +1061,18 @@ async function logOff() {
 }
 
 async function updateCities() {
-    let city = C("#city");
+    const city = C("#city");
 
     if (city.el.children.length > 2) {
         return;
     }
     
-    let response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8"
-                },
-                body: JSON.stringify({
-                    "method": "getCities",
-                    "source": SOURCE
-                })
-            }),
-        result = await response.json();
+    let result = await api("getCities");
 
     if (result.status) {
         removeLoadOption("#city");
 
-        result.data.forEach(el => {
+        result.data.map((el) => {
             let option = C().create("option");
 
             option.val(el.id);
@@ -1198,21 +1093,15 @@ function dropFail(el) {
 }
 
 function clearLocalStorage() {
-    C().delStor(LS_TOKEN);
-    C().delStor(LS_SECTION);
-    C().delStor(LS_CURR_UPDATE);
-    C().delStor(LS_CONTENTS);
+    localStorage.clear();
 }
 
-function loadScript(src) {
-    return new Promise(function (resolve, reject) {
-        let script = d.createElement('script');
-
-        script.src = src;
-        script.onload = () => resolve(script);
-        script.onerror = () => reject(new Error(`Ошибка загрузки скрипта ${src}`));
-        d.head.append(script);
-    });
+function showRequestSms() {
+    showPopup("Вам не позвонили?", 
+              "", 
+              "Попробуйте получить код подтверждения с помощью СМС<br><br>Если это вам не помогло, обратитесь в <a href=\"#\" onClick=\"showFeedback()\">службу поддержки</a>", 
+              ["Отправить код", "Попробую позже"],
+              getResetConfirmationSms);
 }
 
 function showTerms() {
@@ -1258,7 +1147,7 @@ function hideFeedback() {
 }
 
 function showInputPopup(id) {
-    let et = C("#" + id);
+    const et = C("#" + id);
 
     et.el.scrollIntoView();
     et.addclass("fail");
@@ -1267,10 +1156,10 @@ function showInputPopup(id) {
     C("#" + id + "-popup").addclass("show");
 }
 
-function setFeedback() {
-    let phone = getPhoneNumbers(C("#feedback-phone-mask").val()),
-        message = C("#feedback-message").val(),
-        fbSubmitBut = C("#feedback-submit").el;
+async function setFeedback() {
+    const phone     = getPhoneNumbers(C("#feedback-phone-mask").val()),
+          message   = C("#feedback-message").val(),
+          submitBut = C("#feedback-submit").el;
 
     if (phone.length !== 11) {
         showInputPopup("feedback-phone-mask");
@@ -1282,51 +1171,27 @@ function setFeedback() {
         return;
     }
 
-    fbSubmitBut.disabled = true;
+    submitBut.disabled = true;
     showLoader();
 
-    API_setFeedback(JSON.stringify({
-        "method": "setFeedback",
-        "data": {
-            "name": C("#feedback-name").val(),
-            "phone": phone,
-            "email": C("#feedback-email").val(),
-            "reason": C("#feedback-reason").val(),
-            "message": C("#feedback-message").val()
-        },
-        "source": SOURCE
-    }))
-            .then(result => {
-                if (result.status) {
-                    showPopup("Готово", "Ваше сообщение передано оператору");
-                    hideFeedback();
-                    C("#feedback-message").val("");
-                } else {
-                    onErrorCatch(result);
-                }
-            })
-            .finally(() => {
-                fbSubmitBut.disabled = false;
-                hideLoader();
-            });
-}
-
-function API_setFeedback(body) {
-            return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8"
-                },
-                body: body
-            })
-            .then(response => response.json())
-            .catch(error => {
-                return {
-                    status: false,
-                    description: error.message,
-                    error: error
-                };
-            });
+    let result = await api("setFeedback", {
+                            phone,
+                            name:    C("#feedback-name").val(),
+                            email:   C("#feedback-email").val(),
+                            reason:  C("#feedback-reason").val(),
+                            message: C("#feedback-message").val()
+                        });
+    
+    if (result.status) {
+        showPopup("Готово", "Ваше сообщение передано оператору");
+        hideFeedback();
+        C("#feedback-message").val("");
+    } else {
+        onErrorCatch(result);
+    }
+    
+    submitBut.disabled = false;
+    hideLoader();
 }
 
 function isEmpty(obj) {
@@ -1343,7 +1208,7 @@ function onErrorCatch(error) {
 }
 
 function setNeedUpdate(contents, result, section) {
-    let needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
+    const needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
 
     if (contents[section] !== result.data[section] ) {
         needUp[section] = 1;
@@ -1352,79 +1217,90 @@ function setNeedUpdate(contents, result, section) {
     C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
 }
 
-function checkUpdates(callback) {
+async function checkUpdates(callback) {
     if (!bearerToken && callback) {
         callback();
     }
+    
+    if (!bearerToken) {
+        return;
+    }
 
-    getUpdates().then(result => {
-                if (viewNewApp && SOURCE && SOURCE !== result.data.versionApp) {
-                    showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
-                    viewNewApp = null;
-                }
+    const result = await getUpdates();
+    const {data, status} = result;
+    
+    if (viewNewApp && SOURCE && SOURCE !== data.versionApp) {
+        showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+        viewNewApp = null;
+    }
 
-                let currentSection = C().getStor(LS_SECTION),
-                    updates  = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate,
-                    contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
+    const curSection = C().getStor(LS_SECTION),
+          updates    = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
 
-                if (result.status) {
-                    if (result.data.news.length) {
-                        updates.lastNews = result.data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
-                        drawNews(result.data.news);
-                    }
-                    if (result.data.storesHash) {
-                        updates.storesHash = result.data.storesHash;
-                        drawStores(result.data.stores);
-                    }
-                    if (result.data.personalHash) {
-                        setNeedUpdate(contents, result, 'personal');
-                        contents.personal = result.data.personal;
-                        updates.personalHash = result.data.personalHash;
+    if (status) {
+        if (data.news.length) {
+            updates.lastNews = data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
+            drawNews(data.news);
+        }
+        if (data.storesHash) {
+            updates.storesHash = data.storesHash;
+            drawStores(data.stores);
+        }
+        if (data.personalHash) {
+            setNeedUpdate(contents, result, 'personal');
+            contents.personal = data.personal;
+            updates.personalHash = data.personalHash;
 
-                        let userName = result.data.personal.firstname + " " + result.data.personal.middlename;
-                        C("#feedback-name").val((userName ? userName : ""));
-                    }
-                    if (result.data.walletHash) {
-                        setNeedUpdate(contents, result, 'wallet');
-                        contents.wallet = result.data.wallet;
-                        updates.walletHash = result.data.walletHash;
-                    }
-                    if (result.data.lastPurchase) {
-                        updates.lastPurchase = result.data.lastPurchase;
-                        drawPurchases(result.data.purchases);
-                    }
+            let userName = data.personal.firstname + " " + data.personal.middlename;
+            C("#feedback-name").val((userName ? userName : ""));
+        }
+        if (data.walletHash) {
+            setNeedUpdate(contents, result, 'wallet');
+            contents.wallet = data.wallet;
+            updates.walletHash = data.walletHash;
+        }
+        if (data.lastPurchase) {
+            updates.lastPurchase = data.lastPurchase;
+            drawPurchases(data.purchases);
+        }
 
-                    if (result.data.transactions.length) {
-                        updates.lastTransaction = result.data.transactions[result.data.transactions.length - 1].date;
-                    }
+        if (data.transactions.length) {
+            updates.lastTransaction = data.transactions[data.transactions.length - 1].date;
+        }
 
-                    // Всех авторизованных отправляем на страницу кошелька
-                    if (sections[currentSection] && !sections[currentSection].needAuth) {
-                        C().setStor(LS_SECTION, "wallet");
-                    }
+        // Всех авторизованных отправляем на страницу кошелька
+        if (sections[curSection] && !sections[curSection].needAuth) {
+            C().setStor(LS_SECTION, "wallet");
+        }
 
-                    C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
-                    C().setStor(LS_CONTENTS, JSON.stringify(contents));
-                    renderSections();
-                } else {
-                    // Не авторизованных отправляем на авторизацию
-                    if (sections[currentSection] && sections[currentSection].needAuth) {
-                        logOff();
-                    }
-                }
-            })
-            .finally(() => {
-                if (callback) {
-                    callback();
-                }
-                if (bearerToken) {
-                    updateWalletData();
-                }
-            });
+        C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
+        C().setStor(LS_CONTENTS, JSON.stringify(contents));
+        renderSections();
+    } else {
+        // Не авторизованных отправляем на авторизацию
+        if (sections[curSection] && sections[curSection].needAuth) {
+            logOff();
+        }
+    }
+    
+    if (bearerToken) {
+        if (callback) {
+            callback();
+        }
+    
+        await api("updateWalletData");
+        userActivityTimeout = null;
+    }
 }
 
-function getUpdates() {
+async function getUpdates() {
     let data = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    const contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
+    
+    if (contents.personal === "") {
+        data = tempUpdate;
+    }
     
     if (initApp) {
         data.lastNews = 0;
@@ -1434,56 +1310,12 @@ function getUpdates() {
         initApp = false;
     }
     
-    return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "getUpdates",
-                    "data": data,
-                    "source": SOURCE
-                })
-            })
-            .then(response => response.json())
-            .catch(error => {
-                return {
-                    status: false,
-                    description: error.message,
-                    error: error
-                };
-            });
-}
-
-async function updateWalletData() {
-    return fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json;charset=utf-8",
-                    "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                },
-                body: JSON.stringify({
-                    "method": "updateWalletData",
-                    "source": SOURCE
-                })
-            })
-            .then(response => response.json())
-            .catch(error => {
-                return {
-                    status: false,
-                    description: error.message,
-                    error: error
-                };
-            })
-            .finally(() => {
-                userActivityTimeout = null;
-            });
+    return await api("getUpdates", data);
 }
 
 function mask(inp) {
     let underlay = document.createElement('input'),
-            attr = {};
+        attr     = {};
 
     attr.id = inp.id.replace("-mask", "");
     attr.disabled = "disabled";
@@ -1495,13 +1327,13 @@ function mask(inp) {
 
     inp.parentNode.insertBefore(underlay, inp);
     setPhoneMask(inp, false);
-    inp.addEventListener("input", e => setPhoneMask(e.target));
+    inp.addEventListener("click", () => { inp.selectionStart = inp.value.length; });
+    inp.addEventListener("input", (e) => setPhoneMask(e.target));
 }
 
 function setPhoneMask(inp, mask) {
-    let id = inp.id,
-            phone = inp.value,
-            hideId = "#" + id.replace("-mask", "");
+    const hideId = "#" + inp.id.replace("-mask", "");
+    let phone  = inp.value;
 
     if (phone === "") {
         phone = "7";
@@ -1529,14 +1361,10 @@ function getPhoneNumbers(value) {
 }
 
 function getValueByMask(value, mask, full) {
-    let phone = value.match(/\d/g),
-            newPhone = mask;
+    const phone = value.match(/\d/g);
+    let newPhone = mask;
 
-    if (!full) {
-        full = false;
-    }
-
-    phone.forEach(e => newPhone = newPhone.replace(/_/, e));
+    phone.map((e) => newPhone = newPhone.replace(/_/, e));
 
     if (!full) {
         newPhone = newPhone.replace(/\)_|-_|_/g, "");
@@ -1546,9 +1374,6 @@ function getValueByMask(value, mask, full) {
 }
 
 function validateBirthdate(el, isSubmit) {
-    let res = false,
-            i = 0;
-
     if (!isSubmit) {
         isSubmit = false;
     }
@@ -1564,42 +1389,39 @@ function validateBirthdate(el, isSubmit) {
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             showInputPopup("reg-birthdate");
         } else {
-            res = true;
+            return true;
         }
     } else if (isSubmit) {
         showInputPopup("reg-birthdate");
     }
 
-    return res;
+    return false;
 }
 
-var C = function (s, p) {
-
-    this.isC = true;
-
-    this.isNodeList = function (nodes) {
-        var stringRepr = Object.prototype.toString.call(nodes);
+const C = function(s, p) {
+    this.isC = true,
+    this.isNodeList = (nodes) => {
+        const stringRepr = Object.prototype.toString.call(nodes);
 
         return typeof nodes === 'object' &&
                 /^\[object (HTMLCollection|NodeList|Object)\]$/.test(stringRepr) &&
                 (typeof nodes.length === 'number') &&
                 (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
     },
-    this.isNode = function (obj) {
-        //return obj instanceof HTMLElement;
+    this.isNode = (obj) => {
         if (obj && obj.nodeType) {
             return true;
         } else {
             return false;
         }
     },
-    this.isDocument = function (obj) {
+    this.isDocument = (obj) => {
         return obj instanceof Document || obj instanceof Window;
     },
-    this.isclass = function (cl) {
+    this.isclass = (cl) => {
         return this.els[0].classList.contains(cl);
     },
-    this.defineEls = function () {
+    this.defineEls = () => {
         if (this.isNode(s) || this.isDocument(s)) {
             return [s];
         } else if (this.isNodeList(s)) {
@@ -1609,43 +1431,33 @@ var C = function (s, p) {
                 p = p.els[0];
             }
 
-            return this.isNode(p) ? p.querySelectorAll(s) : document.querySelectorAll(s);
+            return this.isNode(p) ? p.querySelectorAll(s) : d.querySelectorAll(s);
         }
     },
-    this.defineEl = function () {
+    this.defineEl = () => {
         return this.els[0];
     },
     this.els = this.defineEls(),
     this.el = this.defineEl(),
-    this.on = function (type, s, fn, except) {
-        var p = this;
+    this.on = (type, s, fn, except) => {
+        const p = this;
+        let i;
 
-        this.bind(type, function (e) {
-            var el;
-
-            if (p.isNode(s) || p.isNodeList(s)) {
-                el = s;
-            } else {
-                el = C(s).els;
-            }
-
-            var t = e.target,
-                    ex = except || false;
+        this.bind(type, (e) => {
+            const el = (p.isNode(s) || p.isNodeList(s)) ? s : C(s).els,
+                  ex = except || false;
+            let t = e.target;
 
             while (t && t !== this) {
                 if (ex) {
-                    var goto = false;
-                    C(ex).els.forEach(function (item, index, array) {
-                        if (item === t) {
-                            goto = true;
+                    for (i = 0; i < C(ex).els.length; i++) {
+                        if (t === C(ex).els[i]) {
+                            break;
                         }
-                    });
-                    if (goto) {
-                        break;
                     }
                 }
-
-                for (var i = 0; i < el.length; i++) {
+                
+                for (i = 0; i < el.length; i++) {
                     if (t === el[i]) {
                         fn(e, t);
                         break;
@@ -1662,11 +1474,11 @@ var C = function (s, p) {
 
         return this;
     },
-    this.strToNode = function (h) {
-      var terk;
+    this.strToNode = (h) => {
+      let terk;
 
       if (!this.isNode(h)) {
-        var div = this.create('div');
+        const div = this.create('div');
 
         div.html(h);
         terk = [div.el.children[0]];
@@ -1679,141 +1491,137 @@ var C = function (s, p) {
 
       return this;
     },
-    this.attr = function (attr, value) {
-        if (value === "undefined") {
+    this.attr = (attr, value) => {
+        if (!value) {
             return this.el.getAttribute(attr);
         }
-
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].setAttribute(attr, value);
-        }
+        
+        this.els.forEach((el) => {
+            el.setAttribute(attr, value);
+        });
 
         return this;
     },
-    this.create = function (tag) {
-        var el = document.createElement(tag);
+    this.create = (tag) => {
+        const el = d.createElement(tag);
         this.els = [el];
-        this.el = el;
+        this.el  = el;
 
         return this;
     },
-    this.append = function (el) {
+    this.append = (el) => {
         this.el.append(el.el);
     },
-    this.style = function (st, val) {
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].style[st] = val;
-        }
+    this.style = (st, val) => {
+        this.els.forEach((el) => {
+            el.style[st] = val;
+        });
 
         return this;
     },
-    this.addclass = function (cl) {
-        if (!Array.isArray(cl)) {
-            cl = [cl];
+    this.addclass = (cls) => {
+        if (!Array.isArray(cls)) {
+            cls = [cls];
         }
 
-        for (var i = 0; i < this.els.length; i++) {
-            for (var y = 0; y < cl.length; y++) {
-                this.els[i].classList.add(cl[y]);
-            }
-        }
-
-        return this;
-    },
-    this.togclass = function (cl) {
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].classList.toggle(cl);
-        }
+        this.els.forEach((el) => {
+            cls.forEach((cl) => {
+                el.classList.add(cl);
+            });
+        });
 
         return this;
     },
-    this.delclass = function (cl) {
-        if (!Array.isArray(cl)) {
-            cl = [cl];
-        }
-
-        for (var i = 0; i < this.els.length; i++) {
-            for (var y = 0; y < cl.length; y++) {
-                this.els[i].classList.remove(cl[y]);
-            }
-        }
+    this.togclass = (cl) => {
+        this.els.forEach((el) => {
+            el.classList.toggle(cl);
+        });
 
         return this;
     },
-    this.delStor = function (key) {
+    this.delclass = (cls) => {
+        if (!Array.isArray(cls)) {
+            cls = [cls];
+        }
+        
+        this.els.forEach((el) => {
+            cls.forEach((cl) => {
+                el.classList.remove(cl);
+            });
+        });
+        
+        return this;
+    },
+    this.delStor = (key) => {
         localStorage.removeItem(key);
         return this;
     },
-    this.setStor = function (key, val) {
+    this.setStor = (key, val) => {
         localStorage.setItem(key, val);
         return this;
     },
-    this.getStor = function (key) {
+    this.getStor = (key) => {
         return localStorage.getItem(key);
     },
-    this.bind = function (type, fn) {
-        var addEvent, z;
+    this.bind = (type, fn) => {
+        let addEvent;
 
         if (!type || !fn) {
             return this;
         }
 
         if (typeof addEventListener === "function") {
-            addEvent = function (el, type, fn) {
+            addEvent = (el, type, fn) => {
                 el.addEventListener(type, fn, false);
             };
         } else if (typeof attachEvent === "function") {
-            addEvent = function (el, type, fn) {
+            addEvent = (el, type, fn) => {
                 el.attachEvent("on" + type, fn);
             };
         } else {
             return this;
         }
 
-        if (this.isNodeList(this.els)) {
-            for (z = 0; z < this.els.length; z++) {
-                addEvent(this.els[z], type, fn);
-            }
+        if (this.isNodeList(this.els) || this.els.length > 0) {
+            this.els.forEach((el) => {
+                addEvent(el, type, fn);
+            });
         } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
             addEvent(this.els[0], type, fn);
-        } else if (this.els.length > 0) {
-            for (z = 0; z < this.els.length; z++) {
-                addEvent(this.els[z], type, fn);
-            }
         }
 
         return this;
     },
-    this.html = function (text) {
-        if (!arguments.length && text !== '') {
+    this.html = (html) => {
+        if (html!=="" && !html) {
             return this.els[0].innerHTML;
         }
 
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].innerHTML = text;
-        }
+        this.els.forEach((el) => {
+            el.innerHTML = html;
+        });
 
         return this;
     },
-    this.text = function (text) {
-        if (!arguments.length && text !== '') {
+    this.text = (text) => {
+        if (text!=="" && !text) {
             return this.els[0].innerText;
         }
 
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].innerText = text;
-        }
+        this.els.forEach((el) => {
+            el.innerText = text;
+        });
 
         return this;
     },
-    this.val = function (value) {
-        if (!arguments.length && value !== '') {
+    this.val = (value) => {
+        if (value!=="" && !value) {
             return this.els[0].value;
         }
 
-        for (var i = 0; i < this.els.length; i++) {
-            this.els[i].value = value;
-        }
+        this.els.forEach((el) => {
+            el.value = value;
+        });
 
         return this;
     };

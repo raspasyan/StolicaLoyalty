@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no" />
+  <meta name="theme-color" content="#33C3F0"/>
+
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="icon" type="image/png" sizes="192x192"
+    href="app/assets/icons/192x192.png" />
+  <link rel="apple-touch-icon" type="image/png" sizes="180x180"
+    href="app/assets/icons/180x180.png" />
+
+  <title>Столица: Лояльность</title>
+
+  <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
+  <link rel="stylesheet" href="app/build/styles/normalize.css" />
+  <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
+  <link rel="stylesheet" href="app/build/styles/style_desktop.css" />
+</head>
+
+<body>
+    <style>
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #222;
+        }
+        input, textarea {
+            display: block;
+            width:100%;
+        }
+        label {
+            position: relative;
+            font-weight: 300;
+            top: -4.5rem;
+            margin-left: 1rem;
+            transition: 0.3s font-size, 0.3s top;
+        }
+        textarea + label {
+            top: -8rem;
+        }
+        label[for=date] {
+            top: 0rem;
+        }
+        label[for=img] {
+            top: 2rem;
+        }
+        input#img, input#date {
+            width: 60%;
+            display: inline-block;
+            float: right;
+        }
+        .file {
+            margin-bottom: 7rem;
+        }
+        .activeINPUT {
+            top: -7.5rem;
+            font-size: 1.25rem;
+        }
+        .activeTEXTAREA {
+            top: -10.5rem;
+            font-size: 1.25rem;
+        }
+    </style>
+    <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
+        <form action="" method="POST"  enctype="multipart/form-data">
+            <div>
+                <input id="id" type="text" name="id" value="" required/>
+                <label for="id">Номер новости</label>
+            </div>
+            <div>
+                <input id="title" type="text" name="title" value="" required/>
+                <label for="title">Название</label>
+            </div>
+            <div>
+                <textarea id="desc" name="desc" required></textarea>
+                <label for="desc">Текст</label>
+             </div>
+            <div>
+               <textarea id="small" name="small"></textarea>
+                <label for="small">Маленький текст(со звездочкой)</label>
+             </div>
+            <div>
+               <input id="date" type="date" name="date" value="" required/>
+                <label for="date">Дата публикации:</label>
+             </div>
+            <div class="file">
+               <input id="img" type="file" name="img" value="" required/>
+                <label for="img">Картинка:</label>
+             </div>
+            <div>
+               <input id="key" type="text" name="key" value="" required/>
+                <label for="key">Ключ</label>
+             </div>
+            <button type="submit" style="margin-top:5rem;">Отправить</button>
+        </form>
+    </div>
+    <script>
+        let d = document;
+        d.querySelectorAll("input, textarea").forEach((el) => {
+            let clas  = "active" + el.tagName,
+                label = d.querySelector("[for=" + el.id + "]").classList,
+                exc   = ["date", "img"];
+            
+            if (!exc.includes(el.id)) {
+                el.addEventListener("focus", () => label.add(clas));
+                el.addEventListener("blur",  () => {
+                    if (!el.value) label.remove(clas);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

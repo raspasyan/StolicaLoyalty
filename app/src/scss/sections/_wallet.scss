@@ -61,6 +61,10 @@
     display:none;
 }
 
+.wallet__bottom {
+    padding-top: 1rem;
+}
+
 .wallet__bottom_dataDicount {
     margin: 2rem 0;
     
@@ -84,6 +88,12 @@
 
 .wallet__bottom_transactions {
     margin: 0 2rem;
+    
+    .delete {
+        grid-template-columns: 4fr;
+        text-align: right;
+        margin: 8px;
+    }
     
     summary {
         margin-bottom: 10px;
