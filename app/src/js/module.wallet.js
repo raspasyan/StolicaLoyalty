@@ -173,8 +173,8 @@ async function disablePurchase(id) {
         purEl.classList.remove("animated", "animate__fadeIn");
         purEl.classList.add("animated", "animate__fadeOut");
         promiseTimeout(() => {
-            purEl.parentNode.removeChild(purEl);
-        }, 2000);
+            purEl.classList.add("hudden");
+        }, 1000);
         return result;
     });
 }

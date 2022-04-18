@@ -105,6 +105,13 @@
         margin-bottom: 2rem;
         border-bottom: 1px solid #D5D5D5;
         font-size: 14px;
+        max-height: 1000px;
+        transition: 0.3s max-height;
+        overflow: hidden;
+        
+        &.hudden {
+            max-height: 0px;
+        }
         
         & > div {
             display: grid;
