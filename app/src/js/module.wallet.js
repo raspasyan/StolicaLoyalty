@@ -290,16 +290,17 @@ function drawBonusCard(cardNumber) {
         cardCanvasCtx.font = '32px sans-serif';
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
-
+        
         if (!SOURCE) {
             show("#downloadCard");
+        
             C("#downloadCard").el.addEventListener("click", () => {
-                const dataURL = cardCanvas.toDataURL("image/jpeg"),
-                      link    = d.createElement("a");
+                const dataURL  = cardCanvas.toDataURL("image/jpeg"),
+                      fileName = "Stolica - Bonus card - " + cardNumber + ".jpg",
+                      link     = d.createElement("a");
 
                 link.href = dataURL;
-                link.download = "Stolica - Bonus card - " + cardNumber + ".jpg";
-
+                link.download = fileName;
                 link.click();
             });
         }

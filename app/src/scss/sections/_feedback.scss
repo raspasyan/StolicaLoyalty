@@ -7,5 +7,9 @@
     width: 100%;
     overflow: auto;
     padding-top: calc($height_header + $iphone_notch);
+    
+    @media screen and (max-width: 359px) {
+        padding: 0;
+    }
 }
 
