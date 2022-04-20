@@ -257,9 +257,9 @@ function drawPurchase(purchase) {
 }
 
 function drawBonusCard(cardNumber) {
-    const cardImg = new Image(),
-          qrEl    = C("#qrcode");
-    const qrCanvas = C().create("img"),
+    const cardImg  = new Image(),
+          qrEl     = C("#qrcode"),
+          qrCanvas = C().create("img"),
           qr = new QRious({
                 element: qrCanvas.el,
                 size: 256,
