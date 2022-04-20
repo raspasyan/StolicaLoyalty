@@ -15,7 +15,7 @@
     href="app/assets/icons/180x180.png" />
 
   <title>Столица: Лояльность</title>
-
+  <script src="app/build/js/ckeditor.js"></script>
   <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
   <link rel="stylesheet" href="app/build/styles/normalize.css" />
   <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
@@ -42,8 +42,13 @@
         textarea + label {
             top: -8rem;
         }
+        label[for=desc] {
+            top: -38.5rem;
+            font-size: 1.25rem;
+        }
         label[for=date] {
             top: 0rem;
+            width: 30%;
         }
         label[for=img] {
             top: 2rem;
@@ -64,6 +69,10 @@
             top: -10.5rem;
             font-size: 1.25rem;
         }
+        .ck-editor__editable_inline {
+            min-height: 300px;
+            margin-bottom: 2rem;
+        }
     </style>
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
@@ -76,7 +85,7 @@
                 <label for="title">Название</label>
             </div>
             <div>
-                <textarea id="desc" name="desc" required></textarea>
+                <textarea id="desc" name="desc"></textarea>
                 <label for="desc">Текст</label>
              </div>
             <div>
@@ -99,11 +108,18 @@
         </form>
     </div>
     <script>
+        ClassicEditor
+            .create( document.querySelector( '#desc' ) )
+            .catch( error => {
+                console.error( error );
+            } );
+    </script>
+    <script>
         let d = document;
         d.querySelectorAll("input, textarea").forEach((el) => {
             let clas  = "active" + el.tagName,
                 label = d.querySelector("[for=" + el.id + "]").classList,
-                exc   = ["date", "img"];
+                exc   = ["date", "img", "desc"];
             
             if (!exc.includes(el.id)) {
                 el.addEventListener("focus", () => label.add(clas));
