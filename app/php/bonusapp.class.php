@@ -625,12 +625,7 @@ class BonusApp {
         $uploadfile = $uploaddir . $name;
 
         if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-            //$tmpArr = explode("\r\n", $data["desc"]);
             $text   = $data["desc"];
-
-            if ((bool) $data["small"]) {
-                $text .= "<p><small>" . $data["small"] . "</small></p>";
-            }
 
             $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
             $query->execute([
