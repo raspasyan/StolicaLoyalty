@@ -86,7 +86,6 @@
             </div>
             <div>
                 <textarea id="desc" name="desc"></textarea>
-                <label for="desc">Текст</label>
             </div>
             <div>
                <input id="date" type="date" name="date" value="" required/>
