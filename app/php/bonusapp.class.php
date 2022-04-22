@@ -604,7 +604,7 @@ class BonusApp {
         }
         
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
-        $name       = date("dmy") . $data["id"] . '.jpg';
+        $name       = date("dmy") . rand(1, 100) . '.jpg';
         $uploadfile = $uploaddir . $name;
 
         if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
