@@ -15,7 +15,7 @@
     href="app/assets/icons/180x180.png" />
 
   <title>Столица: Лояльность</title>
-
+  <script src="app/build/js/ckeditor.js"></script>
   <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
   <link rel="stylesheet" href="app/build/styles/normalize.css" />
   <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
@@ -42,8 +42,13 @@
         textarea + label {
             top: -8rem;
         }
+        label[for=desc] {
+            top: -38.5rem;
+            font-size: 1.25rem;
+        }
         label[for=date] {
             top: 0rem;
+            width: 30%;
         }
         label[for=img] {
             top: 2rem;
@@ -64,44 +69,46 @@
             top: -10.5rem;
             font-size: 1.25rem;
         }
+        .ck-editor__editable_inline {
+            min-height: 300px;
+            margin-bottom: 2rem;
+        }
     </style>
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
-            <div>
-                <input id="id" type="text" name="id" value="" required/>
-                <label for="id">Номер новости</label>
-            </div>
             <div>
                 <input id="title" type="text" name="title" value="" required/>
                 <label for="title">Название</label>
             </div>
             <div>
-                <textarea id="desc" name="desc" required></textarea>
-                <label for="desc">Текст</label>
-             </div>
-            <div>
-               <textarea id="small" name="small"></textarea>
-                <label for="small">Маленький текст(со звездочкой)</label>
-             </div>
+                <textarea id="desc" name="desc"></textarea>
+            </div>
             <div>
                <input id="date" type="date" name="date" value="" required/>
                 <label for="date">Дата публикации:</label>
-             </div>
+            </div>
             <div class="file">
                <input id="img" type="file" name="img" value="" required/>
                 <label for="img">Картинка:</label>
-             </div>
+            </div>
             <div>
                <input id="key" type="text" name="key" value="" required/>
                 <label for="key">Ключ</label>
-             </div>
+            </div>
             <button type="submit" style="margin-top:5rem;">Отправить</button>
         </form>
     </div>
     <script>
+        ClassicEditor
+            .create( document.querySelector( '#desc' ) )
+            .catch( error => {
+                console.error( error );
+            } );
+    </script>
+    <script>
         let d = document;
-        d.querySelectorAll("input, textarea").forEach((el) => {
-            let clas  = "active" + el.tagName,
+        d.querySelectorAll("input").forEach((el) => {
+            let clas  = "activeINPUT",
                 label = d.querySelector("[for=" + el.id + "]").classList,
                 exc   = ["date", "img"];
             
