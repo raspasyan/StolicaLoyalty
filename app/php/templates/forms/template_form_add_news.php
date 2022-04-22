@@ -77,10 +77,6 @@
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
             <div>
-                <input id="id" type="text" name="id" value="" required/>
-                <label for="id">Номер новости</label>
-            </div>
-            <div>
                 <input id="title" type="text" name="title" value="" required/>
                 <label for="title">Название</label>
             </div>

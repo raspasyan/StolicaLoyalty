@@ -290,18 +290,150 @@ function drawBonusCard(cardNumber) {
         cardCanvasCtx.textAlign = 'center';
         cardCanvasCtx.fillText(cardNumber.substr(0, 7), 256, 216);
         
-        if (!SOURCE) {
-            show("#downloadCard");
-        
-            C("#downloadCard").el.addEventListener("click", () => {
-                const dataURL  = cardCanvasCtx.canvas.toDataURL("image/jpeg"),
-                      fileName = "Stolica - Bonus card - " + cardNumber + ".jpg",
-                      link     = d.createElement("a");
+        show("#downloadCard");
 
-                link.href = dataURL;
-                link.download = fileName;
+        C("#downloadCard").el.addEventListener("click", () => {
+            const dataURL  = cardCanvasCtx.canvas.toDataURL("image/jpeg"),
+                  fileName = "Stolica - Bonus card - " + cardNumber + ".jpg",
+                  link     = d.createElement("a");
+
+            link.href = dataURL;
+            link.download = fileName;
+            if (!SOURCE) {
                 link.click();
-            });
+            } else {
+                const blob = dataURItoBlob(dataURL);
+                download(fileName, blob, blob.type);
+            }
+        });
+    });
+}
+
+function download(filename, data, mimeType) {
+  const blob = new Blob([data], {
+                type: mimeType
+              });
+
+    document.addEventListener("deviceready", function() {
+      let storageLocation = "";
+
+      switch (device.platform) {
+        case "Android":
+          storageLocation = cordova.file.externalRootDirectory + "Download/";
+          break;
+
+        case "iOS":
+          storageLocation = cordova.file.documentsDirectory;
+          break;
+      }
+
+      const folderPath = storageLocation;
+
+      window.resolveLocalFileSystemURL(
+        folderPath,
+        function(dir) {
+          dir.getFile(
+            filename,
+            {
+              create: true
+            },
+            function(file) {
+              file.createWriter(
+                function(fileWriter) {
+                  fileWriter.write(blob);
+
+                  fileWriter.onwriteend = function() {
+                    showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+                  };
+
+                  fileWriter.onerror = function(err) {
+                    console.error(JSON.stringify(err));
+                  };
+                },
+                function(err) {
+                  console.error(JSON.stringify(err));
+                }
+              );
+            },
+            function(err) {
+              console.error(JSON.stringify(err));
+            }
+          );
+        },
+        function(err) {
+          console.error(JSON.stringify(err));
+        }
+      );
+    });
+}
+
+function dataURItoBlob(dataURI) {
+  const isBase64 = dataURI.split(",")[0].split(";")[1] === "base64";
+  let byteString;
+
+  if (isBase64) {
+    byteString = atob(dataURI.split(",")[1]);
+  } else {
+    byteString = dataURI.split(",")[1];
+  }
+
+  let mimeString = dataURI
+    .split(",")[0]
+    .split(":")[1]
+    .split(";")[0];
+
+  const ab = new ArrayBuffer(byteString.length);
+  let ia = new Uint8Array(ab);
+
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+
+  var blob = new Blob([ab], {
+    type: mimeString
+  });
+
+  return blob;
+}
+
+if (SOURCE) {
+    document.addEventListener("deviceready", function() {
+      let storageLocation = "";
+
+      if (device.platform === "Android") {
+          var permissions = cordova.plugins.permissions;
+            var list = [
+              permissions.WRITE_EXTERNAL_STORAGE,
+              permissions.READ_EXTERNAL_STORAGE,
+              permissions.MANAGE_EXTERNAL_STORAGE
+            ];
+
+            permissions.hasPermission(list, function( status ){
+                                                if( !status.hasPermission ) {
+                                                  permissions.requestPermissions(
+                                                    list,
+                                                    function(status) {
+                                                      if( !status.hasPermission ) error();
+                                                    },
+                                                    error);
+                                                }
+                                              });
+
+            function error() {
+              console.warn('Storage permission is not turned on');
+            }
+
+            function success( status ) {
+              if( !status.hasPermission ) {
+
+                permissions.requestPermissions(
+                  list,
+                  function(status) {
+                    if( !status.hasPermission ) error();
+                  },
+                  error);
+              }
+            }
         }
     });
 }

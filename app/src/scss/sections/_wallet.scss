@@ -107,7 +107,6 @@
         font-size: 14px;
         max-height: 1000px;
         transition: 0.3s max-height;
-        overflow: hidden;
         
         &.hudden {
             max-height: 0px;
