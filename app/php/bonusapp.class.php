@@ -608,7 +608,7 @@ class BonusApp {
         $uploadfile = $uploaddir . $name;
 
         if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
             $query->execute([
                             date("Y-m-d"), 
                             $data["date"], 
