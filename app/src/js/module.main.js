@@ -258,10 +258,10 @@ d.addEventListener("DOMContentLoaded", () => {
         list.toggle("hidden");
 
         if (list.contains("hidden")) {
-            t.text("открыть детализацию");
+            t.text("история");
             t.delclass("active");
         } else {
-            t.text("скрыть детализацию");
+            t.text("скрыть историю");
             t.addclass("active");
         }
     });
@@ -1262,7 +1262,7 @@ async function checkUpdates(callback) {
         }
         if (data.lastPurchase) {
             updates.lastPurchase = data.lastPurchase;
-            drawPurchases(data.purchases);
+            drawPurchases(data.purchases, data.transactions);
         }
 
         if (data.transactions.length) {

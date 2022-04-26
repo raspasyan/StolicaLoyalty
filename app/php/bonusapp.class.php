@@ -20,9 +20,13 @@ class BonusApp {
     }
 
     function setCORS() {
-        $http_origin = $_SERVER['HTTP_ORIGIN'];
-        if (isset($http_origin))
-            header("Access-Control-Allow-Origin: $http_origin");
+        if (array_key_exists("HTTP_ORIGIN", $_SERVER)) {
+            $http_origin = $_SERVER['HTTP_ORIGIN'];
+            
+            if (isset($http_origin)) {
+                header("Access-Control-Allow-Origin: $http_origin");
+            }
+        }
         header('Access-Control-Allow-Methods: POST');
         header("Access-Control-Allow-Headers: X-Requested-With");
         header('Access-Control-Allow-Credentials: true');
@@ -1651,7 +1655,7 @@ class BonusApp {
                 "email"                 => $fullAccountData["data"]["email"],
                 "city"                  => $fullAccountData["data"]["city"],
             ];
-            $personalHash = hash("md5" ,implode("", $personal));
+            $personalHash = hash("md5" ,json_encode($personal));
             if ($options["personalHash"] != $personalHash) {
                 $result["data"]["personal"] = $personal;
                 $result["data"]["personalHash"] = $personalHash;
@@ -1668,7 +1672,7 @@ class BonusApp {
                 "preferredDiscount"     => $fullAccountData["data"]["preferred_discount"],
                 
             ];
-            $walletHash = hash("md5", implode("", $wallet));
+            $walletHash = hash("md5", json_encode($wallet));
             if ($options["walletHash"] != $walletHash) {
                 $result["data"]["wallet"] = $wallet;
                 $result["data"]["walletHash"] = $walletHash;
@@ -1713,7 +1717,7 @@ class BonusApp {
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result["status"] = true;
-            $result["data"] = $queryResult;
+            $result["data"]   = $queryResult;
         }
 
         return $result;   
@@ -2994,6 +2998,7 @@ class BonusApp {
                     IFNULL(products.title, positions.title) AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
+                    ROUND(positions.count / 1000, 1) AS count,
                     CASE
                         WHEN purchases.profile_ext_id IS NULL THEN 0
                         ELSE ROUND(positions.discount_amount / 100, 2)
@@ -3045,6 +3050,7 @@ class BonusApp {
                             "purchase_id"       => $row["id"],
                             "product_title"     => $row["product_title"],
                             "cost"              => $row["cost"],
+                            "count"             => $row["count"],
                             "cashback_amount"   => $row["cashback_amount"],
                             "discount_amount"   => $row["discount_amount"],
                             "payment_amount"    => $row["payment_amount"],
@@ -3106,6 +3112,7 @@ class BonusApp {
                     positions.title AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
+                    ROUND(positions.count / 1000, 1) AS count,
                     CASE
                         WHEN purchases.profile_ext_id IS NULL THEN 0
                         ELSE ROUND(positions.discount_amount / 100, 2)
@@ -3154,6 +3161,7 @@ class BonusApp {
                             "purchase_id"       => $row["id"],
                             "product_title"     => $row["product_title"],
                             "cost"              => $row["cost"],
+                            "count"             => $row["count"],
                             "cashback_amount"   => $row["cashback_amount"],
                             "discount_amount"   => $row["discount_amount"],
                             "payment_amount"    => $row["payment_amount"],

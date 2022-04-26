@@ -21,7 +21,7 @@ function drawWallet(walletData) {
         hide("#wallet-placeholder");
         hide("#wallet-loader");
         show("#wallet-data");
-
+        
         if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
             cardEl.text(walletData.cardNumber);
             
@@ -91,6 +91,18 @@ function drawWallet(walletData) {
                 }, 1000);
             }
             
+            if (walletData.lifeTimes) {
+                let listBurns = walletData.lifeTimes,
+                    sumBurns  = 0;
+            
+                listBurns.forEach((ob) => {
+                    sumBurns += ob.amount;
+                });
+                
+                C(".nearBurn span").text(Math.abs(sumBurns/100));
+                C(".nearBurn").el.style.display = "block";
+            }
+            
             let activation = 0;
 
             if (walletData.activation !== undefined) {
@@ -150,15 +162,34 @@ function drawWallet(walletData) {
     }
 }
 
-function drawPurchases(purchases) {
-    if (!purchases) {
+function drawPurchases(purchases, transactions) {
+    if (!purchases && !transactions) {
         return false;
     }
     
-    purchases.forEach((purchase) => drawPurchase(purchase));
+    const tempTransactions = transactions.reduce(function(acc, el, i, arr) {
+        acc.push({ operation_date: el.date, 
+                   store_title: el.description,
+                   store_description: el.type,
+                   cashback_amount: el.amount,
+                   date: new Date(el.date) });
+        return acc;
+    }, []);
+    
+    let tempPurchases = purchases.reduce(function(acc, el, i, arr) {
+        el.date = new Date(el.operation_date);
+        acc.push(el);
+        return acc;
+    }, []);
+    
+    tempPurchases.push(...tempTransactions);
+    
+    const sortList = tempPurchases.sort((a, b) => a.date - b.date);
+    
+    sortList.forEach((purchase) => drawPurchase(purchase));
     
     C("div[data-disable-purchase]").els.forEach((el) => {
-            el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase));
+        el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase));
     });
 }
 
@@ -183,91 +214,151 @@ function drawPurchase(purchase) {
     const totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount)),
           cashback  = Math.trunc(purchase.cashback_amount),
           amount    = Math.trunc(purchase.payment_amount),
-          date      = new Date((purchase.operation_date).replace(new RegExp("-", 'g'), "/")),
-          dater     = (["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"])[date.getDay()] + ", "
-                        + String(date.getDate()) + " "
-                        + (["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"])[date.getMonth()] + " "
-                        + String(date.getFullYear()) + " года, "
-                        + String(date.getHours()) + ":"
-                        + (String(date.getMinutes()).length === 1 ? "0" : "") + String(date.getMinutes()) + ":"
-                        + (String(date.getSeconds()).length === 1 ? "0" : "") + String(date.getSeconds()),
-          refund = (!purchase.operation_type) ? '<span class="bad b" style="font-size: 12px;text-align: right;">чек возврата</span>' : '',
+          onlyDate  = purchase.operation_date.substr(0, 10).split("-").reverse().join("."),
+          refund    = (!purchase.operation_type) ? '<span class="bad" style="font-size: 12px;text-align: right;">чек возврата</span>' : '',
           linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
-    let tempDetails = "";
+    let tempPositions = '',
+        tempOld = '';
     
-    // Детализация чека
-    if (purchase.positions.length) {
-        let tempPositions = '';
+    if (purchase.positions && purchase.positions.length) {
 
         purchase.positions.forEach((position) => {
-            let posCashAmount = Math.trunc(position.cashback_amount);
-
-            tempPositions += `<div class="payment-details important">
-                                <span>${Math.trunc(position.cost)} руб</span>
-                                <span>${((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов"))}</span>
-                                <span>${(posCashAmount > 0 ? "+" : "")}${posCashAmount} бонусов</span>
+            let posCashAmount = Math.trunc(position.cashback_amount),
+                tmpCounter    = position.count.split("."),
+                counter       = tmpCounter[1] > 0 ? position.count : tmpCounter[0];
+            
+            tempPositions += `<div class="payment-details payment-details-full">
+                                <span>
+                                    ${(position.product_title ? position.product_title : "Загрузка..")}
+                                </span>
+                                <span>
+                                    x ${counter} шт
+                                </span>
                             </div>
-                            <div class="payment-details payment-details-full">${(position.product_title ? position.product_title : "Загрузка..")}</div>`;
+                            <div class="payment-details important">
+                                <span class="b">${Math.trunc(position.cost)} руб</span>
+                                <span class="bad b">${((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов"))}</span>
+                                <span class="good b">${(posCashAmount > 0 ? "+" : "")}${posCashAmount} Б</span>
+                            </div>`;
         });
-        
-        tempDetails = `<details>
-                        <summary>Подробнее</summary>
-                        <div class="details-data">
-                            <div class="payment-details neutral">
-                                <span>Оплачено</span>
-                                <span>Скидка</span>
-                                <span>Начислено</span>
-                            </div>
-                            ${tempPositions}
-                        </div>
-                    </details>`;
-
     }
     
-    const temp = `<div class="animated animate__fadeIn" data-purchase-id="${purchase.id}">
-                    <div>
-                        <span class="b">Всего скидка: </span>
-                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} руб</span>
+    let type = {};
+    type = { icon = "basket", name = "Покупка" };
+    
+    if (purchase.store_description==="Expiration") {
+        type = { icon = "clock", name = "Сгорание" };
+    }
+    
+    if (purchase.store_description==="Bonus") {
+        type = { icon = "gift", name = "Подарок" };
+    }
+    
+    if (purchase.positions) {
+        tempOld = ` <h4><center>Детализация</center></h4>
+                    <div class="payment-row-date">
+                        <span>${onlyDate}</span>
+                        <span><i class="icon-cancel" onClick="closePositions()"></i></span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Всего скидка: </span>
+                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} Р</span>
                         ${refund}
                     </div>
-                    <div>
-                        <span class="payment-amount b" style="margin-left: 20px;">из них бонусами: </span>
-                        <span class="bad">${amount}</span>
+                    <div class="payment-row">
+                        <span class="payment-amount" style="margin-left: 20px;">из них бонусами: </span>
+                        <span class="bad">${amount} Б</span>
                     </div>
-                    <div>
-                        <span class="payment-amount b">Начислено бонусов: </span>
-                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback}</span>
+                    <div class="payment-row">
+                        <span class="payment-amount">Начислено бонусов: </span>
+                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback} Б</span>
                     </div>
-                    <div class="payment-row-date">
-                        <span class="payment-amount">Дата: </span>
-                        <span>${dater}</span>
-                    </div>
-                    <div class="payment-row-date">
+                    <div class="payment-row-store">
                         <span class="payment-amount">Магазин: </span>
-                        <div>
+                        <span>
                             ${linkStore}
-                        </div>
+                        </span>
                     </div>
-                    <div class="delete" data-disable-purchase="${purchase.id}">Удалить</div>
-                    ${tempDetails}
+                    <div class="payment-details">
+                        <span>Оплачено</span>
+                        <span>Скидка</span>
+                        <span>Начислено</span>
+                    </div>
+                    ${tempPositions}`;
+        }
+        
+    const temp = `<div class="animated animate__fadeIn" data-purchase-id="${purchase.id}">
+                    <div>
+                        <span>${onlyDate}</span>
+                        <span>&nbsp;</span>
+                        <span class="delete" data-disable-purchase="${purchase.id}"><i class="icon-cancel"></i></span>
+                    </div>
+                    <div>
+                        <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> ${type.name}</span>
+                        <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
+                        <span class="${(cashback > 0 ? "good" : "bad")}">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
+                    </div>
                 </div>`;
     
-    const payEl = C().strToNode(temp);
-    C("#transactions").el.prepend(payEl.el);
+    const elList = C().strToNode(temp).el;
+    C("#transactions").el.prepend(elList);
+    
+    if (purchase.positions) {
+        elList.addEventListener("click", () => fillOverlay(tempOld));
+    }
+}
+
+function fillOverlay(html) {
+    const el = C(".positionOverlay");
+
+    show(".positionOverlay");
+    C(".positionOverlay__cont").html(html);
+    d.body.classList.add("hideOverflow");
+}
+
+function openNearBurning() {
+    if (!isEmpty(C().getStor(LS_CONTENTS))) {
+        const contents = JSON.parse(C().getStor(LS_CONTENTS)),
+              burnList = contents.wallet.lifeTimes;
+        let burnHtml     = '',
+            burnListHtml = '';
+        
+        burnList.forEach((ob) => {
+            const date   = ob.date.split("T")[0].split("-").reverse().join("."),
+                  amount = ob.amount / 100;
+            burnListHtml += `<div class="payment-burn">
+                                <span>Дата сгорания:</span>
+                                <span class="bad">${date}</span>
+                            </div>
+                            <div class="payment-row-amount bad">${amount} Б</div>`;
+        });
+        
+        burnHtml = `<h4><center>Ближайшие сгорания</center></h4>
+                        <div class="close-positions"><i class="icon-cancel" onClick="closePositions()"></i></div>
+                        ${burnListHtml}`;
+        
+        fillOverlay(burnHtml);
+    }
+}
+
+function closePositions() {
+    C(".positionOverlay__cont").html("");
+    hide(".positionOverlay");
+    d.body.classList.remove("hideOverflow");
 }
 
 function drawBonusCard(cardNumber) {
-    const cardImg  = new Image(),
-          qrEl     = C("#qrcode"),
-          qrCanvas = C().create("img"),
-          qr = new QRious({
-                element: qrCanvas.el,
-                size: 256,
-                value: cardNumber,
-                foreground: "#4062b7"
-            });
+    const qrEl = C("#qrcode");
+    let cardImg  = new Image(),
+        qrCanvas = C().create("img"),
+        qr = new QRious({
+              element: qrCanvas.el,
+              size: 256,
+              value: cardNumber,
+              foreground: "#4062b7"
+          });
 
-    qrCanvas.el.width = "128";
+    qrCanvas.el.width  = "128";
     qrCanvas.el.height = "128";
     qrEl.el.cardNumber = cardNumber;
     qrEl.append(qrCanvas);
@@ -277,11 +368,11 @@ function drawBonusCard(cardNumber) {
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
     cardImg.addEventListener("load", () => {
-        const cardCanvas = d.createElement("canvas");
+        let cardCanvas = d.createElement("canvas");
         cardCanvas.width = cardImageW;
         cardCanvas.height = cardImageH;
 
-        const cardCanvasCtx = cardCanvas.getContext("2d");
+        let cardCanvasCtx = cardCanvas.getContext("2d");
         cardCanvasCtx.imageSmoothingEnabled = false;
         cardCanvasCtx.drawImage(cardImg, 0, 0, cardImageW, cardImageH);
         cardCanvasCtx.drawImage(qrCanvas.el, 192, 48, 128, 128);

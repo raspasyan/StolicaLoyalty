@@ -17,17 +17,17 @@
 
         <link rel="stylesheet" href="app/build/styles/normalize.css" />
         <link rel="stylesheet" href="app/build/styles/skeleton_new.css" />
-        <link rel="stylesheet" href="app/build/styles/styles.css?v=1404223" />
+        <link rel="stylesheet" href="app/build/styles/styles.css?v=2504223" />
         <link rel="stylesheet" href="app/build/styles/google-open-sans.css" />
         <link rel="stylesheet" href="app/build/styles/fontello.css" />
 
         <script src="app/build/js/qrious.min.js"></script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-        <script src="app/build/js/module.main.js?v=1404223" defer></script>
-        <script src="app/build/js/module.news.js?v=1404223" defer></script>
-        <script src="app/build/js/module.stores.js?v=1404223" defer></script>
-        <script src="app/build/js/module.personal.js?v=1404223" defer></script>
-        <script src="app/build/js/module.wallet.js?v=1404223" defer></script>
+        <script src="app/build/js/module.main.js?v=2504223" defer></script>
+        <script src="app/build/js/module.news.js?v=2504223" defer></script>
+        <script src="app/build/js/module.stores.js?v=2504223" defer></script>
+        <script src="app/build/js/module.personal.js?v=2504223" defer></script>
+        <script src="app/build/js/module.wallet.js?v=2504223" defer></script>
     </head>
 
     <body>
@@ -43,6 +43,10 @@
                 <p id="popupMessage"></p>
                 <button id="popupButton" class="button-primary"></button>
             </div>
+        </div>
+
+        <div class="positionOverlay" style="display: none;">
+            <div class="positionOverlay__cont animated animate__fadeInDown"></div>
         </div>
 
         <div class="newsOverlay" style="display: none;">
@@ -495,10 +499,11 @@
                                 </div>
                                 <button id="downloadCard" style="display: none" class="animated animate__fadeIn">Скачать QR код</button>
                                 <button class="wallet__content_data_balance button">
-                                    <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&mdash;&nbsp;
+                                    <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;
                                     <span id="bonuses" class="load"></span>
                                     <span id="currencyType" class="currencyType">бонусов</span>
                                 </button>
+                                <div class="nearBurn pouring" onClick="openNearBurning()">Ближайшее сгорание: <span></span> бонусов</div>
                                 <div class="currentBalance">
                                     Доступно <span id="currentBalance"></span> <span class="currencyType">бонусов</span>
                                 </div>
@@ -526,7 +531,7 @@
                         <p id="changeDiscountSystem" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
                             <span>Завтра Ваша карта станет <span id="changeDiscountSystemValue"></span>.</span>
                         </p>
-                        <button id="transactions-details-button" class="transactions_details_button button-primary">Открыть детализацию</button>
+                        <button id="transactions-details-button" class="transactions_details_button button-primary">История</button>
                         <div class="wallet__bottom_transactions hidden" id="transactions"></div>
                     </div>
                 </div>
