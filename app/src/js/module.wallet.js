@@ -168,7 +168,8 @@ function drawPurchases(purchases, transactions) {
     }
     
     const tempTransactions = transactions.reduce(function(acc, el, i, arr) {
-        acc.push({ operation_date: el.date, 
+        acc.push({ id: el.id,
+                   operation_date: el.date, 
                    store_title: el.description,
                    store_description: el.type,
                    cashback_amount: el.amount,
@@ -188,23 +189,32 @@ function drawPurchases(purchases, transactions) {
     
     sortList.forEach((purchase) => drawPurchase(purchase));
     
-    C("div[data-disable-purchase]").els.forEach((el) => {
-        el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase));
+    C("span[data-disable-purchase]").els.forEach((el) => {
+        let type = (el.classList.contains("purch")) ? "purch" : "trans";
+        el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase, type));
     });
 }
 
-async function disablePurchase(id) {
-    //showPopup(title, desc, message, buttonText, callback)
+async function disablePurchase(id, type) {
     showPopup('','', 'Вы уверены, что хотите скрыть чек? <p><small>Для того, чтобы вернуть чек напишите в <a href="#" onClick="showFeedback();return false;">службу технической поддержки</a>.</small></p>', ["Да","Нет"], async () => {
-        let result = await api("disablePurchase", {
+        let result;
+        
+        if (type==="purch") {
+            result = await api("disablePurchase", {
                                 id
                             });
+        }else{
+            result = await api("disableTransaction", {
+                                id
+                            });
+        }
 
         let purEl = C("div[data-purchase-id='" + id + "']").el;
         purEl.classList.remove("animated", "animate__fadeIn");
         purEl.classList.add("animated", "animate__fadeOut");
         promiseTimeout(() => {
             purEl.classList.add("hudden");
+            hide('[data-purchase-id="' + id + '"]');
         }, 1000);
         return result;
     });
@@ -287,11 +297,13 @@ function drawPurchase(purchase) {
                     ${tempPositions}`;
         }
         
+    let typeTrans = type.name==="Покупка" ? "purch" : "trans";
+    const disablePurchase = purchase.id ? `<span class="delete ${typeTrans}" data-disable-purchase="${purchase.id}"><i class="icon-cancel"></i></span>` : '';
     const temp = `<div class="animated animate__fadeIn" data-purchase-id="${purchase.id}">
                     <div>
                         <span>${onlyDate}</span>
                         <span>&nbsp;</span>
-                        <span class="delete" data-disable-purchase="${purchase.id}"><i class="icon-cancel"></i></span>
+                        ${disablePurchase}
                     </div>
                     <div>
                         <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> ${type.name}</span>
@@ -304,7 +316,7 @@ function drawPurchase(purchase) {
     C("#transactions").el.prepend(elList);
     
     if (purchase.positions) {
-        elList.addEventListener("click", () => fillOverlay(tempOld));
+        C(".type", elList).el.addEventListener("click", () => fillOverlay(tempOld));
     }
 }
 

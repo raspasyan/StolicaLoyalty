@@ -335,6 +335,14 @@ class BonusApp {
                     break;
                 }
                 
+                case "disableTransaction": {
+                    $resultData = $this->checkAuthorization($requestData["method"]);
+                    if ($resultData["status"]) {
+                        $resultData = $this->API_disableTransaction($resultData["data"], $requestData["data"]);
+                    }
+                    break;
+                }
+                
                 case "disablePurchase": {
                     $resultData = $this->checkAuthorization($requestData["method"]);
                     if ($resultData["status"]) {
@@ -661,6 +669,18 @@ class BonusApp {
         return $resultData;
     }
     
+    private function API_disableTransaction($data, $id) {
+        $result = ["status" => false, "description" => ""];
+        
+        if ($id > 0) {
+            $query = $this->pdo->prepare("UPDATE transactions SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query->execute([$id['id'], $data['personId']]);
+            $result["status"] = true;
+       }
+        
+        return $result;
+    }
+
     private function API_disablePurchase($data, $id) {
         $result = ["status" => false, "description" => ""];
         
@@ -2772,6 +2792,7 @@ class BonusApp {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
+                id,
                 date,
                 description,
                 type,
@@ -2781,6 +2802,7 @@ class BonusApp {
             WHERE
                 profile_ext_id = ?
                 AND date > ?
+                AND isActive = 1
             ORDER BY
                 date DESC
             LIMIT ?
@@ -2808,6 +2830,7 @@ class BonusApp {
                 transactions
             WHERE
                 profile_ext_id = ?
+                AND isActive = 1
             ORDER BY
                 date DESC
             LIMIT 1
