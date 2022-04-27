@@ -234,8 +234,12 @@ function drawPurchase(purchase) {
 
         purchase.positions.forEach((position) => {
             let posCashAmount = Math.trunc(position.cashback_amount),
-                tmpCounter    = position.count.split("."),
-                counter       = tmpCounter[1] > 0 ? position.count : tmpCounter[0];
+                counter       = "_";
+                
+            if (position.count) {
+                let tmpCounter = position.count.split(".");
+                counter = tmpCounter[1] > 0 ? position.count : tmpCounter[0];
+            }
             
             tempPositions += `<div class="payment-details payment-details-full">
                                 <span>
@@ -272,16 +276,16 @@ function drawPurchase(purchase) {
                     </div>
                     <div class="payment-row">
                         <span>Всего скидка: </span>
-                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} Р</span>
+                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} <span>Р</span></span>
                         ${refund}
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount" style="margin-left: 20px;">из них бонусами: </span>
-                        <span class="bad">${amount} Б</span>
+                        <span class="bad">${amount} <span>Б</span></span>
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount">Начислено бонусов: </span>
-                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback} Б</span>
+                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
                     </div>
                     <div class="payment-row-store">
                         <span class="payment-amount">Магазин: </span>
@@ -306,7 +310,7 @@ function drawPurchase(purchase) {
                         ${disablePurchase}
                     </div>
                     <div>
-                        <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> ${type.name}</span>
+                        <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> <span class="${type.icon}">${type.name}</span></span>
                         <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
                         <span class="${(cashback > 0 ? "good" : "bad")}">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
                     </div>
@@ -342,7 +346,7 @@ function openNearBurning() {
                                 <span>Дата сгорания:</span>
                                 <span class="bad">${date}</span>
                             </div>
-                            <div class="payment-row-amount bad">${amount} Б</div>`;
+                            <div class="payment-row-amount bad">${amount} <span>Б</span></div>`;
         });
         
         burnHtml = `<h4><center>Ближайшие сгорания</center></h4>

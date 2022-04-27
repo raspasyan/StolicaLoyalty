@@ -87,21 +87,32 @@ const sections = {
         }
     };
 
-let currentSection = "",
-    bearerToken = "",
+let currentSection      = "",
+    bearerToken         = "",
     userActivityTimeout = null,
-    initApp = true,
-    tempUpdate = {
-        personalHash:    "",
-        walletHash:      "",
-        storesHash:      "",
-        lastNews:        "",
-        lastPurchase:    "",
-        lastTransaction: ""
-    };
+    initApp             = true,
+    clientInfo          = "Сайт",
+    tempUpdate          = {
+                            personalHash:    "",
+                            walletHash:      "",
+                            storesHash:      "",
+                            lastNews:        "",
+                            lastPurchase:    "",
+                            lastTransaction: ""
+                        };
 
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("deviceready", function() {
+      switch (device.platform) {
+        case "Android":
+          clientInfo = "Android v" + SOURCE;
+          break;
+        case "iOS":
+          clientInfo = "iOS v" + SOURCE;
+          break;
+      }
+    });
     /*
      if ('serviceWorker' in navigator) {
      window.addEventListener('load', () => {
@@ -1173,13 +1184,13 @@ async function setFeedback() {
 
     submitBut.disabled = true;
     showLoader();
-
+    
     let result = await api("setFeedback", {
                             phone,
                             name:    C("#feedback-name").val(),
                             email:   C("#feedback-email").val(),
                             reason:  C("#feedback-reason").val(),
-                            message: C("#feedback-message").val()
+                            message: C("#feedback-message").val() + " (Источник: " + clientInfo + ")"
                         });
     
     if (result.status) {

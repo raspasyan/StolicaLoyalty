@@ -1635,14 +1635,16 @@ class BonusApp {
 
     private function getUpdates($phone, $options = null) {
         // Подгрузим новости, магазины, профиль, номер карты и баланс
-        // $options = [
-        //     "personalHash"       => "",
-        //     "walletHash"         => "",
-        //     "storesHash"         => "",
-        //     "lastNews"           => "",
-        //     "lastPurchase"       => "",
-        //     "lastTransaction"    => ""
-        // ];
+        if (!$options) {
+            $options = [
+                 "personalHash"       => "",
+                 "walletHash"         => "",
+                 "storesHash"         => "",
+                 "lastNews"           => "",
+                 "lastPurchase"       => "",
+                 "lastTransaction"    => ""
+            ];
+        }
 
         $result = [
             "status" => true,
@@ -2179,10 +2181,14 @@ class BonusApp {
         $headersListLowerCase = [];
         foreach ($headersList as $key => $value) $headersListLowerCase[strtolower($key)] = $value;
         if (isset($headersListLowerCase["authorization"])) {
-            $token = explode("Bearer ", $headersListLowerCase["authorization"])[1];
-            if (!empty($token)) {
-                $result["status"] = true;
-                $result["data"] = $token;
+            $tmpToken = explode("Bearer ", $headersListLowerCase["authorization"]);
+            if (array_key_exists("1", $tmpToken)) {
+                $token = $tmpToken[1];
+                
+                if (!empty($token)) {
+                    $result["status"] = true;
+                    $result["data"] = $token;
+                }
             }
         }
 

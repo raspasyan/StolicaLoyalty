@@ -144,6 +144,20 @@
             &>span:nth-child(1) {
                 &.type {
                     line-height: 0rem;
+                    
+                    &>span:nth-child(2) {
+                        position: relative;
+                        
+                        &.clock {
+                            top: -2px;
+                        }
+                        &.basket {
+                            top: 2px;
+                        }
+                        &.gift {
+                            top: 3px;
+                        }
+                    }
                 }
             }
             
@@ -168,13 +182,14 @@ a[data-click="openBalanceView"] {
     top: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, .8);
+    //background-color: rgba(0, 0, 0, .8);
+    background-color: #fff;
     z-index: 4;
     overflow: auto;
     
     .positionOverlay__cont {
-        box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
-        background-color: white;
+        //box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
+        background-color: #fff;
         overflow: auto;
         margin: 5rem 1rem;
         padding: 1rem;
@@ -246,7 +261,7 @@ a[data-click="openBalanceView"] {
     }
 
     .icon-basket {
-        top: 2px;
+        top: 3px;
         position: relative;
     }
     
