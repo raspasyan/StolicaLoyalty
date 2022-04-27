@@ -828,9 +828,9 @@ async function reg() {
 }
 
 function setConfirmationTimeout(result) {
-    let regConfRemindEl = C("#reg_confirmation_remind"),
+    let regConfRemindEl    = C("#reg_confirmation_remind"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        regConfInfoEl = C("#reg_confirmation_info");
+        regConfInfoEl      = C("#reg_confirmation_info");
 
     hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
@@ -854,9 +854,9 @@ function setConfirmationTimeout(result) {
 }
 
 async function confirmation() {
-    let regConfCodeEl = C("#reg-confirmation-code"),
+    let regConfCodeEl      = C("#reg-confirmation-code"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        confButtonEl = C("#confirmation_button");
+        confButtonEl       = C("#confirmation_button");
 
     if (regConfCodeEl.val().length < 4) {
         regConfCodeEl.el.scrollIntoView();
@@ -917,7 +917,7 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl = C("#reset-phone-mask"),
+    let resetPhoneEl    = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
 
     if (resetPhoneEl.val().length < 16) {
@@ -932,8 +932,8 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl = C("#reset-phone-mask"),
-        resButtonEl = C("#reset_button").el,
+    let resPhoneEl    = C("#reset-phone-mask"),
+        resButtonEl   = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
@@ -946,8 +946,9 @@ async function getResetConfirmationCode() {
         if (result.status) {
             show("#reset_confirmation");
             resConfInfoEl.text(result.description);
-            if (result.data.seconds_left)
+            if (result.data.seconds_left) {
                 restartResetConfirmationTimer(result.data.seconds_left);
+            }
         } else {
             resButtonEl.disabled = false;
             promiseTimeout(() => {
@@ -984,10 +985,10 @@ function restartResetConfirmationTimer(seconds) {
 }
 
 async function checkResetConfirmationCode() {
-    let resPhoneEl = C("#reset-phone"),
+    let resPhoneEl    = C("#reset-phone"),
         resConfCodeEl = C("#reset_confirmation_code"),
         resPhonePopEl = C("#reset-phone-popup"),
-        resConfButEl = C("#reset_confirmation_button");
+        resConfButEl  = C("#reset_confirmation_button");
 
     if (resPhoneEl.val().length < 16) {
         resPhoneEl.el.scrollIntoView();

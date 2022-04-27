@@ -294,7 +294,7 @@ class LMX {
 
             $methodResult = $this->SAPI_UsersCards($personId);
             if ($debug) $result["debug"] = $methodResult["data"];
-            if ($methodResult["status"] && is_object($methodResult["data"]) && $methodResult["data"]->result->state == "Success") {
+            if ($methodResult["status"] && array_key_exists("data", $methodResult) && is_object($methodResult["data"]) && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data)) {
                     $result["status"] = true;
                     $result["data"] = $methodResult["data"]->data;

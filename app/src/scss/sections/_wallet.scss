@@ -195,6 +195,10 @@ a[data-click="openBalanceView"] {
         margin: 5rem 1rem;
         padding: 1rem;
         min-height: 85vh;
+        
+        button {
+            margin-top: 3rem;
+        }
     }
 }
 
@@ -275,7 +279,7 @@ a[data-click="openBalanceView"] {
 }
 
 .bad {
-    color: #9E4E52;
+    color: #f44336;
     font-weight: 600;
     
     span {
@@ -389,6 +393,26 @@ a[data-click="openBalanceView"] {
     }
 }
 
+.blinking {
+    position: relative;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-name: a-blinking;
+    
+}
+  
+@keyframes a-blinking {
+    0% {
+        color: red;
+    }
+    50% {
+        color: maroon;
+    }
+    100% {
+        color: red;
+    }
+}
+
 .pouring {
     position: relative;
     background: white;
@@ -406,7 +430,7 @@ a[data-click="openBalanceView"] {
     background-image: repeating-linear-gradient(-45deg, transparent, transparent 1em, #e55a5a 1em, #af1616 50%), repeating-linear-gradient(45deg, #af1616, #af1616 1em, #fff 1em, #e7c0c0 50%);
     background-size: 3em 3em, 2em 2em;
     animation-name: ani;
-    animation-duration: 10s;
+    animation-duration: 2s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-direction: alternate;

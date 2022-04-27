@@ -22,6 +22,20 @@ function drawWallet(walletData) {
         hide("#wallet-loader");
         show("#wallet-data");
         
+        if (walletData.lifeTimes && walletData.lifeTimes.length > 0) {
+            let listBurns = walletData.lifeTimes,
+                sumBurns  = 0;
+
+            listBurns.forEach((ob) => {
+                sumBurns += ob.amount;
+            });
+
+            C(".nearBurn span").text(Math.abs(sumBurns/100));
+            C(".nearBurn").el.style.display = "block";
+        } else {
+            C(".nearBurn").el.style.display = "none";
+        }
+        
         if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
             cardEl.text(walletData.cardNumber);
             
@@ -91,18 +105,6 @@ function drawWallet(walletData) {
                 }, 1000);
             }
             
-            if (walletData.lifeTimes) {
-                let listBurns = walletData.lifeTimes,
-                    sumBurns  = 0;
-            
-                listBurns.forEach((ob) => {
-                    sumBurns += ob.amount;
-                });
-                
-                C(".nearBurn span").text(Math.abs(sumBurns/100));
-                C(".nearBurn").el.style.display = "block";
-            }
-            
             let activation = 0;
 
             if (walletData.activation !== undefined) {
@@ -129,28 +131,6 @@ function drawWallet(walletData) {
                 C(".balance-view").el.append(blockBalanceEl.el);
             }
             C("#currentBalance").html(Math.trunc((balance - activation)));
-            
-            if (walletData.life_times !== undefined) {
-                //document.querySelector(".wallet__balanceDetail").style.display = "block";
-                show(".wallet__balanceDetail");
-
-                walletData.life_times.forEach((el) => {
-                    const blockBalanceEl = C().create("div"),
-                          dateField      = C().create("span"),
-                          amountField    = C().create("span"),
-                          bonusField     = C().create("span");
-                    
-                    dateField.text(new Date(el.date).toLocaleString('ru-Ru').replace(", ", "\r\n"));
-                    amountField.text((el.amount > 0 ? "+" : "") + Math.trunc(el.amount));
-                    bonusField.text(" бонусов (" + (el.amount > 0 ? "активация" : "списание") + ")");
-                    
-                    blockBalanceEl.el.append(dateField.el);
-                    amountField.el.append(bonusField.el);
-                    blockBalanceEl.el.append(amountField.el);
-
-                    C(".balance-view").el.append(blockBalanceEl.el);
-                });
-            }
         } else {
             bonusEl.text("Не удалось загрузить с сервера.");
         }
@@ -172,7 +152,7 @@ function drawPurchases(purchases, transactions) {
                    operation_date: el.date, 
                    store_title: el.description,
                    store_description: el.type,
-                   cashback_amount: el.amount,
+                   cashback_amount: Math.trunc(el.amount/100),
                    date: new Date(el.date) });
         return acc;
     }, []);
@@ -298,7 +278,8 @@ function drawPurchase(purchase) {
                         <span>Скидка</span>
                         <span>Начислено</span>
                     </div>
-                    ${tempPositions}`;
+                    ${tempPositions}
+                    <center><button onClick="closePositions()">Закрыть</button></center>`;
         }
         
     let typeTrans = type.name==="Покупка" ? "purch" : "trans";
@@ -309,7 +290,7 @@ function drawPurchase(purchase) {
                         <span>&nbsp;</span>
                         ${disablePurchase}
                     </div>
-                    <div>
+                    <div class="purchase__row">
                         <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> <span class="${type.icon} b">${type.name}</span></span>
                         <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
                         <span class="${(cashback > 0 ? "good" : "bad")}">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
@@ -320,7 +301,7 @@ function drawPurchase(purchase) {
     C("#transactions").el.prepend(elList);
     
     if (purchase.positions) {
-        C(".type", elList).el.addEventListener("click", () => fillOverlay(tempOld));
+        C(".purchase__row", elList).el.addEventListener("click", () => fillOverlay(tempOld));
     }
 }
 
