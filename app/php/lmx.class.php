@@ -263,12 +263,13 @@ class LMX {
         return $result;
     }
 
-    public function getBalanceNew($personId) {
+    public function getBalanceNew($personId, $debug = false) {
         $result = $this->initSAPIToken();
         if ($result["status"]) {
             $result = ["status" => false, "description" => ""];
 
             $methodResult = $this->SAPI_Balance($personId);
+            if ($debug) $result["debug"] = $methodResult;
             if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data)) {
                     $result["status"] = true;
