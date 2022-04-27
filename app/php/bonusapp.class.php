@@ -594,19 +594,6 @@ class BonusApp {
 
         echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
-
-    private function checkDuplicateNews($id) {
-        $query = $this->pdo->prepare("SELECT 
-                                        count(`ext_id`)
-                                    FROM 
-                                        `news` 
-                                    WHERE ( `ext_id` = :ext_id );");
-        $query->execute(['ext_id' => $id]);
-        
-        $count = $query->fetchColumn();
-        
-        return (bool) $count;
-    }
     
     private function sendNewsToServer() {
         $result = FALSE;
@@ -616,30 +603,18 @@ class BonusApp {
             return $result;
         }
         
-        if ($this->checkDuplicateNews($data["id"])) {
-            return $result;
-        }
-        
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
-        $name       = date("dmy") . $data["id"] . '.jpg';
+        $name       = date("dmy") . rand(1, 100) . '.jpg';
         $uploadfile = $uploaddir . $name;
 
         if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-            //$tmpArr = explode("\r\n", $data["desc"]);
-            $text   = $data["desc"];
-
-            if ((bool) $data["small"]) {
-                $text .= "<p><small>" . $data["small"] . "</small></p>";
-            }
-
-            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, ext_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
             $query->execute([
                             date("Y-m-d"), 
                             $data["date"], 
                             $data["title"], 
                             "app/assets/news/" . $name, 
-                            $text, 
-                            $data["id"]
+                            $data["desc"]
                     ]);
 
             if ($this->pdo->lastInsertId() > 0) {

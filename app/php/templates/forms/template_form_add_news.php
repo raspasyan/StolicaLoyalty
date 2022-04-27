@@ -77,33 +77,24 @@
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
             <div>
-                <input id="id" type="text" name="id" value="" required/>
-                <label for="id">Номер новости</label>
-            </div>
-            <div>
                 <input id="title" type="text" name="title" value="" required/>
                 <label for="title">Название</label>
             </div>
             <div>
                 <textarea id="desc" name="desc"></textarea>
-                <label for="desc">Текст</label>
-             </div>
-            <div>
-               <textarea id="small" name="small"></textarea>
-                <label for="small">Маленький текст(со звездочкой)</label>
-             </div>
+            </div>
             <div>
                <input id="date" type="date" name="date" value="" required/>
                 <label for="date">Дата публикации:</label>
-             </div>
+            </div>
             <div class="file">
                <input id="img" type="file" name="img" value="" required/>
                 <label for="img">Картинка:</label>
-             </div>
+            </div>
             <div>
                <input id="key" type="text" name="key" value="" required/>
                 <label for="key">Ключ</label>
-             </div>
+            </div>
             <button type="submit" style="margin-top:5rem;">Отправить</button>
         </form>
     </div>
@@ -116,10 +107,10 @@
     </script>
     <script>
         let d = document;
-        d.querySelectorAll("input, textarea").forEach((el) => {
-            let clas  = "active" + el.tagName,
+        d.querySelectorAll("input").forEach((el) => {
+            let clas  = "activeINPUT",
                 label = d.querySelector("[for=" + el.id + "]").classList,
-                exc   = ["date", "img", "desc"];
+                exc   = ["date", "img"];
             
             if (!exc.includes(el.id)) {
                 el.addEventListener("focus", () => label.add(clas));
