@@ -1635,16 +1635,16 @@ class BonusApp {
 
     private function getUpdates($phone, $options = null) {
         // Подгрузим новости, магазины, профиль, номер карты и баланс
-        if (!$options) {
-            $options = [
-                 "personalHash"       => "",
-                 "walletHash"         => "",
-                 "storesHash"         => "",
-                 "lastNews"           => "",
-                 "lastPurchase"       => "",
-                 "lastTransaction"    => ""
-            ];
-        }
+        /*
+        $options = [
+             "personalHash"       => "",
+             "walletHash"         => "",
+             "storesHash"         => "",
+             "lastNews"           => "",
+             "lastPurchase"       => "",
+             "lastTransaction"    => ""
+        ];
+        */
 
         $result = [
             "status" => true,
@@ -1710,6 +1710,9 @@ class BonusApp {
                 }
 
                 // Подгрузка транзакций
+                if (!array_key_exists("lastTransaction", $options)) {
+                    $options["lastTransaction"] = NULL;
+                }
                 $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }

@@ -294,7 +294,7 @@ class LMX {
 
             $methodResult = $this->SAPI_UsersCards($personId);
             if ($debug) $result["debug"] = $methodResult["data"];
-            if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
+            if ($methodResult["status"] && is_object($methodResult["data"]) && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data)) {
                     $result["status"] = true;
                     $result["data"] = $methodResult["data"]->data;
@@ -1181,7 +1181,12 @@ class LMX {
     }
 
     private function SAPI_UsersCards($personId, $cardShowMode = "active") {
-        $result = $this->SAPI_CheckToken();
+        if ($personId && $personId !=="") {
+            $result = $this->SAPI_CheckToken();
+        } else {
+            $result["status"] = false;
+        }
+        
         if ($result["status"]) {
             $url = LMX_HOST . "/systemapi/api/Users/" . $personId . "/Cards?cardShowMode=" . $cardShowMode;
             $options = array(
