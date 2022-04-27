@@ -464,7 +464,13 @@ async function drawSection(section) {
     if (!section) {
         section = "adult";
     }
-
+    
+    if (section === "wallet") {
+        C("main.main").addclass("noback");
+    } else {
+        C("main.main").delclass("noback");
+    }
+    
     switch (section) {
         default: {
             break;
