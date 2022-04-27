@@ -332,7 +332,8 @@ function openNearBurning() {
         
         burnHtml = `<h4><center>Ближайшие сгорания</center></h4>
                         <div class="close-positions"><i class="icon-cancel" onClick="closePositions()"></i></div>
-                        ${burnListHtml}`;
+                        ${burnListHtml}
+                    <center><button onClick="closePositions()">Закрыть</button></center>`;
         
         fillOverlay(burnHtml);
     }
