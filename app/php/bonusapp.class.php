@@ -673,7 +673,7 @@ class BonusApp {
         $result = ["status" => false, "description" => ""];
         
         if ($id > 0) {
-            $query = $this->pdo->prepare("UPDATE transactions SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query = $this->pdo->prepare("UPDATE transactions SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
             $query->execute([$id['id'], $data['personId']]);
             $result["status"] = true;
        }
@@ -685,7 +685,7 @@ class BonusApp {
         $result = ["status" => false, "description" => ""];
         
         if ($id > 0) {
-            $query = $this->pdo->prepare("UPDATE purchases SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query = $this->pdo->prepare("UPDATE purchases SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
             $query->execute([$id['id'], $data['personId']]);
             $result["status"] = true;
        }
@@ -2808,7 +2808,7 @@ class BonusApp {
             WHERE
                 profile_ext_id = ?
                 AND date > ?
-                AND isActive = 1
+                AND is_active = 1
             ORDER BY
                 date DESC
             LIMIT ?
@@ -2836,7 +2836,7 @@ class BonusApp {
                 transactions
             WHERE
                 profile_ext_id = ?
-                AND isActive = 1
+                AND is_active = 1
             ORDER BY
                 date DESC
             LIMIT 1
@@ -2997,7 +2997,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                profile_ext_id = ? AND sale_time > ? AND isActive = 1
+                profile_ext_id = ? AND sale_time > ? AND is_active = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
@@ -3112,7 +3112,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                purchases.profile_ext_id = ? AND isActive = 1
+                purchases.profile_ext_id = ? AND is_active = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
