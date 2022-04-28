@@ -44,14 +44,14 @@
         }
         
         &>span:nth-child(2) {
-            color: #4062b7;
+            color: #4063b7;
             font-weight: 600;
         }
         
         &>span:nth-child(3) {
             font-size: 1.45rem;
             letter-spacing: .05rem;
-            color: #4062b7;
+            color: #4063b7;
             font-weight: 600;
             text-transform: uppercase;
         }
@@ -154,6 +154,15 @@
                         }
                         &.basket {
                             top: 3px;
+                            
+                            &:after {
+                                border: 5px solid transparent;
+                                border-top: 6px solid #222;
+                                content: "";
+                                top: 13px;
+                                position: relative;
+                                right: -4px;
+                            }
                         }
                         &.gift {
                             top: 3px;
@@ -189,12 +198,10 @@ a[data-click="openBalanceView"] {
     overflow: auto;
     
     .positionOverlay__cont {
-        //box-shadow: rgb(0 0 0 / 20%) 0px 0px 3px;
         background-color: #fff;
-        overflow: auto;
         margin: 5rem 1rem;
         padding: 1rem;
-        min-height: 85vh;
+        min-height: 80vh;
         
         button {
             margin-top: 3rem;
@@ -279,7 +286,7 @@ a[data-click="openBalanceView"] {
 }
 
 .bad {
-    color: #f44336;
+    color: #e31e24;
     font-weight: 600;
     
     span {
@@ -288,7 +295,7 @@ a[data-click="openBalanceView"] {
 }
 
 .good {
-    color: #28a960;
+    color: #309960;
     font-weight: 600;
     
     span {
@@ -329,6 +336,19 @@ a[data-click="openBalanceView"] {
     /* margin: 1rem 0; */
     padding: 0.5rem 0;
     justify-items: center;
+    
+    &.important {
+        &>span:nth-child(1) {
+            justify-self: left;
+        }
+        
+        &>span:nth-child(2) {
+        }
+        
+        &>span:nth-child(3) {
+            justify-self: right;
+        }
+    }
 }
 
 .payment-row {
@@ -360,8 +380,14 @@ a[data-click="openBalanceView"] {
             text-align: right;
             position: relative;
             padding-bottom: 4px;
-            top: -19px;
+            top: -10px;
             border-bottom: 1px solid #D5D5D5;
+            
+            i {
+                position: absolute;
+                right: 10px;
+                top: -83px;
+            }
         }
     }    
 }
@@ -370,6 +396,10 @@ a[data-click="openBalanceView"] {
     grid-template-columns: 2fr 8fr;
     font-size: 1.25rem;
     margin: 2rem 0;
+    
+    &>span:nth-child(2){
+        float: right;
+    }
 }
 
 .neutral {

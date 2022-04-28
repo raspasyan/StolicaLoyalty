@@ -1,8 +1,12 @@
-/* global C, d, SOURCE */
+/* global C, d, SOURCE, Intl */
 
 const cardImageW = 512,
       cardImageH = 328,
       cardImageSRC = "app/assets/backs/card_back.jpg";
+
+function yana(val) {
+    return new Intl.NumberFormat('ru-RU').format(Math.trunc(val));
+}
 
 function drawWallet(walletData) {
     if (!permitRedrawSection('wallet')) {
@@ -29,11 +33,13 @@ function drawWallet(walletData) {
                 sumBurns  = 0;
 
             listBurns.forEach((ob) => {
-                sumBurns += ob.amount;
+                if (ob.amount < 0) {
+                    sumBurns += ob.amount;
+                }
             });
             
-            if (sumBurns > 0) {
-                C(".nearBurn span").text(Math.abs(sumBurns/100));
+            if (sumBurns < 0) {
+                C(".nearBurn span").text(yana(Math.abs(sumBurns/100)));
                 C(".nearBurn").el.style.display = "block";
             }
         }
@@ -99,11 +105,11 @@ function drawWallet(walletData) {
                 
                 for (let i = 1; i < 101; i=i+3) {
                     promiseTimeout(() => {
-                        bonusEl.text(Math.trunc(balance * (i/100)));
+                        bonusEl.text(yana(balance * (i/100)));
                     }, (10*i));
                 }
                 promiseTimeout(() => {
-                    bonusEl.text(Math.trunc(balance));
+                    bonusEl.text(yana(balance));
                 }, 1000);
             }
             
@@ -118,7 +124,7 @@ function drawWallet(walletData) {
                 
                 //document.querySelector(".wallet__balanceDetail").style.display = "block";
                 show(".wallet__balanceDetail");
-                activation = Math.trunc(walletData.activation);
+                activation = walletData.activation;
                 
                 today.setDate(today.getDate()+1);
                                 
@@ -132,7 +138,7 @@ function drawWallet(walletData) {
 
                 C(".balance-view").el.append(blockBalanceEl.el);
             }
-            C("#currentBalance").html(Math.trunc((balance - activation)));
+            C("#currentBalance").html(yana((balance - activation)));
         } else {
             bonusEl.text("Не удалось загрузить с сервера.");
         }
@@ -154,7 +160,7 @@ function drawPurchases(purchases, transactions) {
                    operation_date: el.date, 
                    store_title: el.description,
                    store_description: el.type,
-                   cashback_amount: Math.trunc(el.amount/100),
+                   cashback_amount: (el.amount/100),
                    date: new Date(el.date) });
         return acc;
     }, []);
@@ -179,19 +185,11 @@ function drawPurchases(purchases, transactions) {
 
 async function disablePurchase(id, type) {
     showPopup('','', 'Вы уверены, что хотите скрыть чек? <p><small>Для того, чтобы вернуть чек напишите в <a href="#" onClick="showFeedback();return false;">службу технической поддержки</a>.</small></p>', ["Да","Нет"], async () => {
-        let result;
-        
-        if (type==="purch") {
-            result = await api("disablePurchase", {
-                                id
-                            });
-        }else{
-            result = await api("disableTransaction", {
-                                id
-                            });
-        }
-
-        let purEl = C("div[data-purchase-id='" + id + "']").el;
+        let api    = (type==="purch") ? "disablePurchase" : "disableTransaction";
+            
+        let result = await api("disableTransaction", {id});
+        let purEl  = C("div[data-purchase-id='" + id + "']").el;
+            
         purEl.classList.remove("animated", "animate__fadeIn");
         purEl.classList.add("animated", "animate__fadeOut");
         promiseTimeout(() => {
@@ -203,38 +201,39 @@ async function disablePurchase(id, type) {
 }
 
 function drawPurchase(purchase) {
-    const totalDisc = Math.trunc(Math.abs(purchase.discount_amount) + Math.abs(purchase.payment_amount)),
-          cashback  = Math.trunc(purchase.cashback_amount),
-          amount    = Math.trunc(purchase.payment_amount),
+    const {discount_amount, payment_amount, cashback_amount} = purchase;
+    const totalDisc = (discount_amount || payment_amount) ? "-" + yana(Math.abs(discount_amount) + Math.abs(payment_amount)) : "",
+          cashback  = (cashback_amount > 0) ? "+" + yana(cashback_amount) : yana(cashback_amount),
+          amount    = payment_amount ? yana(payment_amount) : "",
           onlyDate  = purchase.operation_date.substr(0, 10).split("-").reverse().join("."),
           refund    = (!purchase.operation_type) ? '<span class="bad" style="font-size: 12px;text-align: right;">чек возврата</span>' : '',
-          linkStore = (purchase.store_title && purchase.store_description) ? '<span class="ymaps-geolink" data-description="' + purchase.store_description + '">' + purchase.store_title + '</span>' : '<span>' + purchase.store_title + '</span>';
+          linkStore = '<span>' + purchase.store_title + '</span>';
     let tempPositions = '',
-        tempOld = '';
-    
+        tempOld       = '';
+
     if (purchase.positions && purchase.positions.length) {
 
         purchase.positions.forEach((position) => {
-            let posCashAmount = Math.trunc(position.cashback_amount),
-                counter       = "_";
+            const {cashback_amount, count, cost, product_title, discount_amount, payment_amount} = position;
+            let counter = "_";
                 
-            if (position.count) {
-                let tmpCounter = position.count.split(".");
-                counter = tmpCounter[1] > 0 ? position.count : tmpCounter[0];
+            if (count) {
+                let tmpCounter = count.split(".");
+                counter = tmpCounter[1] > 0 ? count : tmpCounter[0];
             }
             
             tempPositions += `<div class="payment-details payment-details-full">
                                 <span>
-                                    ${(position.product_title ? position.product_title : "Загрузка..")}
+                                    ${(product_title ? product_title : "Загрузка..")}
                                 </span>
                                 <span>
                                     x ${counter} шт
                                 </span>
                             </div>
                             <div class="payment-details important">
-                                <span class="b">${Math.trunc(position.cost)} руб</span>
-                                <span class="bad b">${((position.discount_amount) ? (Math.trunc(position.discount_amount * -1) + " руб") : (Math.trunc(position.payment_amount) + " бонусов"))}</span>
-                                <span class="good b">${(posCashAmount > 0 ? "+" : "")}${posCashAmount} Б</span>
+                                <span class="b">${yana(cost)} руб</span>
+                                <span class="bad b">${(discount_amount ? (yana(discount_amount * -1) + " руб") : (yana(payment_amount) + " бонусов"))}</span>
+                                <span class="good b">${(cashback_amount > 0 ? "+" : "")}${yana(cashback_amount)} Б</span>
                             </div>`;
         });
     }
@@ -258,16 +257,16 @@ function drawPurchase(purchase) {
                     </div>
                     <div class="payment-row">
                         <span>Всего скидка: </span>
-                        <span class="bad">${(totalDisc ? "-" : "")}${totalDisc} <span>Р</span></span>
+                        <span class="bad">${totalDisc} <span>Р</span></span>
                         ${refund}
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount" style="margin-left: 20px;">из них бонусами: </span>
-                        <span class="bad">${amount} <span>Б</span></span>
+                        <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount">Начислено бонусов: </span>
-                        <span class="good">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
+                        <span class="good">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
                     </div>
                     <div class="payment-row-store">
                         <span class="payment-amount">Магазин: </span>
@@ -275,7 +274,7 @@ function drawPurchase(purchase) {
                             ${linkStore}
                         </span>
                     </div>
-                    <div class="payment-details">
+                    <div class="payment-details important">
                         <span>Оплачено</span>
                         <span>Скидка</span>
                         <span>Начислено</span>
@@ -295,7 +294,7 @@ function drawPurchase(purchase) {
                     <div class="purchase__row">
                         <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> <span class="${type.icon} b">${type.name}</span></span>
                         <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
-                        <span class="${(cashback > 0 ? "good" : "bad")}">${(cashback > 0 ? "+" : "")}${cashback} <span>Б</span></span>
+                        <span class="${(cashback_amount > 0 ? "good" : "bad")}">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
                     </div>
                 </div>`;
     
@@ -330,7 +329,7 @@ function openNearBurning() {
                                     <span>Дата сгорания:</span>
                                     <span class="bad">${date}</span>
                                 </div>
-                                <div class="payment-row-amount bad">${amount} <span>Б</span></div>`;
+                                <div class="payment-row-amount bad">${yana(amount)} <span>Б</span></div>`;
             }
         });
         
