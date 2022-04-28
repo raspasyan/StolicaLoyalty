@@ -22,6 +22,8 @@ function drawWallet(walletData) {
         hide("#wallet-loader");
         show("#wallet-data");
         
+        C(".nearBurn").el.style.display = "none";
+        
         if (walletData.lifeTimes && walletData.lifeTimes.length > 0) {
             let listBurns = walletData.lifeTimes,
                 sumBurns  = 0;
@@ -29,11 +31,11 @@ function drawWallet(walletData) {
             listBurns.forEach((ob) => {
                 sumBurns += ob.amount;
             });
-
-            C(".nearBurn span").text(Math.abs(sumBurns/100));
-            C(".nearBurn").el.style.display = "block";
-        } else {
-            C(".nearBurn").el.style.display = "none";
+            
+            if (sumBurns > 0) {
+                C(".nearBurn span").text(Math.abs(sumBurns/100));
+                C(".nearBurn").el.style.display = "block";
+            }
         }
         
         if (walletData.cardNumber && cardEl.text !== walletData.cardNumber) {
@@ -323,11 +325,13 @@ function openNearBurning() {
         burnList.forEach((ob) => {
             const date   = ob.date.split("T")[0].split("-").reverse().join("."),
                   amount = ob.amount / 100;
-            burnListHtml += `<div class="payment-burn">
-                                <span>Дата сгорания:</span>
-                                <span class="bad">${date}</span>
-                            </div>
-                            <div class="payment-row-amount bad">${amount} <span>Б</span></div>`;
+            if (amount < 0) {
+                burnListHtml += `<div class="payment-burn">
+                                    <span>Дата сгорания:</span>
+                                    <span class="bad">${date}</span>
+                                </div>
+                                <div class="payment-row-amount bad">${amount} <span>Б</span></div>`;
+            }
         });
         
         burnHtml = `<h4><center>Ближайшие сгорания</center></h4>
