@@ -245,7 +245,7 @@ function drawPurchase(purchase) {
                                     x ${counter} шт
                                 </span>
                             </div>
-                            <div class="payment-details important">
+                            <div class="payment-details import">
                                 <span class="b">${yana(cost)} руб</span>
                                 <span class="bad b">${discount}</span>
                                 <span class="good b">${yana(cashback_amount, "+")} Б</span>
@@ -311,7 +311,7 @@ function drawPurchase(purchase) {
                         ${disablePurchase}
                     </div>
                     <div class="purchase__row">
-                        <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> <span class="${type.icon} b">${type.name}</span></span>
+                        <span class="type"><span class="ring"><i class="icon-${type.icon}"></i></span> <span class="${type.icon}">${type.name}</span></span>
                         <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
                         <span class="${(cashback_amount > 0 ? "good" : "bad")}">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
                     </div>

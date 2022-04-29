@@ -11,7 +11,7 @@ async function updatePersonalData() {
         }
 
         if (data.birthdate) {
-            const date = new Date((data.birthdate).replace(new RegExp("-", 'g'), "/"));
+            let date = new Date((data.birthdate).replace(new RegExp("-", 'g'), "/"));
 
             const options = {
                 year: 'numeric',
@@ -19,8 +19,14 @@ async function updatePersonalData() {
                 day: 'numeric',
                 timezone: 'UTC'
             };
-
-            C("#personal_birthdate").text(date.toLocaleString("ru", options));
+            
+            if (date != "Invalid Date") {
+                date = date.toLocaleString("ru", options);
+            } else {
+                date = "&nbsp;";
+            }
+            
+            C("#personal_birthdate").html(date);
         }
 
         if (data.phone) {
@@ -51,7 +57,7 @@ function drawPersonal(personal) {
     }
 
     if (personal.birthdate) {
-        const date = new Date((personal.birthdate).replace(new RegExp("-", 'g'), "/"));
+        let date = new Date((personal.birthdate).replace(new RegExp("-", 'g'), "/"));
 
         const options = {
             year: 'numeric',
@@ -60,7 +66,13 @@ function drawPersonal(personal) {
             timezone: 'UTC'
         };
 
-        C("#personal_birthdate").text(date.toLocaleString("ru", options));
+        if (date != "Invalid Date") {
+            date = date.toLocaleString("ru", options);
+        } else {
+            date = "&nbsp;";
+        }
+        
+        C("#personal_birthdate").html(date);
     }
 
     if (personal.phone) {
