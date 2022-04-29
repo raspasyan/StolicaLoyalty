@@ -20,9 +20,13 @@ class BonusApp {
     }
 
     function setCORS() {
-        $http_origin = $_SERVER['HTTP_ORIGIN'];
-        if (isset($http_origin))
-            header("Access-Control-Allow-Origin: $http_origin");
+        if (array_key_exists("HTTP_ORIGIN", $_SERVER)) {
+            $http_origin = $_SERVER['HTTP_ORIGIN'];
+            
+            if (isset($http_origin)) {
+                header("Access-Control-Allow-Origin: $http_origin");
+            }
+        }
         header('Access-Control-Allow-Methods: POST');
         header("Access-Control-Allow-Headers: X-Requested-With");
         header('Access-Control-Allow-Credentials: true');
@@ -328,6 +332,14 @@ class BonusApp {
                 case "checkAuthorization": {
                     $resultData = $this->checkAuthorization();
                     
+                    break;
+                }
+                
+                case "disableTransaction": {
+                    $resultData = $this->checkAuthorization($requestData["method"]);
+                    if ($resultData["status"]) {
+                        $resultData = $this->API_disableTransaction($resultData["data"], $requestData["data"]);
+                    }
                     break;
                 }
                 
@@ -657,11 +669,23 @@ class BonusApp {
         return $resultData;
     }
     
+    private function API_disableTransaction($data, $id) {
+        $result = ["status" => false, "description" => ""];
+        
+        if ($id > 0) {
+            $query = $this->pdo->prepare("UPDATE transactions SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query->execute([$id['id'], $data['personId']]);
+            $result["status"] = true;
+       }
+        
+        return $result;
+    }
+
     private function API_disablePurchase($data, $id) {
         $result = ["status" => false, "description" => ""];
         
         if ($id > 0) {
-            $query = $this->pdo->prepare("UPDATE purchases SET isActive = 0 WHERE (id = ? AND profile_ext_id = ?);");
+            $query = $this->pdo->prepare("UPDATE purchases SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
             $query->execute([$id['id'], $data['personId']]);
             $result["status"] = true;
        }
@@ -1611,14 +1635,16 @@ class BonusApp {
 
     private function getUpdates($phone, $options = null) {
         // Подгрузим новости, магазины, профиль, номер карты и баланс
-        // $options = [
-        //     "personalHash"       => "",
-        //     "walletHash"         => "",
-        //     "storesHash"         => "",
-        //     "lastNews"           => "",
-        //     "lastPurchase"       => "",
-        //     "lastTransaction"    => ""
-        // ];
+        /*
+        $options = [
+             "personalHash"       => "",
+             "walletHash"         => "",
+             "storesHash"         => "",
+             "lastNews"           => "",
+             "lastPurchase"       => "",
+             "lastTransaction"    => ""
+        ];
+        */
 
         $result = [
             "status" => true,
@@ -1651,7 +1677,7 @@ class BonusApp {
                 "email"                 => $fullAccountData["data"]["email"],
                 "city"                  => $fullAccountData["data"]["city"],
             ];
-            $personalHash = hash("md5" ,implode("", $personal));
+            $personalHash = hash("md5" ,json_encode($personal));
             if ($options["personalHash"] != $personalHash) {
                 $result["data"]["personal"] = $personal;
                 $result["data"]["personalHash"] = $personalHash;
@@ -1668,7 +1694,7 @@ class BonusApp {
                 "preferredDiscount"     => $fullAccountData["data"]["preferred_discount"],
                 
             ];
-            $walletHash = hash("md5", implode("", $wallet));
+            $walletHash = hash("md5", json_encode($wallet));
             if ($options["walletHash"] != $walletHash) {
                 $result["data"]["wallet"] = $wallet;
                 $result["data"]["walletHash"] = $walletHash;
@@ -1684,6 +1710,9 @@ class BonusApp {
                 }
 
                 // Подгрузка транзакций
+                if (!array_key_exists("lastTransaction", $options)) {
+                    $options["lastTransaction"] = NULL;
+                }
                 $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }
@@ -1713,7 +1742,7 @@ class BonusApp {
         $queryResult = $query->fetchAll();
         if (count($queryResult)) {
             $result["status"] = true;
-            $result["data"] = $queryResult;
+            $result["data"]   = $queryResult;
         }
 
         return $result;   
@@ -2155,10 +2184,14 @@ class BonusApp {
         $headersListLowerCase = [];
         foreach ($headersList as $key => $value) $headersListLowerCase[strtolower($key)] = $value;
         if (isset($headersListLowerCase["authorization"])) {
-            $token = explode("Bearer ", $headersListLowerCase["authorization"])[1];
-            if (!empty($token)) {
-                $result["status"] = true;
-                $result["data"] = $token;
+            $tmpToken = explode("Bearer ", $headersListLowerCase["authorization"]);
+            if (array_key_exists("1", $tmpToken)) {
+                $token = $tmpToken[1];
+                
+                if (!empty($token)) {
+                    $result["status"] = true;
+                    $result["data"] = $token;
+                }
             }
         }
 
@@ -2768,6 +2801,7 @@ class BonusApp {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
+                id,
                 date,
                 description,
                 type,
@@ -2777,6 +2811,7 @@ class BonusApp {
             WHERE
                 profile_ext_id = ?
                 AND date > ?
+                AND is_active = 1
             ORDER BY
                 date DESC
             LIMIT ?
@@ -2804,6 +2839,7 @@ class BonusApp {
                 transactions
             WHERE
                 profile_ext_id = ?
+                AND is_active = 1
             ORDER BY
                 date DESC
             LIMIT 1
@@ -2964,7 +3000,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                profile_ext_id = ? AND sale_time > ? AND isActive = 1
+                profile_ext_id = ? AND sale_time > ? AND is_active = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
@@ -2994,6 +3030,7 @@ class BonusApp {
                     IFNULL(products.title, positions.title) AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
+                    ROUND(positions.count / 1000, 1) AS count,
                     CASE
                         WHEN purchases.profile_ext_id IS NULL THEN 0
                         ELSE ROUND(positions.discount_amount / 100, 2)
@@ -3045,6 +3082,7 @@ class BonusApp {
                             "purchase_id"       => $row["id"],
                             "product_title"     => $row["product_title"],
                             "cost"              => $row["cost"],
+                            "count"             => $row["count"],
                             "cashback_amount"   => $row["cashback_amount"],
                             "discount_amount"   => $row["discount_amount"],
                             "payment_amount"    => $row["payment_amount"],
@@ -3077,7 +3115,7 @@ class BonusApp {
             FROM
                 purchases
             WHERE
-                purchases.profile_ext_id = ? AND isActive = 1
+                purchases.profile_ext_id = ? AND is_active = 1
             ORDER BY
                 sale_time DESC
             LIMIT ?
@@ -3106,6 +3144,7 @@ class BonusApp {
                     positions.title AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
+                    ROUND(positions.count / 1000, 1) AS count,
                     CASE
                         WHEN purchases.profile_ext_id IS NULL THEN 0
                         ELSE ROUND(positions.discount_amount / 100, 2)
@@ -3154,6 +3193,7 @@ class BonusApp {
                             "purchase_id"       => $row["id"],
                             "product_title"     => $row["product_title"],
                             "cost"              => $row["cost"],
+                            "count"             => $row["count"],
                             "cashback_amount"   => $row["cashback_amount"],
                             "discount_amount"   => $row["discount_amount"],
                             "payment_amount"    => $row["payment_amount"],

@@ -28,7 +28,7 @@
     
     .wallet__content_data_balance {
         display: block;
-        font-size: 2rem;
+        font-size: 23px;
         margin: 0 auto 50px;
         text-transform: none;
         padding: 0 10px;
@@ -38,9 +38,22 @@
         border: none;
         font-weight: normal;
         
-        #bonuses {
-            color: #4062b7;
+        &>span:nth-child(1) {
+            color: #000;
             font-weight: 600;
+        }
+        
+        &>span:nth-child(2) {
+            color: #4063b7;
+            font-weight: 600;
+        }
+        
+        &>span:nth-child(3) {
+            font-size: 17px;
+            letter-spacing: .05rem;
+            color: #4063b7;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
         .currencyType {
@@ -55,6 +68,32 @@
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 4rem;
+}
+
+.nearBurn {
+    display: none;
+    font-size: 17px;
+    margin-bottom: 0rem;
+    top: -4.5rem;
+    text-decoration: underline;
+    color: #e31e24;
+    
+    &.animated {
+        position: relative;
+    }
+}
+
+.close-positions {
+    text-align: right;
+    margin-bottom: 2rem;
+    
+    i {
+        position: absolute;
+        right: 6px;
+        top: -40px;
+        font-size: 2.5rem;
+        color: #222;
+    }
 }
 
 .wallet__balanceDetail {
@@ -79,6 +118,7 @@
 .transactions_details_button {
     background-color: #4062b7;
     border-color: #4062b7;
+    min-width: 20rem;
         
     &.active {
         background-color: #28a960;
@@ -87,13 +127,7 @@
 }
 
 .wallet__bottom_transactions {
-    margin: 0 2rem;
-    
-    .delete {
-        grid-template-columns: 4fr;
-        text-align: right;
-        margin: 8px;
-    }
+    margin: 5rem 2rem 0 2rem;
     
     summary {
         margin-bottom: 10px;
@@ -103,7 +137,7 @@
     & > div {
         text-align: left;
         margin-bottom: 2rem;
-        border-bottom: 1px solid #D5D5D5;
+        border-top: 1px solid #D5D5D5;
         font-size: 14px;
         max-height: 1000px;
         transition: 0.3s max-height;
@@ -111,13 +145,51 @@
         &.hudden {
             max-height: 0px;
         }
+            
+        & > div:nth-child(2) {
+            margin-top: 1rem;
+        }
         
         & > div {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             
-            &.payment-row-date {
-                grid-template-columns: 1fr 3fr;
+            &>span:nth-child(1) {
+                &.type {
+                    line-height: 0rem;
+                    
+                    &>span:nth-child(2) {
+                        position: relative;
+                        font-size: 17px;
+                        
+                        &.clock {
+                            top: -2px;
+                        }
+                        &.basket {
+                            top: 3px;
+                            
+                            &:after {
+                                border: 5px solid transparent;
+                                border-top: 6px solid #222;
+                                content: "";
+                                top: 13px;
+                                position: relative;
+                                right: -4px;
+                            }
+                        }
+                        &.gift {
+                            top: 3px;
+                        }
+                    }
+                }
+            }
+            
+            &>span:nth-child(2) {
+                text-align:right;
+            }
+            
+            &>span:nth-child(3) {
+                text-align:right;
             }
        }
     }
@@ -126,6 +198,28 @@
 a[data-click="openBalanceView"] {
     top: -1.5em;
     position: relative;
+}
+
+.positionOverlay {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    //background-color: rgba(0, 0, 0, .8);
+    background-color: #fff;
+    z-index: 4;
+    overflow: auto;
+    
+    .positionOverlay__cont {
+        background-color: #fff;
+        margin: 5rem 1rem;
+        padding: 1rem;
+        min-height: 80vh;
+        
+        button {
+            margin-top: 3rem;
+        }
+    }
 }
 
 .balance-view {
@@ -178,25 +272,169 @@ a[data-click="openBalanceView"] {
     }
 }
 
+.ring {
+    border: 1px solid #000;
+    border-radius: 20px;
+    padding: 2px;
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    
+    .icon-gift {
+        top: 2px;
+        position: relative;
+    }
+
+    .icon-basket {
+        top: 3px;
+        position: relative;
+    }
+    
+    .icon-clock {
+        top: 0px;
+        font-size: 2rem;
+        position: relative;
+        left: -4px;
+    }
+}
+
+.purchase__row {
+    .good {
+        font-size: 21px;
+    }
+    
+    .bad {
+        font-size: 21px;
+    }
+}
+
 .bad {
-    color: #9E4E52;
+    color: #e31e24;
     font-weight: 600;
+    
+    span {
+        font-size: 14px;
+    }
 }
 
 .good {
-    color: #28a960;
+    color: #309960;
     font-weight: 600;
+    
+    span {
+        font-size: 11px;
+    }
+}
+
+.payment-burn {
+    display: grid;
+    grid-gap: 2vw;
+    grid-template-columns: 1fr 1fr;
+    
+    span {
+        
+        &:nth-child(2) {
+            text-align: right;
+            font-size: 1.3rem;
+        }
+    }
+}
+
+.payment-row-amount {
+    border-bottom: 1px solid grey;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    
+    &:last-of-type {
+        border: none;
+    }
 }
 
 .payment-details {
     display: grid;
     grid-gap: 2vw;
-    font-size: 13px;
+    font-size: 16px;
     grid-template-columns: 1fr 1fr 1fr;
     /* margin: 1rem 0; */
     padding: 0.5rem 0;
     justify-items: center;
-    border-bottom: 1px solid #D5D5D5;
+    
+    &.import {
+        &>span:nth-child(1) {
+            justify-self: left;
+        }
+        
+        &>span:nth-child(2) {
+        }
+        
+        &>span:nth-child(3) {
+            justify-self: right;
+        }
+    }
+}
+
+.payment-row {
+    display: grid;
+    grid-gap: 2vw;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    
+    .bad {
+        font-size: 22px;
+    }
+    
+    .good {
+        font-size: 22px;
+    }
+    
+    span {
+        font-size: 16px;
+        
+        &:nth-child(2) {
+            text-align: right;
+        }
+    }
+}
+
+.payment-row-date {
+    display: grid;
+    grid-gap: 2vw;
+    grid-template-columns: 2fr 8fr;
+    
+    span {
+        color: #808080;
+        
+        &:nth-child(1) {
+            font-size: 1.25rem;
+        }
+        
+        &:nth-child(2) {
+            text-align: right;
+            position: relative;
+            padding-bottom: 4px;
+            top: -10px;
+            border-bottom: 1px solid #D5D5D5;
+            
+            i {
+                position: absolute;
+                right: 0px;
+                top: -90px;
+                font-size: 2.5rem;
+                color: #222;
+            }
+        }
+    }    
+}
+
+.payment-row-store {
+    grid-template-columns: 2fr 8fr;
+    font-size: 16px;
+    margin: 2rem 0;
+    
+    &>span:nth-child(2){
+        float: right;
+    }
 }
 
 .neutral {
@@ -208,8 +446,69 @@ a[data-click="openBalanceView"] {
 }
 
 .payment-details-full {
-    grid-template-columns: 1fr;
+    grid-template-columns: 6fr 1fr;
     justify-items: left;
+    border-top: 1px solid #D5D5D5;
+    
+    span {
+        
+        &:nth-child(2) {
+            text-align: right;
+            justify-self: right;
+        }
+    }
+}
+
+.blinking {
+    position: relative;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-name: a-blinking;
+    
+}
+  
+@keyframes a-blinking {
+    0% {
+        color: red;
+    }
+    50% {
+        color: maroon;
+    }
+    100% {
+        color: red;
+    }
+}
+
+.pouring {
+    position: relative;
+    background: white;
+    overflow: hidden;
+}
+.pouring:before {
+    content: '';
+    position: absolute;
+    filter: blur(10px);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: screen;
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 1em, #e55a5a 1em, #af1616 50%), repeating-linear-gradient(45deg, #af1616, #af1616 1em, #fff 1em, #e7c0c0 50%);
+    background-size: 3em 3em, 2em 2em;
+    animation-name: ani;
+    animation-duration: 2s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes ani {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 100% 0;
+    }
 }
 
 @media(max-width: 359px){

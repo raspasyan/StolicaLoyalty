@@ -6,6 +6,10 @@
     width: inherit;
     min-height: 100vh;
     
+    &.noback {
+        background: none;
+    }
+    
     & > div {
         text-align: center;
         overflow-x: hidden;

@@ -87,21 +87,32 @@ const sections = {
         }
     };
 
-let currentSection = "",
-    bearerToken = "",
+let currentSection      = "",
+    bearerToken         = "",
     userActivityTimeout = null,
-    initApp = true,
-    tempUpdate = {
-        personalHash:    "",
-        walletHash:      "",
-        storesHash:      "",
-        lastNews:        "",
-        lastPurchase:    "",
-        lastTransaction: ""
-    };
+    initApp             = true,
+    clientInfo          = "Сайт",
+    tempUpdate          = {
+                            personalHash:    "",
+                            walletHash:      "",
+                            storesHash:      "",
+                            lastNews:        "",
+                            lastPurchase:    "",
+                            lastTransaction: ""
+                        };
 
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("deviceready", function() {
+      switch (device.platform) {
+        case "Android":
+          clientInfo = "Android v" + SOURCE;
+          break;
+        case "iOS":
+          clientInfo = "iOS v" + SOURCE;
+          break;
+      }
+    });
     /*
      if ('serviceWorker' in navigator) {
      window.addEventListener('load', () => {
@@ -258,10 +269,10 @@ d.addEventListener("DOMContentLoaded", () => {
         list.toggle("hidden");
 
         if (list.contains("hidden")) {
-            t.text("открыть детализацию");
+            t.text("история");
             t.delclass("active");
         } else {
-            t.text("скрыть детализацию");
+            t.text("скрыть историю");
             t.addclass("active");
         }
     });
@@ -303,7 +314,7 @@ d.addEventListener("DOMContentLoaded", () => {
     });
     
     renderSections();
-    drawSection((bearerToken) ? 'wallet' : C().getStor(LS_SECTION));
+    drawSection((bearerToken && C().getStor(LS_SECTION) !== "reg_success") ? 'wallet' : C().getStor(LS_SECTION));
     
     checkUpdates(() => {
         if (bearerToken) {
@@ -453,7 +464,13 @@ async function drawSection(section) {
     if (!section) {
         section = "adult";
     }
-
+    
+    if (section === "wallet") {
+        C("main.main").addclass("noback");
+    } else {
+        C("main.main").delclass("noback");
+    }
+    
     switch (section) {
         default: {
             break;
@@ -811,9 +828,9 @@ async function reg() {
 }
 
 function setConfirmationTimeout(result) {
-    let regConfRemindEl = C("#reg_confirmation_remind"),
+    let regConfRemindEl    = C("#reg_confirmation_remind"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        regConfInfoEl = C("#reg_confirmation_info");
+        regConfInfoEl      = C("#reg_confirmation_info");
 
     hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
@@ -837,9 +854,9 @@ function setConfirmationTimeout(result) {
 }
 
 async function confirmation() {
-    let regConfCodeEl = C("#reg-confirmation-code"),
+    let regConfCodeEl      = C("#reg-confirmation-code"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        confButtonEl = C("#confirmation_button");
+        confButtonEl       = C("#confirmation_button");
 
     if (regConfCodeEl.val().length < 4) {
         regConfCodeEl.el.scrollIntoView();
@@ -900,7 +917,7 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl = C("#reset-phone-mask"),
+    let resetPhoneEl    = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
 
     if (resetPhoneEl.val().length < 16) {
@@ -915,8 +932,8 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl = C("#reset-phone-mask"),
-        resButtonEl = C("#reset_button").el,
+    let resPhoneEl    = C("#reset-phone-mask"),
+        resButtonEl   = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
@@ -929,8 +946,9 @@ async function getResetConfirmationCode() {
         if (result.status) {
             show("#reset_confirmation");
             resConfInfoEl.text(result.description);
-            if (result.data.seconds_left)
+            if (result.data.seconds_left) {
                 restartResetConfirmationTimer(result.data.seconds_left);
+            }
         } else {
             resButtonEl.disabled = false;
             promiseTimeout(() => {
@@ -967,10 +985,10 @@ function restartResetConfirmationTimer(seconds) {
 }
 
 async function checkResetConfirmationCode() {
-    let resPhoneEl = C("#reset-phone"),
+    let resPhoneEl    = C("#reset-phone"),
         resConfCodeEl = C("#reset_confirmation_code"),
         resPhonePopEl = C("#reset-phone-popup"),
-        resConfButEl = C("#reset_confirmation_button");
+        resConfButEl  = C("#reset_confirmation_button");
 
     if (resPhoneEl.val().length < 16) {
         resPhoneEl.el.scrollIntoView();
@@ -1173,13 +1191,13 @@ async function setFeedback() {
 
     submitBut.disabled = true;
     showLoader();
-
+    
     let result = await api("setFeedback", {
                             phone,
                             name:    C("#feedback-name").val(),
                             email:   C("#feedback-email").val(),
                             reason:  C("#feedback-reason").val(),
-                            message: C("#feedback-message").val()
+                            message: C("#feedback-message").val() + " (Источник: " + clientInfo + ")"
                         });
     
     if (result.status) {
@@ -1262,7 +1280,7 @@ async function checkUpdates(callback) {
         }
         if (data.lastPurchase) {
             updates.lastPurchase = data.lastPurchase;
-            drawPurchases(data.purchases);
+            drawPurchases(data.purchases, data.transactions);
         }
 
         if (data.transactions.length) {
@@ -1381,12 +1399,11 @@ function validateBirthdate(el, isSubmit) {
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
 
     if (el.value.length > 9) {
-        let td = el.value.split("-");
-        bd = new Date(td[2], --td[1], td[0]),
-                cd = new Date(),
-                age = (cd - bd);
+        let bd  = new Date(el.value),
+            cd  = new Date(),
+            age = (cd - bd);
 
-        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
+        if (bd == "Invalid Date" || age < 568036800000 || age > 3155760000000) {
             showInputPopup("reg-birthdate");
         } else {
             return true;

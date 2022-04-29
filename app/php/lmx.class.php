@@ -8,10 +8,16 @@ class LMX {
         if (!empty($PAPI_accessToken)) $this->PAPI_accessToken = $PAPI_accessToken;
     }
 
-    private function doRequest($url, $options, $returnHeaders = false) {
+    private function doRequest($url, $opts, $returnHeaders = false) {
         $result = ["status" => false, "data" => null];
-
-        $context  = stream_context_create($options);
+        $optSsl = array(
+                        "ssl" => array(
+                            "verify_peer"      => false,
+                            "verify_peer_name" => false,
+                        ),
+                    );  
+        $options = array_merge($optSsl, $opts);
+        $context = stream_context_create($options);
         try {
             $requestResult = file_get_contents($url, false, $context);
 
@@ -295,7 +301,7 @@ class LMX {
 
             $methodResult = $this->SAPI_UsersCards($personId);
             if ($debug) $result["debug"] = $methodResult["data"];
-            if ($methodResult["status"] && $methodResult["data"]->result->state == "Success") {
+            if ($methodResult["status"] && array_key_exists("data", $methodResult) && is_object($methodResult["data"]) && $methodResult["data"]->result->state == "Success") {
                 if (!empty($methodResult["data"]->data)) {
                     $result["status"] = true;
                     $result["data"] = $methodResult["data"]->data;
@@ -1182,7 +1188,12 @@ class LMX {
     }
 
     private function SAPI_UsersCards($personId, $cardShowMode = "active") {
-        $result = $this->SAPI_CheckToken();
+        if ($personId && $personId !=="") {
+            $result = $this->SAPI_CheckToken();
+        } else {
+            $result["status"] = false;
+        }
+        
         if ($result["status"]) {
             $url = LMX_HOST . "/systemapi/api/Users/" . $personId . "/Cards?cardShowMode=" . $cardShowMode;
             $options = array(
