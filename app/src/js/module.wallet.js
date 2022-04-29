@@ -4,8 +4,18 @@ const cardImageW = 512,
       cardImageH = 328,
       cardImageSRC = "app/assets/backs/card_back.jpg";
 
-function yana(val) {
-    return new Intl.NumberFormat('ru-RU').format(Math.trunc(val));
+function yana(val, plus, notnull) {
+    let format = new Intl.NumberFormat('ru-RU').format(Math.trunc(val));
+    
+    if (notnull) {
+        return "";
+    }
+    
+    if (plus && val > 0) {
+        return plus + format;
+    }
+    
+    return format;
 }
 
 function drawWallet(walletData) {
@@ -184,24 +194,28 @@ function drawPurchases(purchases, transactions) {
 }
 
 async function disablePurchase(id, type) {
-    showPopup('','', 'Вы уверены, что хотите скрыть чек? <p><small>Для того, чтобы вернуть чек напишите в <a href="#" onClick="showFeedback();return false;">службу технической поддержки</a>.</small></p>', ["Да","Нет"], async () => {
-        let api    = (type==="purch") ? "disablePurchase" : "disableTransaction";
-            
-        let result = await api("disableTransaction", {id});
-        let purEl  = C("div[data-purchase-id='" + id + "']").el;
-            
-        purEl.classList.remove("animated", "animate__fadeIn");
-        purEl.classList.add("animated", "animate__fadeOut");
-        promiseTimeout(() => {
-            purEl.classList.add("hudden");
-            hide('[data-purchase-id="' + id + '"]');
-        }, 1000);
-        return result;
-    });
+    showPopup('', 
+              '', 
+              'Вы уверены, что хотите скрыть чек? <p><small>Для того, чтобы вернуть чек напишите в <a href="#" onClick="showFeedback();return false;">службу технической поддержки</a>.</small></p>', 
+              ["Да", "Нет"], 
+              async () => {
+                        let apiMethod = (type==="purch") ? "disablePurchase" : "disableTransaction";
+                        let result    = await api(apiMethod, {id});
+                        let purEl     = C("div[data-purchase-id='" + id + "']");
+
+                        purEl.delclass(["animated", "animate__fadeIn"]);
+                        purEl.addclass(["animated", "animate__fadeOut"]);
+                        promiseTimeout(() => {
+                            purEl.addclass("hudden");
+                            hide('[data-purchase-id="' + id + '"]');
+                        }, 1000);
+                        
+                        return result;
+                    });
 }
 
 function drawPurchase(purchase) {
-    const {discount_amount, payment_amount, cashback_amount} = purchase;
+    const {discount_amount, payment_amount, cashback_amount, store_description} = purchase;
     const totalDisc = (discount_amount || payment_amount) ? "-" + yana(Math.abs(discount_amount) + Math.abs(payment_amount)) : "",
           cashback  = (cashback_amount > 0) ? "+" + yana(cashback_amount) : yana(cashback_amount),
           amount    = payment_amount ? yana(payment_amount) : "",
@@ -222,9 +236,10 @@ function drawPurchase(purchase) {
                 counter = tmpCounter[1] > 0 ? count : tmpCounter[0];
             }
             
+            let discount  = discount_amount ? (yana(discount_amount, "-") + " руб") : (yana(payment_amount) + " бонусов");
             tempPositions += `<div class="payment-details payment-details-full">
                                 <span>
-                                    ${(product_title ? product_title : "Загрузка..")}
+                                    ${(product_title || "Загрузка..")}
                                 </span>
                                 <span>
                                     x ${counter} шт
@@ -232,22 +247,26 @@ function drawPurchase(purchase) {
                             </div>
                             <div class="payment-details important">
                                 <span class="b">${yana(cost)} руб</span>
-                                <span class="bad b">${(discount_amount ? (yana(discount_amount * -1) + " руб") : (yana(payment_amount) + " бонусов"))}</span>
-                                <span class="good b">${(cashback_amount > 0 ? "+" : "")}${yana(cashback_amount)} Б</span>
+                                <span class="bad b">${discount}</span>
+                                <span class="good b">${yana(cashback_amount, "+")} Б</span>
                             </div>`;
         });
     }
     
-    let type = {};
-    type = { icon = "basket", name = "Покупка" };
+    let icon = "basket",
+        name = "Покупка";
     
-    if (purchase.store_description==="Expiration") {
-        type = { icon = "clock", name = "Сгорание" };
+    if (store_description==="Expiration") {
+        icon = "clock";
+        name = "Сгорание";
     }
     
-    if (purchase.store_description==="Bonus") {
-        type = { icon = "gift", name = "Подарок" };
+    if (store_description==="Bonus") {
+        icon = "gift";
+        name = "Подарок";
     }
+    
+    let type = {icon, name}
     
     if (purchase.positions) {
         tempOld = ` <h4><center>Детализация</center></h4>
