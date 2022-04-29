@@ -72,11 +72,15 @@
 
 .nearBurn {
     display: none;
-    font-weight: 600;
     font-size: 14px;
     margin-bottom: 0rem;
     top: -4.5rem;
     text-decoration: underline;
+    color: #e31e24;
+    
+    &.animated {
+        position: relative;
+    }
 }
 
 .close-positions {

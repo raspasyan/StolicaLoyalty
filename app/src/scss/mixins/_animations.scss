@@ -8,6 +8,20 @@
     animation: $animation $duration $method $times;
 }
 
+@mixin flash {
+    @keyframes flash {
+        from,
+        50%,
+        to {
+            opacity: 1;
+        }
+        25%,
+        75% {
+            opacity: 0;
+        }
+    }
+}
+
 @mixin fadeIn {
     @keyframes fadeIn {
         from {

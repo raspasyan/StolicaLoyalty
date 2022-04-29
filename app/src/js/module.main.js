@@ -314,7 +314,7 @@ d.addEventListener("DOMContentLoaded", () => {
     });
     
     renderSections();
-    drawSection((bearerToken) ? 'wallet' : C().getStor(LS_SECTION));
+    drawSection((bearerToken && C().getStor(LS_SECTION) !== "reg_success") ? 'wallet' : C().getStor(LS_SECTION));
     
     checkUpdates(() => {
         if (bearerToken) {
