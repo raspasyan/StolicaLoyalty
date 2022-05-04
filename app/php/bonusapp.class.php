@@ -696,7 +696,7 @@ class BonusApp {
     private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
         $result = ["status" => false, "description" => ""];
 
-        if ($profile["city"] == 'Уссурийск' && $profile["birthdate"] == '1998-01-12') return $result;
+        if (array_key_exists("city", $profile) && $profile["city"] == 'Уссурийск' && $profile["birthdate"] == '1998-01-12') return $result;
 
         $query = $this->pdo->prepare("SELECT status FROM accounts WHERE phone = :phone");
         $query->execute([$phone]);
