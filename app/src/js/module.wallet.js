@@ -523,8 +523,7 @@ if (SOURCE) {
       if (device.platform === "Android") {
             let permissions = cordova.plugins.permissions;
             let list = [
-                      permissions.WRITE_EXTERNAL_STORAGE,
-                      permissions.READ_EXTERNAL_STORAGE
+                      permissions.WRITE_EXTERNAL_STORAGE
                     ];
 
             permissions.hasPermission(list, function( status ){
