@@ -1259,7 +1259,7 @@ async function checkUpdates(callback) {
     const result = await getUpdates();
     const {data, status} = result;
     
-    if (viewNewApp && SOURCE && SOURCE !== data.versionApp) {
+    if (viewNewApp && SOURCE && SOURCE.replace("APP_", "") < data.versionApp.replace("APP_", "")) {
         showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
         viewNewApp = null;
     }

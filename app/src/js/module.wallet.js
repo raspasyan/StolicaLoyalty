@@ -414,13 +414,13 @@ function drawBonusCard(cardNumber) {
                 link.click();
             } else {
                 const blob = dataURItoBlob(dataURL);
-                download(fileName, blob, blob.type);
+                download(fileName, blob, blob.type, dataURL);
             }
         });
     });
 }
 
-function download(filename, data, mimeType) {
+function download(filename, data, mimeType, dataURI) {
   const blob = new Blob([data], {
                 type: mimeType
               });
@@ -430,51 +430,53 @@ function download(filename, data, mimeType) {
 
       switch (device.platform) {
         case "Android":
-          storageLocation = cordova.file.externalRootDirectory + "Download/";
-          break;
+            //storageLocation = cordova.file.externalRootDirectory + "Download/";
+            let byteString   = dataURI.split(",")[1];
+            cordova.plugins.CordovaAndroidMediaStore.store(byteString, "Pictures", filename, showPopup("Успешно", "", "Бонусная карта выгружена в память телефона"));
+            
+            break;
 
         case "iOS":
-          storageLocation = cordova.file.documentsDirectory;
+            storageLocation = cordova.file.documentsDirectory;
+            const folderPath = storageLocation;
+
+            window.resolveLocalFileSystemURL(
+              folderPath,
+              function(dir) {
+                dir.getFile(
+                  filename,
+                  {
+                    create: true
+                  },
+                  function(file) {
+                    file.createWriter(
+                      function(fileWriter) {
+                        fileWriter.write(blob);
+
+                        fileWriter.onwriteend = function() {
+                          showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+                        };
+
+                        fileWriter.onerror = function(err) {
+                          console.error(JSON.stringify(err));
+                        };
+                      },
+                      function(err) {
+                        console.error(JSON.stringify(err));
+                      }
+                    );
+                  },
+                  function(err) {
+                    console.error(JSON.stringify(err));
+                  }
+                );
+              },
+              function(err) {
+                console.error(JSON.stringify(err));
+              }
+            );
           break;
       }
-
-      const folderPath = storageLocation;
-
-      window.resolveLocalFileSystemURL(
-        folderPath,
-        function(dir) {
-          dir.getFile(
-            filename,
-            {
-              create: true
-            },
-            function(file) {
-              file.createWriter(
-                function(fileWriter) {
-                  fileWriter.write(blob);
-
-                  fileWriter.onwriteend = function() {
-                    showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
-                  };
-
-                  fileWriter.onerror = function(err) {
-                    console.error(JSON.stringify(err));
-                  };
-                },
-                function(err) {
-                  console.error(JSON.stringify(err));
-                }
-              );
-            },
-            function(err) {
-              console.error(JSON.stringify(err));
-            }
-          );
-        },
-        function(err) {
-          console.error(JSON.stringify(err));
-        }
-      );
     });
 }
 
@@ -516,7 +518,7 @@ if (SOURCE) {
             var list = [
               permissions.WRITE_EXTERNAL_STORAGE,
               permissions.READ_EXTERNAL_STORAGE,
-              permissions.MANAGE_EXTERNAL_STORAGE
+              //permissions.MANAGE_EXTERNAL_STORAGE
             ];
 
             permissions.hasPermission(list, function( status ){
