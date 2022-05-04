@@ -432,7 +432,7 @@ function download(filename, data, mimeType, dataURI) {
         case "Android":
             //storageLocation = cordova.file.externalRootDirectory + "Download/";
             let byteString   = dataURI.split(",")[1];
-            cordova.plugins.CordovaAndroidMediaStore.store(byteString, "Pictures", filename, showPopup("Успешно", "", "Бонусная карта выгружена в память телефона"));
+            cordova.plugins.CordovaAndroidMediaStore.store(byteString, "", filename, showFinishDownload());
             
             break;
 
@@ -477,5 +477,81 @@ function download(filename, data, mimeType, dataURI) {
             );
           break;
       }
+    });
+}
+
+function showFinishDownload() {
+    promiseTimeout(() => {
+        showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+    }, 1000);
+}
+
+function dataURItoBlob(dataURI) {
+  const isBase64 = dataURI.split(",")[0].split(";")[1] === "base64";
+  let byteString;
+
+  if (isBase64) {
+    byteString = atob(dataURI.split(",")[1]);
+  } else {
+    byteString = dataURI.split(",")[1];
+  }
+
+  let mimeString = dataURI
+    .split(",")[0]
+    .split(":")[1]
+    .split(";")[0];
+
+  const ab = new ArrayBuffer(byteString.length);
+  let ia = new Uint8Array(ab);
+
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+
+  var blob = new Blob([ab], {
+    type: mimeString
+  });
+
+  return blob;
+}
+
+if (SOURCE) {
+    document.addEventListener("deviceready", function() {    
+      let storageLocation = "";
+
+      if (device.platform === "Android") {
+            let permissions = cordova.plugins.permissions;
+            let list = [
+                      permissions.WRITE_EXTERNAL_STORAGE,
+                      permissions.READ_EXTERNAL_STORAGE
+                    ];
+
+            permissions.hasPermission(list, function( status ){
+                                                if( !status.hasPermission ) {
+                                                  permissions.requestPermissions(
+                                                    list,
+                                                    function(status) {
+                                                      if( !status.hasPermission ) error();
+                                                    },
+                                                    error);
+                                                }
+                                              });
+
+            function error() {
+              console.warn('Storage permission is not turned on');
+            }
+
+            function success( status ) {
+              if( !status.hasPermission ) {
+
+                permissions.requestPermissions(
+                  list,
+                  function(status) {
+                    if( !status.hasPermission ) error();
+                  },
+                  error);
+              }
+            }
+        }
     });
 }
