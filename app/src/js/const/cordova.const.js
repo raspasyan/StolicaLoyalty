@@ -1,4 +1,4 @@
-const SOURCE = "APP_214";
+const SOURCE = "APP_215";
 const DOMAIN = "https://bonus.stolica-dv.ru";
 
 let script = document.createElement('script');
