@@ -410,6 +410,7 @@ function drawBonusCard(cardNumber) {
 
             link.href = dataURL;
             link.download = fileName;
+            
             if (!SOURCE) {
                 link.click();
             } else {
