@@ -311,7 +311,7 @@ function drawPurchase(purchase) {
                         ${disablePurchase}
                     </div>
                     <div class="purchase__row">
-                        <span class="type"><span class="ring"><i class="${type.icon}"></i></span> <span>${type.name}</span></span>
+                        <span class="type"><span class="ring"><i class="${type.icon}"></i></span> <span class="title-${type.icon}">${type.name}</span></span>
                         <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
                         <span class="${(cashback_amount > 0 ? "good" : "bad")}">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
                     </div>

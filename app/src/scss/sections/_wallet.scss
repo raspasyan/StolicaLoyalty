@@ -196,6 +196,18 @@
                     &>span:nth-child(2) {
                         position: relative;
                         font-size: 17px;
+                        
+                        &.title-basket {
+                            
+                            &:after {
+                                content: " ";
+                                border: 5px solid transparent;
+                                border-top: 5px solid #222;
+                                top: 6px;
+                                position: relative;
+                                left: 2px;
+                            }
+                        }
                     }
                 }
             }
@@ -312,7 +324,7 @@ a[data-click="openBalanceView"] {
     font-weight: 600;
     
     span {
-        font-size: 11px;
+        font-size: 14px;
     }
 }
 
