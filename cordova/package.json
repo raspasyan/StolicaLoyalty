@@ -17,9 +17,7 @@
     "cordova-browser": "^6.0.0",
     "cordova-ios": "^6.2.0",
     "cordova-plugin-android-mediastore": "github:remyweinstein/cordova-plugin-android-mediastore",
-    "cordova-plugin-android-permissions": "github:NeoLSN/cordova-plugin-android-permissions",
     "cordova-plugin-device": "^2.1.0",
-    "cordova-plugin-file-transfer": "github:apache/cordova-plugin-file-transfer",
     "cordova-plugin-splashscreen": "^6.0.0",
     "device": "^0.3.12"
   },
@@ -32,8 +30,6 @@
     "plugins": {
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-device": {},
-      "cordova-plugin-file-transfer": {},
-      "cordova-plugin-android-permissions": {},
       "cordova-plugin-android-mediastore": {}
     }
   }
