@@ -152,20 +152,18 @@
         
         & > div {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 3fr 2fr 2fr;
             
             &>span:nth-child(1) {
                 &.type {
                     line-height: 0rem;
                     
                     .ring {
-                        padding: 2px;
                         height: 21px;
                         width: 21px;
                         position: relative;
                         display: inline-block;
-                        top: 6px;
-                        margin-right: 1rem;
+                        top: 5px;
 
                         i {
                             top: -3px;
