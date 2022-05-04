@@ -158,28 +158,44 @@
                 &.type {
                     line-height: 0rem;
                     
+                    .ring {
+                        padding: 2px;
+                        height: 21px;
+                        width: 21px;
+                        position: relative;
+                        display: inline-block;
+                        top: 6px;
+                        margin-right: 1rem;
+
+                        i {
+                            top: -3px;
+                            display: block;
+                            font-size: 2rem;
+                            position: relative;
+                            left: -3px;
+                            width: 26px;
+                            height: 26px;
+                        }
+
+                        .gift {
+                            background: url(../../assets/backs/gift.svg) no-repeat;
+                            background-size: cover;
+                        }
+
+                        .basket {
+                            background: url(../../assets/backs/cart.svg) no-repeat;
+                            background-size: cover;
+                        }
+
+                        .clock {
+                            background: url(../../assets/backs/clock.svg) no-repeat;
+                            background-size: cover;
+                        }
+                    }
+                    
                     &>span:nth-child(2) {
                         position: relative;
                         font-size: 17px;
-                        
-                        &.clock {
-                            top: -2px;
-                        }
-                        &.basket {
-                            top: 3px;
-                            
-                            &:after {
-                                border: 5px solid transparent;
-                                border-top: 6px solid #222;
-                                content: "";
-                                top: 13px;
-                                position: relative;
-                                right: -4px;
-                            }
-                        }
-                        &.gift {
-                            top: 3px;
-                        }
                     }
                 }
             }
@@ -269,32 +285,6 @@ a[data-click="openBalanceView"] {
             }
         }
 
-    }
-}
-
-.ring {
-    border: 1px solid #000;
-    border-radius: 20px;
-    padding: 2px;
-    height: 20px;
-    width: 20px;
-    display: inline-block;
-    
-    .icon-gift {
-        top: 2px;
-        position: relative;
-    }
-
-    .icon-basket {
-        top: 3px;
-        position: relative;
-    }
-    
-    .icon-clock {
-        top: 0px;
-        font-size: 2rem;
-        position: relative;
-        left: -4px;
     }
 }
 

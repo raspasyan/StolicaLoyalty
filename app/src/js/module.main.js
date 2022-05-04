@@ -1399,11 +1399,12 @@ function validateBirthdate(el, isSubmit) {
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
 
     if (el.value.length > 9) {
-        let bd  = new Date(el.value),
-            cd  = new Date(),
-            age = (cd - bd);
+        let td = el.value.split("-");
+        bd = new Date(td[2], --td[1], td[0]),
+                cd = new Date(),
+                age = (cd - bd);
 
-        if (bd == "Invalid Date" || age < 568036800000 || age > 3155760000000) {
+        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             showInputPopup("reg-birthdate");
         } else {
             return true;
