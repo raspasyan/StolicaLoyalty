@@ -200,11 +200,11 @@
                             
                             &:after {
                                 content: " ";
+                                position: absolute;
                                 border: 5px solid transparent;
                                 border-top: 5px solid #222;
-                                top: 6px;
-                                position: relative;
-                                left: 2px;
+                                top: 7px;
+                                right: -14px;
                             }
                         }
                     }
