@@ -232,7 +232,7 @@ a[data-click="openBalanceView"] {
     top: 0;
     width: 100vw;
     height: 100vh;
-    //background-color: rgba(0, 0, 0, .8);
+    margin-top: env(safe-area-inset-top,0);
     background-color: #fff;
     z-index: 4;
     overflow: auto;
