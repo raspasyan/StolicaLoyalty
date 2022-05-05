@@ -42,6 +42,7 @@
     height: 100vh;
     background-color: rgba(0,0,0,.8);
     z-index: 4;
+    margin-top: env(safe-area-inset-top,0);
     overflow: auto;
     
     .newsOverlay__cont {
