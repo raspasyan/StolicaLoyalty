@@ -69,8 +69,20 @@ class BonusApp {
                     }
                     echo '</div>';
                 } else {
+                    if (!empty($_GET)) {
+                        $news = $this->getNewsById($_GET['id']);
+                    }
+                    
                     require_once 'templates/forms/template_form_add_news.php';
                 }
+                
+                break;
+            }
+
+            case "list-news": {
+                $result   = $this->initPDO();
+                $listNews = $this->getListNews();
+                require_once 'templates/forms/template_form_list_news.php';
                 
                 break;
             }
@@ -607,30 +619,58 @@ class BonusApp {
         echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
     
+    private function getNewsById($id) {
+        $query = $this->pdo->prepare("SELECT * FROM news WHERE id=:id;");
+        $query->execute([$id]);
+        
+        return $query->fetch();
+    }
+    
+    private function getListNews() {
+        $query = $this->pdo->prepare("SELECT id, title FROM news ORDER BY id DESC;");
+        $query->execute();
+        
+        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+    
     private function sendNewsToServer() {
         $result = FALSE;
         $data   = $_POST;
         
-        if (YANDEX_NEWS_FORM_KEY !== $data["key"]) {
+        if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
             return $result;
         }
         
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
         $name       = date("dmy") . rand(1, 100) . '.jpg';
         $uploadfile = $uploaddir . $name;
+        
+        if (array_key_exists('id', $data) && $data['id'] > 0) {
+            $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?  WHERE id = ?;");
+            $query->execute([$data['date'], $data['desc'], $data['title'], $data['id']]);
+            
+            if (isset($_FILES) && array_key_exists('img', $_FILES) && $_FILES['img']['tmp_name'] !== "") {
+                if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+                    $query = $this->pdo->prepare("UPDATE news SET image = ?  WHERE id = ?;");
+                    $query->execute(["app/assets/news/" . $name, $data['id']]);
+                }
+            }
+            
+            $result = TRUE;
+        } else {
+            if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+                $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
+                $query->execute([
+                                    date("Y-m-d"), 
+                                    $data["date"], 
+                                    $data["title"], 
+                                    "app/assets/news/" . $name, 
+                                    $data["desc"]
+                                ]);
 
-        if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-            $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
-            $query->execute([
-                            date("Y-m-d"), 
-                            $data["date"], 
-                            $data["title"], 
-                            "app/assets/news/" . $name, 
-                            $data["desc"]
-                    ]);
-
-            if ($this->pdo->lastInsertId() > 0) {
-                $result = TRUE;
+                if ($this->pdo->lastInsertId() > 0) {
+                    $result = TRUE;
+                }
             }
         }
                 
