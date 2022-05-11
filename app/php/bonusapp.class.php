@@ -1520,8 +1520,8 @@ class BonusApp {
             " ". $feedback["account_phone"].",".
             " ".$feedback["email"];
 
-        $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/"];
-        $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,"];
+        $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/","/\;/","/\_/","/\?/","/\!/"];
+        $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,","\;","\_","\?","\!"];
         $message = preg_replace($patterns, $replacements, $message);
 
         if ($debug) debug($message);
