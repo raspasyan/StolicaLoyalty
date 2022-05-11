@@ -236,7 +236,14 @@ function drawPurchase(purchase) {
                 counter = tmpCounter[1] > 0 ? count : tmpCounter[0];
             }
             
-            let discount  = discount_amount ? (yana(discount_amount, "-") + " руб") : (yana(payment_amount) + " бонусов");
+            let discount  = "";
+            if(discount_amount && discount_amount > 0){
+                discount  = yana(discount_amount, "-") + " руб";
+            }
+            if(payment_amount && payment_amount != 0){
+                discount  = yana(payment_amount) + " бонусов";
+            }
+            
             tempPositions += `<div class="payment-details payment-details-full">
                                 <span>
                                     ${(product_title || "Загрузка..")}
