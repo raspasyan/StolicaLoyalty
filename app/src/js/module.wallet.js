@@ -238,10 +238,10 @@ function drawPurchase(purchase) {
             
             let discount  = "";
             if(discount_amount && discount_amount > 0){
-                discount  = yana(discount_amount, "-") + " руб";
+                discount  = yana(discount_amount, "-") + " Р";
             }
             if(payment_amount && payment_amount != 0){
-                discount  = yana(payment_amount) + " бонусов";
+                discount  = yana(payment_amount) + " Б";
             }
             
             tempPositions += `<div class="payment-details payment-details-full">
