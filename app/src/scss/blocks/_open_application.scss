@@ -1,10 +1,21 @@
 .openApplication {
-    display: none;
+    display: grid;
+    grid-template-columns: 1fr 4fr 1fr;
+    justify-items: center;
+    align-items: center;
     position: fixed;
     min-height: 6rem;
     width: 100%;
+    font-weight: 600;
+    color: #222;
     background-color: #fff;
     bottom: 8rem;
-    border-bottom: 1px solid grey;
-    border-top: 1px solid grey;
+    border-bottom: 1px solid #d3d3d3;
+    border-top: 1px solid #d3d3d3;
+    
+    img {
+        width: 4rem;
+        border: 1px solid #d3d3d3;
+        border-radius: 10px;
+    }
 }

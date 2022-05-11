@@ -74,43 +74,63 @@
             margin-bottom: 2rem;
         }
     </style>
+    <?php
+    $data['id']           = 0;
+    $data['title']        = "";
+    $data['description']  = "";
+    $data['date_to_post'] = "";
+    $data['image']        = "";
+    
+    if (isset($news) && isset($news['id'])) {
+        $data = $news;
+     }
+    ?>
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <form action="" method="POST"  enctype="multipart/form-data">
+            <?php if ($data['id'] > 0) { ?>
+                <input type="hidden" name="id" value="<?=$data['id']?>" />
+            <?php } ?>
             <div>
-                <input id="title" type="text" name="title" value="" required/>
+                <input id="title" type="text" name="title" value="<?=$data['title']?>" required/>
                 <label for="title">Название</label>
             </div>
             <div>
-                <textarea id="desc" name="desc"></textarea>
+                <textarea id="desc" name="desc"><?=$data['description']?></textarea>
             </div>
             <div>
-               <input id="date" type="date" name="date" value="" required/>
+               <input id="date" type="date" name="date" value="<?=$data['date_to_post']?>" required/>
                 <label for="date">Дата публикации:</label>
             </div>
             <div class="file">
-               <input id="img" type="file" name="img" value="" required/>
+               <input id="img" type="file" name="img" value="" <?php if ($data['image'] == "") { ?> required <?php } ?>/>
                 <label for="img">Картинка:</label>
+                <?php if($data['image'] !== ""){ ?>
+                    <img style="width:100%" src="<?=$data['image']?>">
+                <?php } ?>
             </div>
             <div>
                <input id="key" type="text" name="key" value="" required/>
                 <label for="key">Ключ</label>
             </div>
             <button type="submit" style="margin-top:5rem;">Отправить</button>
+            <a href="/list-news" style="margin-top:5rem;float:right" class="button">Список новостей</a>
         </form>
     </div>
     <script>
         ClassicEditor
-            .create( document.querySelector( '#desc' ) )
-            .catch( error => {
-                console.error( error );
-            } );
+            .create(document.querySelector('#desc'))
+            .catch(error => {
+                console.error(error);
+            });
     </script>
     <script>
         let d = document;
-        d.querySelectorAll("input").forEach((el) => {
+        d.querySelectorAll("input[type=text]").forEach((el) => {
             let clas  = "activeINPUT",
                 label = d.querySelector("[for=" + el.id + "]").classList,
                 exc   = ["date", "img"];
+            
+            if (el.value) label.add(clas);
             
             if (!exc.includes(el.id)) {
                 el.addEventListener("focus", () => label.add(clas));
