@@ -171,12 +171,12 @@ function drawPurchases(purchases, transactions) {
                    store_title: el.description,
                    store_description: el.type,
                    cashback_amount: (el.amount/100),
-                   date: new Date(el.date) });
+                   date: new Date(el.date.replace("-", "/")) });
         return acc;
     }, []);
-    
+        
     let tempPurchases = purchases.reduce(function(acc, el, i, arr) {
-        el.date = new Date(el.operation_date);
+        el.date = new Date(el.operation_date.replace("-", "/"));
         acc.push(el);
         return acc;
     }, []);
