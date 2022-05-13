@@ -1396,7 +1396,7 @@ class BonusApp {
                         $this->journal("CRON", __FUNCTION__, "", $updateResult["status"], json_encode(["f" => "setProfileDataByPhone", "a" => [$value["phone"], ["last_cong" => $dt->format('Y-m-d H:i:s')]]]), json_encode($updateResult, JSON_UNESCAPED_UNICODE));
                         
                         $dt->add(new DateInterval('P'.$value["expiration"].'D'));
-                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до ".$dt->format('Y-m-d')."). Подробнее https://bonus.stolica-dv.ru/application Ваша «Столица»", DEFAULT_SMS_PROVIDER);
+                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до ".$dt->format('Y-m-d')."). Подробнее https://" . SITE_DOMAIN . "/application Ваша «Столица»", DEFAULT_SMS_PROVIDER);
                     }
                 }
             }
