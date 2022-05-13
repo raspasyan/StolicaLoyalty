@@ -839,24 +839,24 @@ class BonusApp {
                         ];
 
                         // Регистрация клиента и карты лояльности во внешнем процессинге
-                        // Оставляем на планировщик, чтобы избежать наложений.
+                        // Оставляем на планировщик, чтобы избежать коллизий.
                         // $LMX = $this->getLMX();
                         // $regExtProfileResult = $this->service_regExtProfile($LMX, $phone);
                         // if ($regExtProfileResult["status"]) $emitCardResult = $this->service_emitCard($LMX, $phone, $regExtProfileResult["data"]["personId"]);  
 
                         // Генерация токена для входа по ссылке
-                        $linkToSite = "https://" . SITE_DOMAIN;
-                        $opResult = $this->getAccountDataByPhone($phone);
-                        if ($opResult["status"]) {
-                            $opResult = $this->getTokenByAccountId($opResult["data"]["id"]);
-                            if ($opResult["status"]) {
-                                if (!empty($opResult["alias"])) {
-                                    $linkToSite = $opResult["alias"];
-                                } else if (!empty($opResult["data"])) {
-                                    $linkToSite .= "/bd?tk=" . $opResult["data"];
-                                }
-                            }
-                        }
+                        $linkToSite = "https://" . SITE_DOMAIN . "/application";
+                        // $opResult = $this->getAccountDataByPhone($phone);
+                        // if ($opResult["status"]) {
+                        //     $opResult = $this->getTokenByAccountId($opResult["data"]["id"]);
+                        //     if ($opResult["status"]) {
+                        //         if (!empty($opResult["alias"])) {
+                        //             $linkToSite = $opResult["alias"];
+                        //         } else if (!empty($opResult["data"])) {
+                        //             $linkToSite .= "/bd?tk=" . $opResult["data"];
+                        //         }
+                        //     }
+                        // }
                         $sendMessageResult = $this->sendMessage($phone, "Вы зарегистрировались, перейти в ЛК: " . $linkToSite, DEFAULT_SMS_PROVIDER);
                         if (!$sendMessageResult["status"]) $this->journal("APP", __FUNCTION__, json_encode($sendMessageResult, JSON_UNESCAPED_UNICODE), $sendMessageResult["status"]);        
                     } else {
@@ -1396,7 +1396,7 @@ class BonusApp {
                         $this->journal("CRON", __FUNCTION__, "", $updateResult["status"], json_encode(["f" => "setProfileDataByPhone", "a" => [$value["phone"], ["last_cong" => $dt->format('Y-m-d H:i:s')]]]), json_encode($updateResult, JSON_UNESCAPED_UNICODE));
                         
                         $dt->add(new DateInterval('P'.$value["expiration"].'D'));
-                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до ".$dt->format('Y-m-d')."). Подробнее https://clck.ru/epUPg Ваша «Столица»", DEFAULT_SMS_PROVIDER);
+                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до ".$dt->format('Y-m-d')."). Подробнее https://bonus.stolica-dv.ru/application Ваша «Столица»", DEFAULT_SMS_PROVIDER);
                     }
                 }
             }
