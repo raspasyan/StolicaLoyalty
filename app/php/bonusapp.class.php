@@ -897,7 +897,7 @@ class BonusApp {
         if (($dd >= WALLET_TIMEOUT_SECONDS || $dd < 0)) {
             $result = $this->updateWalletDataByLMX($personId, $cardNumber);
         } else {
-            $result["data"] = "Запрос баланса будет доступен через: [" . (WALLET_TIMEOUT_SECONDS - $dd) . "] секунд.";
+            $result["data"] = "Запрос баланса будет доступен через: [" . (WALLET_TIMEOUT_SECONDS - $dd) . "] сек.";
         }
 
         return $result;
