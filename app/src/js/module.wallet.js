@@ -228,7 +228,7 @@ function drawPurchase(purchase) {
     if (purchase.positions && purchase.positions.length) {
 
         purchase.positions.forEach((position) => {
-            const {cashback_amount, count, cost, product_title, discount_amount, payment_amount} = position;
+            const {cashback_amount, count, amount, product_title, discount_amount, payment_amount} = position;
             let counter = "_";
                 
             if (count) {
@@ -253,7 +253,7 @@ function drawPurchase(purchase) {
                                 </span>
                             </div>
                             <div class="payment-details import">
-                                <span class="b">${yana(cost)} руб</span>
+                                <span class="b">${yana(amount)} руб</span>
                                 <span class="bad b">${discount}</span>
                                 <span class="good b">${yana(cashback_amount, "+")} Б</span>
                             </div>`;
