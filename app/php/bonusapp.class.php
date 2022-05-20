@@ -290,6 +290,29 @@ class BonusApp {
                 break;
             }
 
+            case "version": {
+                if (!empty($_GET) || !empty($_GET["platform"])) {
+                    $currentVersion = APP_VERSION;
+
+                    switch ($_GET["platform"]) {
+                        case "android": {
+                            $currentVersion = APP_VERSION_ANDROID;
+                            break;
+                        }
+                        case "ios": {
+                            $currentVersion = APP_VERSION_IOS;
+                            break;
+                        }
+                    }
+
+                    echo($currentVersion);
+                } else {
+                    header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                }
+
+                break;
+            }
+
             case "404": {
                 require_once 'templates/404.php';
                 break;

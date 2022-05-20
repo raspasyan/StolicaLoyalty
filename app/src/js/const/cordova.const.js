@@ -1,5 +1,6 @@
-const SOURCE = "APP_216";
+const SOURCE = "216";
 const DOMAIN = "https://bonus.stolica-dv.ru";
+const PLATFORM = "android";
 
 let script = document.createElement('script');
 script.src = "../../../cordova.js";

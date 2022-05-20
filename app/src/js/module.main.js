@@ -1,129 +1,128 @@
-/* global Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE */
+/* global Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE, PLATFORM */
 
-//const DOMAIN         = "https://bonus.stolica-dv.ru";
-const API_URL        = DOMAIN + "/api";
-const TERMS_URL      = DOMAIN + "/politika-konfidentsialnosti";
-const RULES_URL      = DOMAIN + "/pravila";
-const REF_RULES_URL  = DOMAIN + "/pravila-akcii";
-const LS_TOKEN       = "LS_BearerToken";
+const API_URL = DOMAIN + "/api";
+const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
+const RULES_URL = DOMAIN + "/pravila";
+const REF_RULES_URL = DOMAIN + "/pravila-akcii";
+const LS_TOKEN = "LS_BearerToken";
 const LS_CURR_UPDATE = "LS_CurrentUpdate";
-const LS_CONTENTS    = "LS_Contents";
+const LS_CONTENTS = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
-const LS_SECTION     = "section";
+const LS_SECTION = "section";
 
-let lastPhone           = "",
-    secondsInterval     = null,
-    secondsLeft         = 0,
-    d                   = document,
-    resetCodeTimer      = null,
+let lastPhone = "",
+    secondsInterval = null,
+    secondsLeft = 0,
+    d = document,
+    resetCodeTimer = null,
     resetCodeTimerValue = 0,
-    viewNewApp          = 1;
+    viewNewApp = 1;
 
 const sections = {
-        "adult": {},
-        "intro": {},
-        "registration": {
-            title:       "Регистрация",
-            prevSection: "pre-registration"
-        },
-        "pre-registration": {
-            title:       "Выбор города",
-            prevSection: "intro"
-        },
-        "authorization": {
-            title:       "Вход",
-            prevSection: "intro"
-        },
-        "reset": {
-            title:       "Сброс пароля",
-            prevSection: "authorization"
-        },
-        "personal": {
-            title: "Профиль",
-            showMenu: true,
-            needAuth: true
-        },
-        "wallet": {
-            title:    "Кошелек",
-            showMenu: true,
-            needAuth: true
-        },
-        "news": {
-            title:    "Новости",
-            showMenu: true,
-            needAuth: true
-        },
-        "refer": {
-            title:    "Приглашение",
-            showMenu: true,
-            needAuth: true
-        },
-        "stores": {
-            title:    "Магазины",
-            showMenu: true,
-            needAuth: true
-        },
-        "reg_success": {
-            title:    "Регистрация завершена",
-            showMenu: true,
-            needAuth: true
-        },
-        "alerts": {
-            title:    "Подписки и уведомления",
-            showMenu: true,
-            needAuth: true
-        },
-        "personal_update": {
-            title:       "Смена данных",
-            showMenu:    true,
-            prevSection: "personal",
-            needAuth:    true
-        },
-        "set_plastic": {
-            title:       "Привязка карты",
-            showMenu:    true,
-            prevSection: "personal_update",
-            needAuth:    true
-        }
+    "adult": {},
+    "intro": {},
+    "registration": {
+        title: "Регистрация",
+        prevSection: "pre-registration"
+    },
+    "pre-registration": {
+        title: "Выбор города",
+        prevSection: "intro"
+    },
+    "authorization": {
+        title: "Вход",
+        prevSection: "intro"
+    },
+    "reset": {
+        title: "Сброс пароля",
+        prevSection: "authorization"
+    },
+    "personal": {
+        title: "Профиль",
+        showMenu: true,
+        needAuth: true
+    },
+    "wallet": {
+        title: "Кошелек",
+        showMenu: true,
+        needAuth: true
+    },
+    "news": {
+        title: "Новости",
+        showMenu: true,
+        needAuth: true
+    },
+    "refer": {
+        title: "Приглашение",
+        showMenu: true,
+        needAuth: true
+    },
+    "stores": {
+        title: "Магазины",
+        showMenu: true,
+        needAuth: true
+    },
+    "reg_success": {
+        title: "Регистрация завершена",
+        showMenu: true,
+        needAuth: true
+    },
+    "alerts": {
+        title: "Подписки и уведомления",
+        showMenu: true,
+        needAuth: true
+    },
+    "personal_update": {
+        title: "Смена данных",
+        showMenu: true,
+        prevSection: "personal",
+        needAuth: true
+    },
+    "set_plastic": {
+        title: "Привязка карты",
+        showMenu: true,
+        prevSection: "personal_update",
+        needAuth: true
+    }
+};
+
+let currentSection = "",
+    bearerToken = "",
+    userActivityTimeout = null,
+    initApp = true,
+    clientInfo = "Сайт",
+    tempUpdate = {
+        personalHash: "",
+        walletHash: "",
+        storesHash: "",
+        lastNews: "",
+        lastPurchase: "",
+        lastTransaction: ""
     };
 
-let currentSection      = "",
-    bearerToken         = "",
-    userActivityTimeout = null,
-    initApp             = true,
-    clientInfo          = "Сайт",
-    tempUpdate          = {
-                            personalHash:    "",
-                            walletHash:      "",
-                            storesHash:      "",
-                            lastNews:        "",
-                            lastPurchase:    "",
-                            lastTransaction: ""
-                        };
-                        
 const deviceType = () => {
     const ua = navigator.userAgent;
-    
+
     if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
         return "mobile";
     } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
         return "mobile";
     }
-    
+
     return "desktop";
 };
 
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
-    document.addEventListener("deviceready", function() {
-      switch (device.platform) {
-        case "Android":
-          clientInfo = "Android v" + SOURCE;
-          break;
-        case "iOS":
-          clientInfo = "iOS v" + SOURCE;
-          break;
-      }
+    document.addEventListener("deviceready", function () {
+        switch (device.platform) {
+            case "Android":
+                clientInfo = "Android v" + SOURCE;
+                break;
+            case "iOS":
+                clientInfo = "iOS v" + SOURCE;
+                break;
+        }
     });
     /*
      if ('serviceWorker' in navigator) {
@@ -162,20 +161,20 @@ d.addEventListener("DOMContentLoaded", () => {
      }
      notifySet();
      */
-    
+
     crashClearStorage();
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
-    
+
     C().setStor(LS_NEED_UPDATE, JSON.stringify({
-            news:      1,
-            personal:  1,
-            stores:    1,
-            wallet:    1,
-            purchases: 1
-        }));
-    
+        news: 1,
+        personal: 1,
+        stores: 1,
+        wallet: 1,
+        purchases: 1
+    }));
+
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach((inp) => {
         mask(inp);
@@ -205,12 +204,12 @@ d.addEventListener("DOMContentLoaded", () => {
 
     C(".system_tabsHead > span label").els.forEach((label) => {
         label.addEventListener("click", (e) => {
-            const el       = e.currentTarget.parentNode,
-                  elCs     = el.parentNode.parentNode.children[1].children,
-                  tabHeads = el.parentNode.children;
-           
+            const el = e.currentTarget.parentNode,
+                elCs = el.parentNode.parentNode.children[1].children,
+                tabHeads = el.parentNode.children;
+
             [...tabHeads].map((tab) => tab.classList.remove("tab_h_active"));
-            
+
             [...elCs].map((el) => el.classList.remove("tab_c_active"));
 
             el.classList.add("tab_h_active");
@@ -237,19 +236,19 @@ d.addEventListener("DOMContentLoaded", () => {
 
     d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
         addEventListener("input", () => {
-            const idInp   = "#personal-new-pass",
-                  valEl   = C(idInp).val(),
-                  valConf = C(idInp + "-confirmation").val();
-                
+            const idInp = "#personal-new-pass",
+                valEl = C(idInp).val(),
+                valConf = C(idInp + "-confirmation").val();
+
             C("#personal_changePassword_button").el.disabled = (valEl === valConf) ? false : true;
         });
     });
 
     C("#personal-new-pass-confirmation").el.addEventListener("input", (e) => {
         let but = C("#personal_changePassword_button").el;
-        const el      = e.currentTarget,
-              valPass = C("#personal-new-pass").val();
-            
+        const el = e.currentTarget,
+            valPass = C("#personal-new-pass").val();
+
         but.disabled = (valPass === el.value) ? false : true;
     });
 
@@ -263,7 +262,7 @@ d.addEventListener("DOMContentLoaded", () => {
 
     C('a[data-click="openBalanceView"]').el.addEventListener("click", (e) => {
         const el = C('.balance-view').el.classList;
-        
+
         el.toggle('open');
         e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
     });
@@ -276,7 +275,7 @@ d.addEventListener("DOMContentLoaded", () => {
 
     C("#transactions-details-button").el.addEventListener("click", (e) => {
         const list = C("#transactions").el.classList,
-              t    = C(e.target);
+            t = C(e.target);
 
         list.toggle("hidden");
 
@@ -316,7 +315,7 @@ d.addEventListener("DOMContentLoaded", () => {
 
         promiseTimeout(() => {
             const cancel = C('#cancelText').el;
-            
+
             if (cancel) {
                 cancel.parentNode.removeChild(cancel);
             }
@@ -324,10 +323,10 @@ d.addEventListener("DOMContentLoaded", () => {
             el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
         }, 500);
     });
-    
+
     renderSections();
     drawSection((bearerToken && C().getStor(LS_SECTION) !== "reg_success") ? 'wallet' : C().getStor(LS_SECTION));
-    
+
     checkUpdates(() => {
         if (bearerToken) {
             d.body.addEventListener("pointerover", userActivity);
@@ -339,31 +338,31 @@ d.addEventListener("DOMContentLoaded", () => {
 function permitRedrawSection(section) {
     let permit = true;
     const needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
-    
+
     if (needUp[section] === 0) {
         permit = false;
     }
-    
+
     needUp[section] = 0;
     C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
-    
+
     return permit;
 }
 
 async function api(method, data = "") {
     const response = await fetch(API_URL, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json;charset=utf-8",
-                            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-                        },
-                        body: JSON.stringify({
-                            "method": method,
-                            "data": data,
-                            "source": SOURCE
-                        })
-                    });
-    return await response.json(); 
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json;charset=utf-8",
+            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
+        },
+        body: JSON.stringify({
+            "method": method,
+            "data": data,
+            "source": SOURCE
+        })
+    });
+    return await response.json();
 }
 
 function crashClearStorage() {
@@ -371,7 +370,7 @@ function crashClearStorage() {
         C().delStor(LS_CURR_UPDATE);
         C().delStor(LS_CONTENTS);
         C().setStor('crash', 1);
-        
+
         if (C().getStor('crash_clear')) {
             C().delStor('crash_clear');
         }
@@ -381,7 +380,7 @@ function crashClearStorage() {
 function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach((el) => {
         el.addEventListener("click", (e) => {
-            const i   = e.currentTarget;
+            const i = e.currentTarget;
             let inp = i.parentNode.children[0];
 
             i.classList.remove("icon-eye", "icon-eye-off");
@@ -426,7 +425,7 @@ function removeLoadOption(id) {
     if (!b.el) {
         return;
     }
-    
+
     b.els.forEach((el) => el.parentNode.removeChild(el));
 }
 
@@ -466,7 +465,7 @@ function routePrevSection() {
 function renderSections() {
     if (!isEmpty(C().getStor(LS_CONTENTS))) {
         const contents = JSON.parse(C().getStor(LS_CONTENTS));
-        
+
         drawPersonal(contents.personal);
         drawWallet(contents.wallet);
     }
@@ -476,13 +475,13 @@ async function drawSection(section) {
     if (!section) {
         section = "adult";
     }
-    
+
     if (section === "wallet") {
         C("main.main").addclass("noback");
     } else {
         C("main.main").delclass("noback");
     }
-    
+
     switch (section) {
         default: {
             break;
@@ -572,19 +571,19 @@ async function drawSection(section) {
 }
 
 async function renderReferSection() {
-    let response  = await getReferLink();
+    let response = await getReferLink();
     const referQr = C("#referQr").el;
 
     if (response.status) {
-        const {data} = response;
-        
+        const { data } = response;
+
         if (!referQr.children.length) {
             const qrCanvas = C().create("canvas").el;
             let qr = new QRious({
-                    element: qrCanvas,
-                    size: 192,
-                    value: data.link
-                });
+                element: qrCanvas,
+                size: 192,
+                value: data.link
+            });
 
             referQr.appendChild(qrCanvas);
             qrCanvas.classList.add("animated", "animate__fadeIn");
@@ -598,7 +597,7 @@ async function renderReferSection() {
         if (data.referrals && data.referrals.length)
             data.referrals.map((ref_row) => {
                 const tr = C().create("tr"),
-                      td = C().create("td");
+                    td = C().create("td");
 
                 td.text(ref_row.last_sync);
                 tr.append(td);
@@ -630,17 +629,17 @@ function confirmAdult() {
 
 function showPopup(title, desc, message, buttonText, callback) {
     const pOverlay = C("#popupOverlay"),
-          pTitle   = C("#popupTitle"),
-          pDesc    = C("#popupDescription"),
-          pMessage = C("#popupMessage"),
-          pButton  = C("#popupButton");
+        pTitle = C("#popupTitle"),
+        pDesc = C("#popupDescription"),
+        pMessage = C("#popupMessage"),
+        pButton = C("#popupButton");
     let cancelText;
-        
+
     if (Array.isArray(buttonText)) {
         cancelText = buttonText[1];
         buttonText = buttonText[0];
     }
-    
+
     if (!buttonText) {
         buttonText = "Ок";
     }
@@ -669,16 +668,16 @@ function showPopup(title, desc, message, buttonText, callback) {
     } else {
         hide("#popupMessage");
     }
-    
+
     if (cancelText) {
         const but = C().create('button');
-        
+
         but.addclass('button');
         but.text(cancelText);
         but.el.id = "cancelText";
         C('#popupCont').append(but);
     }
-    
+
     pButton.el.addEventListener("click", () => {
         if (callback) {
             callback();
@@ -713,10 +712,10 @@ async function checkAuthorization() {
 
 async function auth() {
     const authPhoneEl = C("#auth-phone-mask"),
-          authPassEl  = C("#auth-pass"),
-          authPassPop = C("#auth-pass-popup"),
-          phone       = getPhoneNumbers(C("#auth-phone-mask").val()),
-          authButton  = C("#auth-button").el;
+        authPassEl = C("#auth-pass"),
+        authPassPop = C("#auth-pass-popup"),
+        phone = getPhoneNumbers(C("#auth-phone-mask").val()),
+        authButton = C("#auth-button").el;
 
     if (!phone || phone.length !== 11) {
         showInputPopup("auth-phone-mask");
@@ -734,11 +733,11 @@ async function auth() {
     }
 
     authButton.disabled = true;
-    
+
     let result = await api("authorization", {
-                            phone,
-                            pass: authPassEl.val()
-                        });
+        phone,
+        pass: authPassEl.val()
+    });
 
     authButton.disabled = false;
 
@@ -755,11 +754,11 @@ async function auth() {
 }
 
 function checkReg() {
-    const regPhoneEl    = C("#reg-phone-mask"),
-          regBdEl       = C("#reg-birthdate").el,
-          regPassEl     = C("#reg-pass"),
-          regPassConfEl = C("#reg-pass-confirm"),
-          phone         = getPhoneNumbers(regPhoneEl.val());
+    const regPhoneEl = C("#reg-phone-mask"),
+        regBdEl = C("#reg-birthdate").el,
+        regPassEl = C("#reg-pass"),
+        regPassConfEl = C("#reg-pass-confirm"),
+        phone = getPhoneNumbers(regPhoneEl.val());
 
     if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
@@ -786,10 +785,10 @@ function checkReg() {
 }
 
 async function reg() {
-    let regPhoneEl  = C("#reg-phone-mask"),
-        regBdEl     = C("#reg-birthdate"),
+    let regPhoneEl = C("#reg-phone-mask"),
+        regBdEl = C("#reg-birthdate"),
         regButtonEl = C("#reg-button").el,
-        phone       = getPhoneNumbers(regPhoneEl.val()),
+        phone = getPhoneNumbers(regPhoneEl.val()),
         birthdate;
 
 
@@ -804,14 +803,14 @@ async function reg() {
     showLoader();
 
     let result = await api("registration", {
-                            phone,
-                            birthdate,
-                            pass:      C("#reg-pass").val(),
-                            firstname: C("#reg_firstname").val(),
-                            discount:  (C("#discount").el.checked ? 1 : 0),
-                            email:     C("#reg_email").val(),
-                            city:      C("#city").val()
-                        });
+        phone,
+        birthdate,
+        pass: C("#reg-pass").val(),
+        firstname: C("#reg_firstname").val(),
+        discount: (C("#discount").el.checked ? 1 : 0),
+        email: C("#reg_email").val(),
+        city: C("#city").val()
+    });
 
     regButtonEl.disabled = false;
     hideLoader();
@@ -819,7 +818,7 @@ async function reg() {
     if (result.status) {
         if (result.data && result.data.need_confirmation) {
             let regConfCode = C("#reg-confirmation-code");
-            
+
             hide("#registration_cont");
             show("#reg_confirmation");
             regConfCode.el.scrollIntoView();
@@ -830,7 +829,7 @@ async function reg() {
             setConfirmationTimeout(result);
         }
     } else {
-        
+
         if (result.description) {
             promiseTimeout(() => {
                 showPopup("", `${result.description}, возможно вам нужно <a href="" onclick="drawSection('reset');return false;">восстановить пароль</a>?`);
@@ -840,9 +839,9 @@ async function reg() {
 }
 
 function setConfirmationTimeout(result) {
-    let regConfRemindEl    = C("#reg_confirmation_remind"),
+    let regConfRemindEl = C("#reg_confirmation_remind"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        regConfInfoEl      = C("#reg_confirmation_info");
+        regConfInfoEl = C("#reg_confirmation_info");
 
     hide("#confirmation_button_reset");
     secondsLeft = result.data.seconds_left;
@@ -866,9 +865,9 @@ function setConfirmationTimeout(result) {
 }
 
 async function confirmation() {
-    let regConfCodeEl      = C("#reg-confirmation-code"),
+    let regConfCodeEl = C("#reg-confirmation-code"),
         regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        confButtonEl       = C("#confirmation_button");
+        confButtonEl = C("#confirmation_button");
 
     if (regConfCodeEl.val().length < 4) {
         regConfCodeEl.el.scrollIntoView();
@@ -883,9 +882,9 @@ async function confirmation() {
         showLoader();
 
         let result = await api("confirmation", {
-                                phone: lastPhone,
-                                code: regConfCodeEl.val()
-                            });
+            phone: lastPhone,
+            code: regConfCodeEl.val()
+        });
 
         confButtonEl.el.disabled = false;
         hideLoader();
@@ -917,8 +916,8 @@ async function confirmationReset() {
         confButtonReset.disabled = true;
 
         let result = await api("confirmationReset", {
-                                phone: lastPhone
-                            });
+            phone: lastPhone
+        });
 
         confButtonReset.disabled = false;
 
@@ -929,7 +928,7 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl    = C("#reset-phone-mask"),
+    let resetPhoneEl = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
 
     if (resetPhoneEl.val().length < 16) {
@@ -944,16 +943,16 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl    = C("#reset-phone-mask"),
-        resButtonEl   = C("#reset_button").el,
+    let resPhoneEl = C("#reset-phone-mask"),
+        resButtonEl = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
         resButtonEl.disabled = true;
 
         let result = await api("getResetConfirmationCode", {
-                                phone: resPhoneEl.val()
-                            });
+            phone: resPhoneEl.val()
+        });
 
         if (result.status) {
             show("#reset_confirmation");
@@ -997,10 +996,10 @@ function restartResetConfirmationTimer(seconds) {
 }
 
 async function checkResetConfirmationCode() {
-    let resPhoneEl    = C("#reset-phone"),
+    let resPhoneEl = C("#reset-phone"),
         resConfCodeEl = C("#reset_confirmation_code"),
         resPhonePopEl = C("#reset-phone-popup"),
-        resConfButEl  = C("#reset_confirmation_button");
+        resConfButEl = C("#reset_confirmation_button");
 
     if (resPhoneEl.val().length < 16) {
         resPhoneEl.el.scrollIntoView();
@@ -1020,9 +1019,9 @@ async function checkResetConfirmationCode() {
     resConfButEl.el.disabled = true;
 
     let result = await api("checkResetConfirmationCode", {
-                            phone: resPhoneEl.val(),
-                            code: resConfCodeEl.val()
-                        });
+        phone: resPhoneEl.val(),
+        code: resConfCodeEl.val()
+    });
 
     resConfButEl.el.disabled = false;
 
@@ -1035,7 +1034,7 @@ async function checkResetConfirmationCode() {
         showPopup("Внимание", result.description, null, null, () => {
             resConfCodeEl.val("");
             resConfCodeEl.el.focus();
-            C("#reset_confirmation_button").el.disabled = true;        
+            C("#reset_confirmation_button").el.disabled = true;
         });
     }
 }
@@ -1045,16 +1044,16 @@ async function getReferLink() {
 }
 
 async function getResetConfirmationSms() {
-    const resPhoneEl    = C("#reset-phone-mask"),
-          resButtonEl   = C("#reset_button").el,
-          resConfInfoEl = C("#reset_confirmation_info");
+    const resPhoneEl = C("#reset-phone-mask"),
+        resButtonEl = C("#reset_button").el,
+        resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
         resButtonEl.disabled = true;
 
         let result = await api("getResetConfirmationSms", {
-                                "phone": resPhoneEl.val()
-                            });
+            "phone": resPhoneEl.val()
+        });
 
         if (result.status) {
             show("#reset_confirmation");
@@ -1079,9 +1078,9 @@ function attentionFocus(el) {
 
 async function logOff() {
     showLoader();
-    
+
     let result = await api("logOff");
-    
+
     if (result.status) {
         clearLocalStorage();
         location.reload();
@@ -1096,7 +1095,7 @@ async function updateCities() {
     if (city.el.children.length > 2) {
         return;
     }
-    
+
     let result = await api("getCities");
 
     if (result.status) {
@@ -1127,11 +1126,11 @@ function clearLocalStorage() {
 }
 
 function showRequestSms() {
-    showPopup("Вам не позвонили?", 
-              "", 
-              "Попробуйте получить код подтверждения с помощью СМС<br><br>Если это вам не помогло, обратитесь в <a href=\"#\" onClick=\"showFeedback()\">службу поддержки</a>", 
-              ["Отправить код", "Попробую позже"],
-              getResetConfirmationSms);
+    showPopup("Вам не позвонили?",
+        "",
+        "Попробуйте получить код подтверждения с помощью СМС<br><br>Если это вам не помогло, обратитесь в <a href=\"#\" onClick=\"showFeedback()\">службу поддержки</a>",
+        ["Отправить код", "Попробую позже"],
+        getResetConfirmationSms);
 }
 
 function showTerms() {
@@ -1187,9 +1186,9 @@ function showInputPopup(id) {
 }
 
 async function setFeedback() {
-    const phone     = getPhoneNumbers(C("#feedback-phone-mask").val()),
-          message   = C("#feedback-message").val(),
-          submitBut = C("#feedback-submit").el;
+    const phone = getPhoneNumbers(C("#feedback-phone-mask").val()),
+        message = C("#feedback-message").val(),
+        submitBut = C("#feedback-submit").el;
 
     if (phone.length !== 11) {
         showInputPopup("feedback-phone-mask");
@@ -1203,15 +1202,15 @@ async function setFeedback() {
 
     submitBut.disabled = true;
     showLoader();
-    
+
     let result = await api("setFeedback", {
-                            phone,
-                            name:    C("#feedback-name").val(),
-                            email:   C("#feedback-email").val(),
-                            reason:  C("#feedback-reason").val(),
-                            message: C("#feedback-message").val() + " (Источник: " + clientInfo + ")"
-                        });
-    
+        phone,
+        name: C("#feedback-name").val(),
+        email: C("#feedback-email").val(),
+        reason: C("#feedback-reason").val(),
+        message: C("#feedback-message").val() + " (Источник: " + clientInfo + ")"
+    });
+
     if (result.status) {
         showPopup("Готово", "Ваше сообщение передано оператору");
         hideFeedback();
@@ -1219,16 +1218,16 @@ async function setFeedback() {
     } else {
         onErrorCatch(result);
     }
-    
+
     submitBut.disabled = false;
     hideLoader();
 }
 
 function isEmpty(obj) {
-    if (!obj || obj==="undefined") {
+    if (!obj || obj === "undefined") {
         return true;
     }
-    
+
     return Object.keys(JSON.parse(obj)).length === 0;
 }
 
@@ -1240,33 +1239,38 @@ function onErrorCatch(error) {
 function setNeedUpdate(contents, result, section) {
     const needUp = JSON.parse(C().getStor(LS_NEED_UPDATE));
 
-    if (contents[section] !== result.data[section] ) {
+    if (contents[section] !== result.data[section]) {
         needUp[section] = 1;
     }
-    
+
     C().setStor(LS_NEED_UPDATE, JSON.stringify(needUp));
 }
 
 async function checkUpdates(callback) {
-    if (!bearerToken && callback) {
-        callback();
-    }
-    
-    if (!bearerToken) {
-        return;
-    }
+    if (!bearerToken && callback) callback();
+
+    if (!bearerToken) return;
 
     const result = await getUpdates();
-    const {data, status} = result;
-    
-    if (viewNewApp && SOURCE && SOURCE.replace("APP_", "") < data.versionApp.replace("APP_", "")) {
-        showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
-        viewNewApp = null;
+    const { data, status } = result;
+
+    // if (viewNewApp && SOURCE && SOURCE.replace("APP_", "") < data.versionApp.replace("APP_", "")) {
+    //     showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+    //     viewNewApp = null;
+    // }
+
+    if (viewNewApp && SOURCE) {
+        fetch("version?platform=" + PLATFORM).then(r => r.text()).then(t => {
+            if (Number(t) > Number(SOURCE)) {
+                showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+            }
+            viewNewApp = null;
+        });
     }
 
     const curSection = C().getStor(LS_SECTION),
-          updates    = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
-    let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
+        updates = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+    let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : { "personal": "", "wallet": "" };
 
     if (status) {
         if (data.news.length) {
@@ -1313,12 +1317,12 @@ async function checkUpdates(callback) {
             logOff();
         }
     }
-    
+
     if (bearerToken) {
         if (callback) {
             callback();
         }
-    
+
         await api("updateWalletData");
         userActivityTimeout = null;
     }
@@ -1326,12 +1330,12 @@ async function checkUpdates(callback) {
 
 async function getUpdates() {
     let data = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
-    const contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : {"personal": "", "wallet": ""};
-    
+    const contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : { "personal": "", "wallet": "" };
+
     if (contents.personal === "") {
         data = tempUpdate;
     }
-    
+
     if (initApp) {
         data.lastNews = 0;
         data.storesHash = "";
@@ -1339,13 +1343,13 @@ async function getUpdates() {
         data.lastTransaction = "";
         initApp = false;
     }
-    
+
     return await api("getUpdates", data);
 }
 
 function mask(inp) {
     let underlay = document.createElement('input'),
-        attr     = {};
+        attr = {};
 
     attr.id = inp.id.replace("-mask", "");
     attr.disabled = "disabled";
@@ -1363,7 +1367,7 @@ function mask(inp) {
 
 function setPhoneMask(inp, mask) {
     const hideId = "#" + inp.id.replace("-mask", "");
-    let phone  = inp.value;
+    let phone = inp.value;
 
     if (phone === "") {
         phone = "7";
@@ -1413,8 +1417,8 @@ function validateBirthdate(el, isSubmit) {
     if (el.value.length > 9) {
         let td = el.value.split("-");
         bd = new Date(td[2], --td[1], td[0]),
-                cd = new Date(),
-                age = (cd - bd);
+            cd = new Date(),
+            age = (cd - bd);
 
         if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
             showInputPopup("reg-birthdate");
@@ -1428,233 +1432,233 @@ function validateBirthdate(el, isSubmit) {
     return false;
 }
 
-const C = function(s, p) {
+const C = function (s, p) {
     this.isC = true,
-    this.isNodeList = (nodes) => {
-        const stringRepr = Object.prototype.toString.call(nodes);
+        this.isNodeList = (nodes) => {
+            const stringRepr = Object.prototype.toString.call(nodes);
 
-        return typeof nodes === 'object' &&
+            return typeof nodes === 'object' &&
                 /^\[object (HTMLCollection|NodeList|Object)\]$/.test(stringRepr) &&
                 (typeof nodes.length === 'number') &&
                 (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
-    },
-    this.isNode = (obj) => {
-        if (obj && obj.nodeType) {
-            return true;
-        } else {
-            return false;
-        }
-    },
-    this.isDocument = (obj) => {
-        return obj instanceof Document || obj instanceof Window;
-    },
-    this.isclass = (cl) => {
-        return this.els[0].classList.contains(cl);
-    },
-    this.defineEls = () => {
-        if (this.isNode(s) || this.isDocument(s)) {
-            return [s];
-        } else if (this.isNodeList(s)) {
-            return s;
-        } else {
-            if (p && p.isC) {
-                p = p.els[0];
+        },
+        this.isNode = (obj) => {
+            if (obj && obj.nodeType) {
+                return true;
+            } else {
+                return false;
             }
+        },
+        this.isDocument = (obj) => {
+            return obj instanceof Document || obj instanceof Window;
+        },
+        this.isclass = (cl) => {
+            return this.els[0].classList.contains(cl);
+        },
+        this.defineEls = () => {
+            if (this.isNode(s) || this.isDocument(s)) {
+                return [s];
+            } else if (this.isNodeList(s)) {
+                return s;
+            } else {
+                if (p && p.isC) {
+                    p = p.els[0];
+                }
 
-            return this.isNode(p) ? p.querySelectorAll(s) : d.querySelectorAll(s);
-        }
-    },
-    this.defineEl = () => {
-        return this.els[0];
-    },
-    this.els = this.defineEls(),
-    this.el = this.defineEl(),
-    this.on = (type, s, fn, except) => {
-        const p = this;
-        let i;
+                return this.isNode(p) ? p.querySelectorAll(s) : d.querySelectorAll(s);
+            }
+        },
+        this.defineEl = () => {
+            return this.els[0];
+        },
+        this.els = this.defineEls(),
+        this.el = this.defineEl(),
+        this.on = (type, s, fn, except) => {
+            const p = this;
+            let i;
 
-        this.bind(type, (e) => {
-            const el = (p.isNode(s) || p.isNodeList(s)) ? s : C(s).els,
-                  ex = except || false;
-            let t = e.target;
+            this.bind(type, (e) => {
+                const el = (p.isNode(s) || p.isNodeList(s)) ? s : C(s).els,
+                    ex = except || false;
+                let t = e.target;
 
-            while (t && t !== this) {
-                if (ex) {
-                    for (i = 0; i < C(ex).els.length; i++) {
-                        if (t === C(ex).els[i]) {
+                while (t && t !== this) {
+                    if (ex) {
+                        for (i = 0; i < C(ex).els.length; i++) {
+                            if (t === C(ex).els[i]) {
+                                break;
+                            }
+                        }
+                    }
+
+                    for (i = 0; i < el.length; i++) {
+                        if (t === el[i]) {
+                            fn(e, t);
                             break;
                         }
                     }
-                }
-                
-                for (i = 0; i < el.length; i++) {
-                    if (t === el[i]) {
-                        fn(e, t);
+
+                    if (t) {
+                        t = t.parentNode;
+                    } else {
                         break;
                     }
                 }
+            });
 
-                if (t) {
-                    t = t.parentNode;
-                } else {
-                    break;
-                }
+            return this;
+        },
+        this.strToNode = (h) => {
+            let terk;
+
+            if (!this.isNode(h)) {
+                const div = this.create('div');
+
+                div.html(h);
+                terk = [div.el.children[0]];
+            } else {
+                terk = [h];
             }
-        });
 
-        return this;
-    },
-    this.strToNode = (h) => {
-      let terk;
+            this.els = terk;
+            this.el = terk[0];
 
-      if (!this.isNode(h)) {
-        const div = this.create('div');
-
-        div.html(h);
-        terk = [div.el.children[0]];
-      } else {
-        terk = [h];
-      }
-
-      this.els = terk;
-      this.el  = terk[0];
-
-      return this;
-    },
-    this.attr = (attr, value) => {
-        if (!value) {
-            return this.el.getAttribute(attr);
-        }
-        
-        this.els.forEach((el) => {
-            el.setAttribute(attr, value);
-        });
-
-        return this;
-    },
-    this.create = (tag) => {
-        const el = d.createElement(tag);
-        this.els = [el];
-        this.el  = el;
-
-        return this;
-    },
-    this.append = (el) => {
-        this.el.append(el.el);
-    },
-    this.style = (st, val) => {
-        this.els.forEach((el) => {
-            el.style[st] = val;
-        });
-
-        return this;
-    },
-    this.addclass = (cls) => {
-        if (!Array.isArray(cls)) {
-            cls = [cls];
-        }
-
-        this.els.forEach((el) => {
-            cls.forEach((cl) => {
-                el.classList.add(cl);
-            });
-        });
-
-        return this;
-    },
-    this.togclass = (cl) => {
-        this.els.forEach((el) => {
-            el.classList.toggle(cl);
-        });
-
-        return this;
-    },
-    this.delclass = (cls) => {
-        if (!Array.isArray(cls)) {
-            cls = [cls];
-        }
-        
-        this.els.forEach((el) => {
-            cls.forEach((cl) => {
-                el.classList.remove(cl);
-            });
-        });
-        
-        return this;
-    },
-    this.delStor = (key) => {
-        localStorage.removeItem(key);
-        return this;
-    },
-    this.setStor = (key, val) => {
-        localStorage.setItem(key, val);
-        return this;
-    },
-    this.getStor = (key) => {
-        return localStorage.getItem(key);
-    },
-    this.bind = (type, fn) => {
-        let addEvent;
-
-        if (!type || !fn) {
             return this;
-        }
+        },
+        this.attr = (attr, value) => {
+            if (!value) {
+                return this.el.getAttribute(attr);
+            }
 
-        if (typeof addEventListener === "function") {
-            addEvent = (el, type, fn) => {
-                el.addEventListener(type, fn, false);
-            };
-        } else if (typeof attachEvent === "function") {
-            addEvent = (el, type, fn) => {
-                el.attachEvent("on" + type, fn);
-            };
-        } else {
-            return this;
-        }
-
-        if (this.isNodeList(this.els) || this.els.length > 0) {
             this.els.forEach((el) => {
-                addEvent(el, type, fn);
+                el.setAttribute(attr, value);
             });
-        } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
-            addEvent(this.els[0], type, fn);
-        }
 
-        return this;
-    },
-    this.html = (html) => {
-        if (html!=="" && !html) {
-            return this.els[0].innerHTML;
-        }
+            return this;
+        },
+        this.create = (tag) => {
+            const el = d.createElement(tag);
+            this.els = [el];
+            this.el = el;
 
-        this.els.forEach((el) => {
-            el.innerHTML = html;
-        });
+            return this;
+        },
+        this.append = (el) => {
+            this.el.append(el.el);
+        },
+        this.style = (st, val) => {
+            this.els.forEach((el) => {
+                el.style[st] = val;
+            });
 
-        return this;
-    },
-    this.text = (text) => {
-        if (text!=="" && !text) {
-            return this.els[0].innerText;
-        }
+            return this;
+        },
+        this.addclass = (cls) => {
+            if (!Array.isArray(cls)) {
+                cls = [cls];
+            }
 
-        this.els.forEach((el) => {
-            el.innerText = text;
-        });
+            this.els.forEach((el) => {
+                cls.forEach((cl) => {
+                    el.classList.add(cl);
+                });
+            });
 
-        return this;
-    },
-    this.val = (value) => {
-        if (value!=="" && !value) {
-            return this.els[0].value;
-        }
+            return this;
+        },
+        this.togclass = (cl) => {
+            this.els.forEach((el) => {
+                el.classList.toggle(cl);
+            });
 
-        this.els.forEach((el) => {
-            el.value = value;
-        });
+            return this;
+        },
+        this.delclass = (cls) => {
+            if (!Array.isArray(cls)) {
+                cls = [cls];
+            }
 
-        return this;
-    };
+            this.els.forEach((el) => {
+                cls.forEach((cl) => {
+                    el.classList.remove(cl);
+                });
+            });
+
+            return this;
+        },
+        this.delStor = (key) => {
+            localStorage.removeItem(key);
+            return this;
+        },
+        this.setStor = (key, val) => {
+            localStorage.setItem(key, val);
+            return this;
+        },
+        this.getStor = (key) => {
+            return localStorage.getItem(key);
+        },
+        this.bind = (type, fn) => {
+            let addEvent;
+
+            if (!type || !fn) {
+                return this;
+            }
+
+            if (typeof addEventListener === "function") {
+                addEvent = (el, type, fn) => {
+                    el.addEventListener(type, fn, false);
+                };
+            } else if (typeof attachEvent === "function") {
+                addEvent = (el, type, fn) => {
+                    el.attachEvent("on" + type, fn);
+                };
+            } else {
+                return this;
+            }
+
+            if (this.isNodeList(this.els) || this.els.length > 0) {
+                this.els.forEach((el) => {
+                    addEvent(el, type, fn);
+                });
+            } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
+                addEvent(this.els[0], type, fn);
+            }
+
+            return this;
+        },
+        this.html = (html) => {
+            if (html !== "" && !html) {
+                return this.els[0].innerHTML;
+            }
+
+            this.els.forEach((el) => {
+                el.innerHTML = html;
+            });
+
+            return this;
+        },
+        this.text = (text) => {
+            if (text !== "" && !text) {
+                return this.els[0].innerText;
+            }
+
+            this.els.forEach((el) => {
+                el.innerText = text;
+            });
+
+            return this;
+        },
+        this.val = (value) => {
+            if (value !== "" && !value) {
+                return this.els[0].value;
+            }
+
+            this.els.forEach((el) => {
+                el.value = value;
+            });
+
+            return this;
+        };
 
     if (this instanceof C) {
         return this.C;
