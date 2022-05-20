@@ -1,6 +1,7 @@
 <?php
 
-class BonusApp {
+class BonusApp
+{
 
     private $pdo = null;
 
@@ -9,20 +10,23 @@ class BonusApp {
         "BEE"                       // Digital Flash Call
     ];
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->setCORS();
     }
 
-    private function __overload() {
+    private function __overload()
+    {
         debug($this->initPDO());
 
         exit;
     }
 
-    function setCORS() {
+    function setCORS()
+    {
         if (array_key_exists("HTTP_ORIGIN", $_SERVER)) {
             $http_origin = $_SERVER['HTTP_ORIGIN'];
-            
+
             if (isset($http_origin)) {
                 header("Access-Control-Allow-Origin: $http_origin");
             }
@@ -42,288 +46,290 @@ class BonusApp {
         }
     }
 
-    public function route() {
+    public function route()
+    {
         $url = UTY::urlPrepare($_SERVER["REQUEST_URI"]);
 
-        switch($url) {
+        switch ($url) {
             default: {
-                header("Location: https://".$_SERVER["HTTP_HOST"]."/404");
-                break;
-            }
+                    header("Location: https://" . $_SERVER["HTTP_HOST"] . "/404");
+                    break;
+                }
 
             case "": {
-                require_once 'templates/index.html';
-                
-                break;
-            }
-            
-            case "add-news": {
-                $result = $this->initPDO();
-                
-                if (!empty($_POST)) {
-                    echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
-                    if ($this->sendNewsToServer()) {
-                        echo '<h1>Новость добавлена!</h1> <p><a href="/add-news">Добавить еще новость</a></p>';
-                    } else {
-                        echo '<h1>Произошла ошибка!</h1> <p><a href="/add-news">Попробовать еще раз</a></p>';
-                    }
-                    echo '</div>';
-                } else {
-                    if (!empty($_GET)) {
-                        $news = $this->getNewsById($_GET['id']);
-                    }
-                    
-                    require_once 'templates/forms/template_form_add_news.php';
+                    require_once 'templates/index.html';
+
+                    break;
                 }
-                
-                break;
-            }
+
+            case "add-news": {
+                    $result = $this->initPDO();
+
+                    if (!empty($_POST)) {
+                        echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
+                        if ($this->sendNewsToServer()) {
+                            echo '<h1>Новость добавлена!</h1> <p><a href="/add-news">Добавить еще новость</a></p>';
+                        } else {
+                            echo '<h1>Произошла ошибка!</h1> <p><a href="/add-news">Попробовать еще раз</a></p>';
+                        }
+                        echo '</div>';
+                    } else {
+                        if (!empty($_GET)) {
+                            $news = $this->getNewsById($_GET['id']);
+                        }
+
+                        require_once 'templates/forms/template_form_add_news.php';
+                    }
+
+                    break;
+                }
 
             case "list-news": {
-                $result   = $this->initPDO();
-                $listNews = $this->getListNews();
-                require_once 'templates/forms/template_form_list_news.php';
-                
-                break;
-            }
+                    $result   = $this->initPDO();
+                    $listNews = $this->getListNews();
+                    require_once 'templates/forms/template_form_list_news.php';
+
+                    break;
+                }
 
             case "application-apple": {
-                $this->mobileDetectHandler();
-                // header("Location: https://apps.apple.com/ru/app/%D1%81%D1%82%D0%BE%D0%BB%D0%B8%D1%86%D0%B0-%D0%B1%D0%BE%D0%BD%D1%83%D1%81%D1%8B/id1590266964");
-                break;
-            }
+                    $this->mobileDetectHandler();
+                    // header("Location: https://apps.apple.com/ru/app/%D1%81%D1%82%D0%BE%D0%BB%D0%B8%D1%86%D0%B0-%D0%B1%D0%BE%D0%BD%D1%83%D1%81%D1%8B/id1590266964");
+                    break;
+                }
 
             case "application-google": {
-                $this->mobileDetectHandler();
-                // header("Location: https://play.google.com/store/apps/details?id=com.stolica.bonuses");
-                break;
-            }
+                    $this->mobileDetectHandler();
+                    // header("Location: https://play.google.com/store/apps/details?id=com.stolica.bonuses");
+                    break;
+                }
 
             case "application": {
-                $this->mobileDetectHandler();
-                break;
-            }
+                    $this->mobileDetectHandler();
+                    break;
+                }
 
             case "politika-konfidentsialnosti": {
-                require_once 'templates/template_terms.php';
-                break;
-            }
+                    require_once 'templates/template_terms.php';
+                    break;
+                }
 
             case "pravila": {
-                require_once 'templates/template_rules_191021.php';
-                break;
-            }
+                    require_once 'templates/template_rules_191021.php';
+                    break;
+                }
 
             case "pravila_190421": {
-                require_once 'templates/template_rules_190421.php';
-                break;
-            }
+                    require_once 'templates/template_rules_190421.php';
+                    break;
+                }
 
             case "pravila_080621": {
-                require_once 'templates/template_rules_080621.php';
-                break;
-            }
+                    require_once 'templates/template_rules_080621.php';
+                    break;
+                }
 
             case "pravila_090721": {
-                require_once 'templates/template_rules_090721.php';
-                break;
-            }
+                    require_once 'templates/template_rules_090721.php';
+                    break;
+                }
 
             case "pravila-akcii": {
-                require_once 'templates/template_referral.php';
-                break;
-            }
+                    require_once 'templates/template_referral.php';
+                    break;
+                }
 
             case "pravila-rozigrisha": {
-                require_once 'templates/template_drawing.php';
-                break;
-            }
-            
-            case "api": {
-                $rawRequestData = file_get_contents('php://input');
-                if (!empty($rawRequestData)) {
-                    $this->api($rawRequestData);
-                } else {
-                    if (empty($_GET) || $_GET["token"] != API_TOKEN) {
-                        header("Location: https://".$_SERVER["HTTP_HOST"]);
-                    } else {
-                        $this->__overload();
-                    }
+                    require_once 'templates/template_drawing.php';
+                    break;
                 }
 
-                break;
-            }
+            case "api": {
+                    $rawRequestData = file_get_contents('php://input');
+                    if (!empty($rawRequestData)) {
+                        $this->api($rawRequestData);
+                    } else {
+                        if (empty($_GET) || $_GET["token"] != API_TOKEN) {
+                            header("Location: https://" . $_SERVER["HTTP_HOST"]);
+                        } else {
+                            $this->__overload();
+                        }
+                    }
+
+                    break;
+                }
 
             case "log": {
-                $file_get = $_SERVER["DOCUMENT_ROOT"] . "/logs/get.log";
-                $file_post = $_SERVER["DOCUMENT_ROOT"] . "/logs/post.log";
+                    $file_get = $_SERVER["DOCUMENT_ROOT"] . "/logs/get.log";
+                    $file_post = $_SERVER["DOCUMENT_ROOT"] . "/logs/post.log";
 
-                if (!empty($_GET)) {
-                    $fw = fopen($file_get, "a");
-                    fwrite($fw, "HEADERS " . var_export(getallheaders(), true));
-                    fwrite($fw, "GET " . var_export($_GET, true) . '');
-                    fclose($fw);
+                    if (!empty($_GET)) {
+                        $fw = fopen($file_get, "a");
+                        fwrite($fw, "HEADERS " . var_export(getallheaders(), true));
+                        fwrite($fw, "GET " . var_export($_GET, true) . '');
+                        fclose($fw);
+                    }
+
+                    if (!empty($_POST) || !empty(file_get_contents('php://input'))) {
+                        $fw = fopen($file_post, "a");
+                        fwrite($fw, "HEADERS " . var_export(getallheaders(), true));
+                        fwrite($fw, "POST " . var_export($_POST, true));
+                        fwrite($fw, "JSON " . var_export(file_get_contents('php://input'), true));
+                        fclose($fw);
+                    }
+
+                    break;
                 }
-
-                if (!empty($_POST) || !empty(file_get_contents('php://input'))) {
-                    $fw = fopen($file_post, "a");
-                    fwrite($fw, "HEADERS " . var_export(getallheaders(), true));
-                    fwrite($fw, "POST " . var_export($_POST, true));
-                    fwrite($fw, "JSON " . var_export(file_get_contents('php://input'), true));
-                    fclose($fw);
-                }
-
-                break;
-            }
 
             case "sms": {
-                // Пример: http://localhost/sms?token=API_TOKEN&phone=79635658436&message=hello
-                if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    // Пример: http://localhost/sms?token=API_TOKEN&phone=79635658436&message=hello
+                    if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
-                $result = $this->initPDO();
-                if (!$result["status"]) {
-                    echo(json_encode($result));
-                    exit;
-                }
+                    $result = $this->initPDO();
+                    if (!$result["status"]) {
+                        echo (json_encode($result));
+                        exit;
+                    }
 
-                $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
-                $message = $_GET["message"];
+                    $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
+                    $message = $_GET["message"];
 
-                $result = $this->canSendMessage($phone);
-                // ОТЛАДКА
-                $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
-                if ($result["status"]) {
-                    $provider = isset($result["data"]["provider"]) ? $this->getNextProvider($result["data"]["provider"]) : null;
-                    $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
-
+                    $result = $this->canSendMessage($phone);
                     // ОТЛАДКА
-                    $this->journal("SMS", "sendMessage", "", $result["status"], json_encode(["f" => "sendMessage", "a" => [$phone, preg_replace("/[^0-9]/", "", $message), $provider]]), json_encode($result, JSON_UNESCAPED_UNICODE));
-                }
+                    $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    if ($result["status"]) {
+                        $provider = isset($result["data"]["provider"]) ? $this->getNextProvider($result["data"]["provider"]) : null;
+                        $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
-                // КОСТЫЛЬ: если сообщение не было отправлено сообщаем кассе код 404. Касса не умеет читать сообщение в теле, она ориентируется по кодам страницы.
-                if (!$result["status"]) {
-                    header("HTTP/1.0 404 Not Found");
-                    header("HTTP/1.1 404 Not Found");
-                    header("Status: 404 Not Found");
-                }
+                        // ОТЛАДКА
+                        $this->journal("SMS", "sendMessage", "", $result["status"], json_encode(["f" => "sendMessage", "a" => [$phone, preg_replace("/[^0-9]/", "", $message), $provider]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    }
 
-                echo(json_encode($result));
-                break;
-            }
+                    // КОСТЫЛЬ: если сообщение не было отправлено сообщаем кассе код 404. Касса не умеет читать сообщение в теле, она ориентируется по кодам страницы.
+                    if (!$result["status"]) {
+                        header("HTTP/1.0 404 Not Found");
+                        header("HTTP/1.1 404 Not Found");
+                        header("Status: 404 Not Found");
+                    }
+
+                    echo (json_encode($result));
+                    break;
+                }
 
             case "cron": {
-                // Пример: http://localhost/cron?token=CRON_TOKEN&method=METHOD_NAME
-                if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    // Пример: http://localhost/cron?token=CRON_TOKEN&method=METHOD_NAME
+                    if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
-                switch ($_GET["method"]) {
-                    default: {
-                        echo(1);
-                        break;
+                    switch ($_GET["method"]) {
+                        default: {
+                                echo (1);
+                                break;
+                            }
+                        case "completeregistration": {
+                                print_r($this->service_completeRegistration());
+                                break;
+                            }
+                        case "specialcharge": {
+                                print_r($this->service_specialCharge());
+                                break;
+                            }
+                        case "cron3": {
+                                // print_r($this->uploadCC());
+                                break;
+                            }
+                        case "cron4": {
+                                // print_r($this->sendEmail());
+                                break;
+                            }
+                        case "cron5": {
+                                // print_r($this->sendEmailDrawing());
+                                break;
+                            }
+                        case "cron7": {
+                                print_r($this->service_drawingRemind());
+                                break;
+                            }
+                        case "cron8": {
+                                print_r($this->getBonuscardsToReferralCong());
+                                break;
+                            }
+                        case "cron10": {
+                                print_r($this->uploadDump());
+                                break;
+                            }
+                        case "sendfeedbacks": {
+                                print_r($this->sheduler_sendFeedbacks());
+                                break;
+                            }
                     }
-                    case "completeregistration": {
-                        print_r($this->service_completeRegistration());
-                        break;
-                    }
-                    case "specialcharge": {
-                        print_r($this->service_specialCharge());
-                        break;
-                    }
-                    case "cron3": {
-                        // print_r($this->uploadCC());
-                        break;
-                    }
-                    case "cron4": {
-                        // print_r($this->sendEmail());
-                        break;
-                    }
-                    case "cron5": {
-                        // print_r($this->sendEmailDrawing());
-                        break;
-                    }
-                    case "cron7": {
-                        print_r($this->service_drawingRemind());
-                        break;
-                    }
-                    case "cron8": {
-                        print_r($this->getBonuscardsToReferralCong());
-                        break;
-                    }
-                    case "cron10": {
-                        print_r($this->uploadDump());
-                        break;
-                    }
-                    case "sendfeedbacks": {
-                        print_r($this->sheduler_sendFeedbacks());
-                        break;
-                    }
+
+                    break;
                 }
-
-                break;
-            }
 
             case "ref": {
-                // Пример: http://localhost/ref?id=#
-                if (empty($_GET) || empty($_GET["id"])) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    // Пример: http://localhost/ref?id=#
+                    if (empty($_GET) || empty($_GET["id"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
-                $result = $this->initPDO();
-                if (!$result["status"]) header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    $result = $this->initPDO();
+                    if (!$result["status"]) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
-                $ref_id = preg_replace("/[^0-9]/", "", $_GET["id"]);
-                $operationResult = $this->haveAccount($ref_id);
-                if ($operationResult["status"]) {
-                    setcookie("rsa_ref", $ref_id, strtotime('+12 month'));
-                    header("Location: https://".$_SERVER["HTTP_HOST"]."/");
-                } else {
-                    header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    $ref_id = preg_replace("/[^0-9]/", "", $_GET["id"]);
+                    $operationResult = $this->haveAccount($ref_id);
+                    if ($operationResult["status"]) {
+                        setcookie("rsa_ref", $ref_id, strtotime('+12 month'));
+                        header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+                    } else {
+                        header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+                    }
+                    break;
                 }
-                break;
-            }
 
             case "bd": {
-                // Пример: http://localhost/bd?tk=TOKEN
-                if (!empty($_GET) || !empty($_GET["tk"])) {
-                    $result = $this->initPDO();
-                    if ($result["status"]) $this->authByToken($_GET["tk"]);
-                }
-                header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    // Пример: http://localhost/bd?tk=TOKEN
+                    if (!empty($_GET) || !empty($_GET["tk"])) {
+                        $result = $this->initPDO();
+                        if ($result["status"]) $this->authByToken($_GET["tk"]);
+                    }
+                    header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
-                break;
-            }
+                    break;
+                }
 
             case "version": {
-                if (!empty($_GET) || !empty($_GET["platform"])) {
-                    $currentVersion = APP_VERSION;
+                    if (!empty($_GET) || !empty($_GET["platform"])) {
+                        $currentVersion = APP_VERSION;
 
-                    switch ($_GET["platform"]) {
-                        case "android": {
-                            $currentVersion = APP_VERSION_ANDROID;
-                            break;
+                        switch ($_GET["platform"]) {
+                            case "android": {
+                                    $currentVersion = APP_VERSION_ANDROID;
+                                    break;
+                                }
+                            case "ios": {
+                                    $currentVersion = APP_VERSION_IOS;
+                                    break;
+                                }
                         }
-                        case "ios": {
-                            $currentVersion = APP_VERSION_IOS;
-                            break;
-                        }
+
+                        echo ($currentVersion);
+                    } else {
+                        header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
                     }
 
-                    echo($currentVersion);
-                } else {
-                    header("Location: https://".$_SERVER["HTTP_HOST"]."/");
+                    break;
                 }
 
-                break;
-            }
-
             case "404": {
-                require_once 'templates/404.php';
-                break;
-            }
+                    require_once 'templates/404.php';
+                    break;
+                }
         }
     }
 
-    private function api($rawRequestData) {
+    private function api($rawRequestData)
+    {
         $result = $this->initPDO();
         if (!$result["status"]) {
-            echo(json_encode($result, JSON_UNESCAPED_UNICODE));
+            echo (json_encode($result, JSON_UNESCAPED_UNICODE));
             exit;
         }
 
@@ -341,12 +347,12 @@ class BonusApp {
             //     "post" => $_POST,
             //     "json" => file_get_contents('php://input')
             // ]));
-            
+
             $resultData = [
                 "status" => true
             ];
 
-            echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
+            echo (json_encode($resultData, JSON_UNESCAPED_UNICODE));
 
             exit;
         }
@@ -360,276 +366,281 @@ class BonusApp {
 
             if (isset($requestData["method"])) switch ($requestData["method"]) {
                 case "regPhys": {
-                    $resultData = $this->service_regPhysCards();
-                    break;
-                }
+                        $resultData = $this->service_regPhysCards();
+                        break;
+                    }
 
                 case "checkAuthorization": {
-                    $resultData = $this->checkAuthorization();
-                    
-                    break;
-                }
-                
-                case "disableTransaction": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) {
-                        $resultData = $this->API_disableTransaction($resultData["data"], $requestData["data"]);
-                    }
-                    break;
-                }
-                
-                case "disablePurchase": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) {
-                        $resultData = $this->API_disablePurchase($resultData["data"], $requestData["data"]);
-                    }
-                    break;
-                }
-                
-                case "getUpdates": {
-                    $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
-                    if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
+                        $resultData = $this->checkAuthorization();
 
-                    break;
-                }
+                        break;
+                    }
+
+                case "disableTransaction": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) {
+                            $resultData = $this->API_disableTransaction($resultData["data"], $requestData["data"]);
+                        }
+                        break;
+                    }
+
+                case "disablePurchase": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) {
+                            $resultData = $this->API_disablePurchase($resultData["data"], $requestData["data"]);
+                        }
+                        break;
+                    }
+
+                case "getUpdates": {
+                        $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
+                        if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
+
+                        break;
+                    }
 
                 case "authorization": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+                        if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
+                            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
-                        if (!empty($requestData["data"]["pass"])) {
-                            $resultData = $this->API_authorizationHandler($phone, $requestData["data"]["pass"]);
+                            if (!empty($requestData["data"]["pass"])) {
+                                $resultData = $this->API_authorizationHandler($phone, $requestData["data"]["pass"]);
+                            } else {
+                                $resultData["description"] = "Введите пароль";
+                            }
                         } else {
-                            $resultData["description"] = "Введите пароль";
+                            $resultData["description"] = "Введите номер телефона";
                         }
-                    } else {
-                        $resultData["description"] = "Введите номер телефона";
+                        break;
                     }
-                    break;
-                }
 
                 case "registration": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+                        if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
+                            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
-                        if (!empty($requestData["data"]["pass"])) {
-                            $pass = $requestData["data"]["pass"];
+                            if (!empty($requestData["data"]["pass"])) {
+                                $pass = $requestData["data"]["pass"];
 
-                            $resultData = $this->API_registrationHandler($phone, $pass, [
-                                    "firstname" => $requestData["data"]["firstname"],
-                                    "birthdate" => $requestData["data"]["birthdate"],
-                                    "email"     => $requestData["data"]["email"]
-                                ],
-                                $requestData["data"]["discount"],
-                                $requestData["data"]["city"]
-                            );
+                                $resultData = $this->API_registrationHandler(
+                                    $phone,
+                                    $pass,
+                                    [
+                                        "firstname" => $requestData["data"]["firstname"],
+                                        "birthdate" => $requestData["data"]["birthdate"],
+                                        "email"     => $requestData["data"]["email"]
+                                    ],
+                                    $requestData["data"]["discount"],
+                                    $requestData["data"]["city"]
+                                );
+                            } else {
+                                $resultData["description"] = "Введите пароль";
+                            }
                         } else {
-                            $resultData["description"] = "Введите пароль";
+                            $resultData["description"] = "Введите номер телефона";
                         }
-                    } else {
-                        $resultData["description"] = "Введите номер телефона";
+                        break;
                     }
-                    break;
-                }
 
                 case "confirmation": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
-                        $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
+                        if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
+                            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+                            $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
 
-                        $resultData = $this->API_accountConfirmationHandler($phone, $code);
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                            $resultData = $this->API_accountConfirmationHandler($phone, $code);
+                        } else {
+                            $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 case "confirmationReset": {
-                    if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+                        if (!empty($requestData["data"]["phone"]) && preg_match("/^[7]\d{10}$/", $requestData["data"]["phone"])) {
+                            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
-                        $resultData = $this->API_repeatAccountConfirmationHandler($phone);
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                            $resultData = $this->API_repeatAccountConfirmationHandler($phone);
+                        } else {
+                            $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 case "getProfileData": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) $resultData = $this->getProfileDataByPhone($resultData["data"]["phone"]);
-                    break;
-                }
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) $resultData = $this->getProfileDataByPhone($resultData["data"]["phone"]);
+                        break;
+                    }
 
                 case "getReferLink": {
-                    $resultData = $this->checkAuthorization();
-                    if ($resultData["status"]) $resultData = $this->getReferLink($resultData["data"]["id"]);
-                    break;
-                }
+                        $resultData = $this->checkAuthorization();
+                        if ($resultData["status"]) $resultData = $this->getReferLink($resultData["data"]["id"]);
+                        break;
+                    }
 
                 case "canParticipateInDrawing": {
-                    $resultData = $this->checkAuthorization();
-                    if ($resultData["status"]) $resultData = $this->canParticipateInDrawing($resultData["data"]["card_number"], 50000, $resultData["data"]["id"]);
-                    break;
-                }
+                        $resultData = $this->checkAuthorization();
+                        if ($resultData["status"]) $resultData = $this->canParticipateInDrawing($resultData["data"]["card_number"], 50000, $resultData["data"]["id"]);
+                        break;
+                    }
 
                 case "addParticipateInDrawing": {
-                    $resultData = $this->checkAuthorization();
-                    if ($resultData["status"]) {
-                        $accountId = $resultData["data"]["id"];
-                        $resultData = $this->canParticipateInDrawing($resultData["data"]["card_number"], 50000, $accountId);
-                        if ($resultData["status"] && $resultData["data"]["code"] == 2) {
-                            $resultData = $this->addParticipateInDrawing($accountId, $requestData["data"]);
-                        } else {
-                            $resultData = [
-                                "status" => false,
-                                "data" => ["description" => $resultData["data"]["description"]]
-                            ];
-                        }
-                    }
-                    break;
-                }
-
-                case "setProfileData": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) {
-                        $resultData = $this->setProfileDataByPhone($resultData["data"]["phone"], $requestData["data"]);
-                    }
-                    break;
-                }
-
-                case "getWalletData": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) $resultData = $this->API_getWalletData($resultData["data"]["token"], $requestData["data"]["last_id"], $requestData["data"]["only_balance"]);
-                    
-                    break;
-                }
-
-                case "updateWalletData": {
-                    $resultData = $this->checkAuthorization();
-                    if ($resultData["status"]) $resultData = $this->API_updateWalletData($resultData["data"]["personId"], $resultData["data"]["card_number"], $resultData["data"]["bonusCardLastSync"]);
-
-                    break;
-                }
-
-                case "getBCD": {
-                    if (!empty($requestData["data"]["cardNumber"])) {
-                        $resultData = $this->getBonusCardData($requestData["data"]["cardNumber"]);
-                    }
-                    break;
-                }
-
-                case "changePassword": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) { $resultData = $this->setNewPassword($resultData["data"]["phone"], $requestData["data"]["new_password"]); }
-                    break;
-                }
-
-                case "changeCardType": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["discount"]);
-                    
-                    break;
-                }
-
-                case "logOff": {
-                    $resultData = $this->logOff();
-                    break;
-                }
-
-                case "getResetConfirmationSms": {
-                    $resultData = $this->API_sendConfirmation($requestData, DEFAULT_SMS_PROVIDER);
-                    break;
-                }
-                
-                case "getResetConfirmationCode": {
-                    $resultData = $this->API_sendConfirmation($requestData);
-                    break;
-                }
-
-                case "checkResetConfirmationCode": {
-                    if (!empty($requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
-                        $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
-                        $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
-
-                        $resultData = $this->checkConfirmationCode($phone, $code);
+                        $resultData = $this->checkAuthorization();
                         if ($resultData["status"]) {
-                            // Авторизуем пользователя
-                            $query = $this->pdo->prepare("SELECT token FROM accounts WHERE phone = :phone");
-                            $query->execute(["phone" => $phone]);
-                            $queryResult = $query->fetchAll();
-                            if (count($queryResult)) {
-                                setcookie("token", $queryResult[0]["token"], strtotime('+12 month'));
-                                $resultData["data"] = [
-                                    "token" => $queryResult[0]["token"]
+                            $accountId = $resultData["data"]["id"];
+                            $resultData = $this->canParticipateInDrawing($resultData["data"]["card_number"], 50000, $accountId);
+                            if ($resultData["status"] && $resultData["data"]["code"] == 2) {
+                                $resultData = $this->addParticipateInDrawing($accountId, $requestData["data"]);
+                            } else {
+                                $resultData = [
+                                    "status" => false,
+                                    "data" => ["description" => $resultData["data"]["description"]]
                                 ];
                             }
                         }
-                    } else {
-                        $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                        break;
                     }
-                    break;
-                }
+
+                case "setProfileData": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) {
+                            $resultData = $this->setProfileDataByPhone($resultData["data"]["phone"], $requestData["data"]);
+                        }
+                        break;
+                    }
+
+                case "getWalletData": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) $resultData = $this->API_getWalletData($resultData["data"]["token"], $requestData["data"]["last_id"], $requestData["data"]["only_balance"]);
+
+                        break;
+                    }
+
+                case "updateWalletData": {
+                        $resultData = $this->checkAuthorization();
+                        if ($resultData["status"]) $resultData = $this->API_updateWalletData($resultData["data"]["personId"], $resultData["data"]["card_number"], $resultData["data"]["bonusCardLastSync"]);
+
+                        break;
+                    }
+
+                case "getBCD": {
+                        if (!empty($requestData["data"]["cardNumber"])) {
+                            $resultData = $this->getBonusCardData($requestData["data"]["cardNumber"]);
+                        }
+                        break;
+                    }
+
+                case "changePassword": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) {
+                            $resultData = $this->setNewPassword($resultData["data"]["phone"], $requestData["data"]["new_password"]);
+                        }
+                        break;
+                    }
+
+                case "changeCardType": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["discount"]);
+
+                        break;
+                    }
+
+                case "logOff": {
+                        $resultData = $this->logOff();
+                        break;
+                    }
+
+                case "getResetConfirmationSms": {
+                        $resultData = $this->API_sendConfirmation($requestData, DEFAULT_SMS_PROVIDER);
+                        break;
+                    }
+
+                case "getResetConfirmationCode": {
+                        $resultData = $this->API_sendConfirmation($requestData);
+                        break;
+                    }
+
+                case "checkResetConfirmationCode": {
+                        if (!empty($requestData["data"]["phone"]) && !empty($requestData["data"]["code"])) {
+                            $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
+                            $code = preg_replace("/[^0-9]/", "", $requestData["data"]["code"]);
+
+                            $resultData = $this->checkConfirmationCode($phone, $code);
+                            if ($resultData["status"]) {
+                                // Авторизуем пользователя
+                                $query = $this->pdo->prepare("SELECT token FROM accounts WHERE phone = :phone");
+                                $query->execute(["phone" => $phone]);
+                                $queryResult = $query->fetchAll();
+                                if (count($queryResult)) {
+                                    setcookie("token", $queryResult[0]["token"], strtotime('+12 month'));
+                                    $resultData["data"] = [
+                                        "token" => $queryResult[0]["token"]
+                                    ];
+                                }
+                            }
+                        } else {
+                            $resultData = ["status" => false, "description" => "Отсутствуют данные"];
+                        }
+                        break;
+                    }
 
                 case "importStores": {
-                    if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["stores"]) $resultData = $this->importStores($requestData["data"]["stores"]);
-                    break;
-                }
+                        if ($requestData["data"]["token"] == API_TOKEN && $requestData["data"]["stores"]) $resultData = $this->importStores($requestData["data"]["stores"]);
+                        break;
+                    }
 
                 case "getStores": {
-                    $resultData = $this->getStores();
-                    break;
-                }
+                        $resultData = $this->getStores();
+                        break;
+                    }
 
                 case "getStoresList": {
-                    $resultData = $this->getStoresList($requestData["city_id"]);
-                    break;
-                }
+                        $resultData = $this->getStoresList($requestData["city_id"]);
+                        break;
+                    }
 
                 case "updateProfile": {
-                    $resultData = $this->setProfileDataByPhone($requestData["phone"], $requestData["data"]);
+                        $resultData = $this->setProfileDataByPhone($requestData["phone"], $requestData["data"]);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "getDrawingWinners": {
-                    $resultData = $this->getDrawingWinners();
+                        $resultData = $this->getDrawingWinners();
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "showPopupDrawing": {
-                    $resultData = $this->showPopupDrawing();
+                        $resultData = $this->showPopupDrawing();
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "getCities": {
-                    $resultData = $this->getCities();
+                        $resultData = $this->getCities();
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "getNews": {
-                    $resultData = $this->API_getNews(
-                        (!empty($requestData["data"]["lastId"]) ? $requestData["data"]["lastId"] : 0), 
-                        (!empty($requestData["data"]["limit"]) ? $requestData["data"]["limit"] : null)
-                    );
+                        $resultData = $this->API_getNews(
+                            (!empty($requestData["data"]["lastId"]) ? $requestData["data"]["lastId"] : 0),
+                            (!empty($requestData["data"]["limit"]) ? $requestData["data"]["limit"] : null)
+                        );
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "setCard": {
-                    $resultData = $this->checkAuthorization($requestData["method"]);
-                    if ($resultData["status"]) $resultData = $this->API_setCard($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["card_number"]);
-                    break;
-                }
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData["status"]) $resultData = $this->API_setCard($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["card_number"]);
+                        break;
+                    }
 
                 case "setFeedback": {
-                    $resultData = $this->API_setFeedback($requestData["data"]);
+                        $resultData = $this->API_setFeedback($requestData["data"]);
 
-                    break;
-                }
+                        break;
+                    }
             }
         } catch (\Throwable $th) {
             $resultData = array(
@@ -639,71 +650,75 @@ class BonusApp {
             );
         }
 
-        echo(json_encode($resultData, JSON_UNESCAPED_UNICODE));
+        echo (json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
-    
-    private function getNewsById($id) {
+
+    private function getNewsById($id)
+    {
         $query = $this->pdo->prepare("SELECT * FROM news WHERE id=:id;");
         $query->execute([$id]);
-        
+
         return $query->fetch();
     }
-    
-    private function getListNews() {
+
+    private function getListNews()
+    {
         $query = $this->pdo->prepare("SELECT id, title FROM news ORDER BY id DESC;");
         $query->execute();
-        
+
         return $query->fetchAll(PDO::FETCH_KEY_PAIR);
     }
-    
-    private function sendNewsToServer() {
+
+    private function sendNewsToServer()
+    {
         $result = FALSE;
         $data   = $_POST;
-        
+
         if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
             return $result;
         }
-        
+
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
         $name       = date("dmy") . rand(1, 100) . '.jpg';
         $uploadfile = $uploaddir . $name;
-        
+
         if (array_key_exists('id', $data) && $data['id'] > 0) {
             $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?  WHERE id = ?;");
             $query->execute([$data['date'], $data['desc'], $data['title'], $data['id']]);
-            
+
             if (isset($_FILES) && array_key_exists('img', $_FILES) && $_FILES['img']['tmp_name'] !== "") {
                 if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
                     $query = $this->pdo->prepare("UPDATE news SET image = ?  WHERE id = ?;");
                     $query->execute(["app/assets/news/" . $name, $data['id']]);
                 }
             }
-            
+
             $result = TRUE;
         } else {
             if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
                 $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
                 $query->execute([
-                                    date("Y-m-d"), 
-                                    $data["date"], 
-                                    $data["title"], 
-                                    "app/assets/news/" . $name, 
-                                    $data["desc"]
-                                ]);
+                    date("Y-m-d"),
+                    $data["date"],
+                    $data["title"],
+                    "app/assets/news/" . $name,
+                    $data["desc"]
+                ]);
 
                 if ($this->pdo->lastInsertId() > 0) {
                     $result = TRUE;
                 }
             }
         }
-                
+
         return $result;
     }
 
-    
+
     /* Обработчики API */
-        
-    private function API_sendConfirmation($requestData, $provider = null) {
+
+    private function API_sendConfirmation($requestData, $provider = null)
+    {
         if (!empty($requestData["data"]["phone"])) {
             $phone = preg_replace("/[^0-9]/", "", $requestData["data"]["phone"]);
 
@@ -728,35 +743,38 @@ class BonusApp {
         } else {
             $resultData = ["status" => false, "description" => "Отсутствуют данные"];
         }
-        
+
         return $resultData;
     }
-    
-    private function API_disableTransaction($data, $id) {
+
+    private function API_disableTransaction($data, $id)
+    {
         $result = ["status" => false, "description" => ""];
-        
+
         if ($id > 0) {
             $query = $this->pdo->prepare("UPDATE transactions SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
             $query->execute([$id['id'], $data['personId']]);
             $result["status"] = true;
-       }
-        
+        }
+
         return $result;
     }
 
-    private function API_disablePurchase($data, $id) {
+    private function API_disablePurchase($data, $id)
+    {
         $result = ["status" => false, "description" => ""];
-        
+
         if ($id > 0) {
             $query = $this->pdo->prepare("UPDATE purchases SET is_active = 0 WHERE (id = ? AND profile_ext_id = ?);");
             $query->execute([$id['id'], $data['personId']]);
             $result["status"] = true;
-       }
-        
+        }
+
         return $result;
     }
 
-    private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId) {
+    private function API_registrationHandler($phone, $pass, $profile, $discount = false, $cityId)
+    {
         $result = ["status" => false, "description" => ""];
 
         if (array_key_exists("city", $profile) && $profile["city"] == 'Уссурийск' && $profile["birthdate"] == '1998-01-12') return $result;
@@ -794,7 +812,7 @@ class BonusApp {
                     $accountId = $result["data"]["account_id"];
 
                     if (!empty($_COOKIE["rsa_ref"])) $this->addReferral($_COOKIE["rsa_ref"], $accountId);
-                    
+
                     $profile["city"] = $getCityByIdResult["data"]["title"];
                     $result = $this->setProfileDataByPhone($phone, $profile);
 
@@ -812,7 +830,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_authorizationHandler($phone, $pass) {
+    private function API_authorizationHandler($phone, $pass)
+    {
         if (!$phone) return ["status" => 0, "description" => "Не указан логин!"];
         if (mb_strlen($phone, "UTF-8") < 6) return ["status" => 0, "description" => "Логин должен содержать не менее 6 символов."];
         if (!$pass) return ["status" => 0, "description" => "Не указан пароль!"];
@@ -838,7 +857,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_accountConfirmationHandler($phone, $code) {
+    private function API_accountConfirmationHandler($phone, $code)
+    {
         $result = $this->checkConfirmationCode($phone, $code);
 
         if ($result["status"]) {
@@ -881,7 +901,7 @@ class BonusApp {
                         //     }
                         // }
                         $sendMessageResult = $this->sendMessage($phone, "Вы зарегистрировались, перейти в ЛК: " . $linkToSite, DEFAULT_SMS_PROVIDER);
-                        if (!$sendMessageResult["status"]) $this->journal("APP", __FUNCTION__, json_encode($sendMessageResult, JSON_UNESCAPED_UNICODE), $sendMessageResult["status"]);        
+                        if (!$sendMessageResult["status"]) $this->journal("APP", __FUNCTION__, json_encode($sendMessageResult, JSON_UNESCAPED_UNICODE), $sendMessageResult["status"]);
                     } else {
                         $result["status"] = false;
                         $result["desription"] = "Не удалось авторизоваться, повторите попытку позднее.";
@@ -899,7 +919,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_repeatAccountConfirmationHandler($phone) {
+    private function API_repeatAccountConfirmationHandler($phone)
+    {
         $result = ["status" => false, "description" => ""];
 
         $result = $this->canSendConfirmationCode($phone);
@@ -908,7 +929,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync, $debug = false) {
+    private function API_updateWalletData($personId, $cardNumber, $bonusCardLastSync, $debug = false)
+    {
         $result = ["status" => false];
 
         $cd = new DateTime();
@@ -926,7 +948,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_getWalletData($token, $lastId = 0, $onlyBalance = false) {
+    private function API_getWalletData($token, $lastId = 0, $onlyBalance = false)
+    {
         $result = ["status" => false, "data" => null];
 
         $operationResult = $this->getFullAccountDataByToken($token);
@@ -937,7 +960,7 @@ class BonusApp {
             $personId           = $operationResult["data"]["ext_id"];
             $discount           = $operationResult["data"]["discount"];
             $discountValue      = $operationResult["data"]["discount_value"];
-            $preferredDiscount  = $operationResult["data"]["preferred_discount"]; 
+            $preferredDiscount  = $operationResult["data"]["preferred_discount"];
 
             $cd = new DateTime();
             $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
@@ -964,7 +987,7 @@ class BonusApp {
             $result["data"]["cardNumber"]           = $cardNumber;
             $result["data"]["discount"]             = $discount;
             $result["data"]["discountValue"]        = $discountValue;
-            $result["data"]["preferredDiscount"]    = $preferredDiscount; 
+            $result["data"]["preferredDiscount"]    = $preferredDiscount;
             $result["data"]["balance"]              = $cardBalance / 100;
         } else {
             $result = [
@@ -977,7 +1000,8 @@ class BonusApp {
         return $result;
     }
 
-    private function API_setCard($accountId, $personId, $cardNumber) {
+    private function API_setCard($accountId, $personId, $cardNumber)
+    {
         $result = ["status" => false, "description" => "", "data" => null];
 
         $cardData = $this->getBonusCardData($cardNumber);
@@ -1031,24 +1055,27 @@ class BonusApp {
         return $result;
     }
 
-    private function API_getNews($lastNewsId = 0, $limit = 10) {
+    private function API_getNews($lastNewsId = 0, $limit = 10)
+    {
         return $this->getNews($lastNewsId, $limit);
     }
 
-    private function API_setFeedback($data) {
+    private function API_setFeedback($data)
+    {
         //if (preg_match("/^[7]\d{10}$/", $data["phone"])) {
-            $phone = ""; 
-            $authResult = $this->checkAuthorization();
-            if ($authResult["status"]) $phone = $authResult["data"]["phone"];
-            $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
-            
-            return $this->setFeedback($phone, $data);
+        $phone = "";
+        $authResult = $this->checkAuthorization();
+        if ($authResult["status"]) $phone = $authResult["data"]["phone"];
+        $data["phone"] = preg_replace("/[^0-9]/", "", $data["phone"]);
+
+        return $this->setFeedback($phone, $data);
         //} else {
         //    return ["status" => false];
         //}
     }
 
-    private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount) {
+    private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount)
+    {
         $result = ["status" => false];
 
         $LMX = $this->getLMX();
@@ -1059,7 +1086,7 @@ class BonusApp {
                 $result["status"] = true;
             } else {
                 $result = $updateAccountResult;
-                $this->journal("CRON", __FUNCTION__, "", $updateAccountResult["status"], json_encode(["f" => "updateAccount", "a" => [$accountId, ["discount" => $preferredDiscount]]]), json_encode($updateAccountResult, JSON_UNESCAPED_UNICODE));   
+                $this->journal("CRON", __FUNCTION__, "", $updateAccountResult["status"], json_encode(["f" => "updateAccount", "a" => [$accountId, ["discount" => $preferredDiscount]]]), json_encode($updateAccountResult, JSON_UNESCAPED_UNICODE));
             }
         } else {
             $result = $setDiscountAttributeValue;
@@ -1071,13 +1098,14 @@ class BonusApp {
 
     /* Утилитарные ф-ии */
 
-    public function initPDO() {
+    public function initPDO()
+    {
         $result = ["status" => false];
 
         $start = microtime(true);
 
         try {
-            $this->pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8", DB_USER, DB_PASS, [
+            $this->pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8", DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
@@ -1094,7 +1122,8 @@ class BonusApp {
         return $result;
     }
 
-    public function uploadCC() {
+    public function uploadCC()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $this->pdo->beginTransaction();
@@ -1113,7 +1142,7 @@ class BonusApp {
             $file = "dataexchange/in/stolica/notify_for_bonus/cards.csv";
             $local_file = $temp_file_path;
 
-            $conn_id = ftp_connect(FTP_HOST,FTP_PORT);
+            $conn_id = ftp_connect(FTP_HOST, FTP_PORT);
             $login_result = ftp_login($conn_id, FTP_LOGIN, FTP_PASS);
 
             ftp_pasv($conn_id, true);
@@ -1129,16 +1158,17 @@ class BonusApp {
         }
     }
 
-    public function uploadDump() {
+    public function uploadDump()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
 
-            $fileName = '/var/db/dump/stolica_bonusapp__'.date("YmdHis");
-            $output = shell_exec('mysqldump -u root -pO3sVT*Ib stolica_bonusapp > '.$fileName);
+            $fileName = '/var/db/dump/stolica_bonusapp__' . date("YmdHis");
+            $output = shell_exec('mysqldump -u root -pO3sVT*Ib stolica_bonusapp > ' . $fileName);
 
-            $file = "dump/".$fileName;
+            $file = "dump/" . $fileName;
 
-            $conn_id = ftp_connect('10.100.210.41',FTP_PORT);
+            $conn_id = ftp_connect('10.100.210.41', FTP_PORT);
             $login_result = ftp_login($conn_id, 'IB', 'Euy8AmXDQukSAR2d');
 
             ftp_pasv($conn_id, true);
@@ -1153,7 +1183,8 @@ class BonusApp {
         }
     }
 
-    public function sendEmail() {
+    public function sendEmail()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $query = $this->pdo->prepare("SELECT DISTINCT d.id, p.discount_card, CASE WHEN NOT d.confirmation_date IS NULL THEN 1 ELSE 0 END confirmation, d.confirmation_date, d.winner FROM purchases p LEFT JOIN bonuscards b ON p.discount_card = b.card_number LEFT JOIN drawing d ON b.account_id = d.account_id WHERE NOT d.confirmation_date IS NULL AND p.sale_time BETWEEN DATE_ADD(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -(DAYOFWEEK(NOW())-1) DAY), '%Y-%m-%d'), INTERVAL 11 HOUR) AND DATE_ADD(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 7-DAYOFWEEK(NOW()) DAY), '%Y-%m-%d'), INTERVAL 21*60+59 MINUTE)");
@@ -1217,18 +1248,18 @@ class BonusApp {
                 echo "mail send ... OK";
             } else {
                 echo "mail send ... ERROR!";
-                print_r( error_get_last() );
+                print_r(error_get_last());
             }
 
             // Фиксация завершения обработки
             $cd = new DateTime();
             $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = 'last_cron4'");
             $query->execute([$cd->format('Y-m-d H:i:s')]);
-
         }
     }
 
-    public function mobileDetectHandler() {
+    public function mobileDetectHandler()
+    {
         require_once 'libs/Mobile_Detect.php';
         $detect = new Mobile_Detect;
 
@@ -1237,13 +1268,14 @@ class BonusApp {
         } elseif ($detect->isAndroidOS()) {
             header("Location: https://play.google.com/store/apps/details?id=com.stolica.bonuses");
         } else {
-            header("Location: https://".$_SERVER["HTTP_HOST"]);
+            header("Location: https://" . $_SERVER["HTTP_HOST"]);
         }
     }
 
     /* Сервисные ф-ии */
 
-    public function service_completeRegistration() {
+    public function service_completeRegistration()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
@@ -1259,7 +1291,8 @@ class BonusApp {
         }
     }
 
-    public function service_specialCharge() {
+    public function service_specialCharge()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
@@ -1281,7 +1314,8 @@ class BonusApp {
         }
     }
 
-    public function service_drawingRemind() {
+    public function service_drawingRemind()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             // Рассылка напоминаний о возможности участия в розыгрыше
@@ -1294,7 +1328,8 @@ class BonusApp {
         }
     }
 
-    private function service_regExtProfiles() {
+    private function service_regExtProfiles()
+    {
         $getAccountsWithoutExtProfileResult = $this->getAccountsWithoutExtProfile();
         if ($getAccountsWithoutExtProfileResult["status"]) {
             $LMX = $this->getLMX();
@@ -1302,7 +1337,8 @@ class BonusApp {
         }
     }
 
-    private function service_regExtProfile($LMX, $phone) {
+    private function service_regExtProfile($LMX, $phone)
+    {
         $result = ["status" => false, "description" => ""];
 
         $getProfileDataResult = $this->getProfileDataByPhone($phone);
@@ -1318,7 +1354,7 @@ class BonusApp {
                         $result["data"] = ["personId" => $personId];
                     } else {
                         $result = $setProfileDataResult;
-                        $this->journal("CRON", __FUNCTION__, "", $setProfileDataResult["status"], json_encode(["f" => "setProfileDataByPhone", "a" => [$phone, ["ext_id" => $personId]]]), json_encode($setProfileDataResult, JSON_UNESCAPED_UNICODE));   
+                        $this->journal("CRON", __FUNCTION__, "", $setProfileDataResult["status"], json_encode(["f" => "setProfileDataByPhone", "a" => [$phone, ["ext_id" => $personId]]]), json_encode($setProfileDataResult, JSON_UNESCAPED_UNICODE));
                     }
                 } else {
                     $result = $setDiscountAttributeValue;
@@ -1336,7 +1372,8 @@ class BonusApp {
         return $result;
     }
 
-    private function service_emitCards() {
+    private function service_emitCards()
+    {
         $getAccountsWithoutExtCardResult = $this->getAccountsWithoutExtCard();
         if ($getAccountsWithoutExtCardResult["status"]) {
             $LMX = $this->getLMX();
@@ -1344,7 +1381,8 @@ class BonusApp {
         }
     }
 
-    private function service_emitCard($LMX, $phone) {
+    private function service_emitCard($LMX, $phone)
+    {
         $result = ["status" => false, "description" => ""];
 
         $getProfileDataResult = $this->getProfileDataByPhone($phone);
@@ -1406,7 +1444,8 @@ class BonusApp {
         return $result;
     }
 
-    private function service_chargeOnBirthday($LMX) {
+    private function service_chargeOnBirthday($LMX)
+    {
         $opResult = $this->getBonuscardsWithBirthdates();
         if ($opResult["status"]) {
             foreach ($opResult["data"] as $key => $value) {
@@ -1417,16 +1456,17 @@ class BonusApp {
                         $dt = new DateTime();
                         $updateResult = $this->setProfileDataByPhone($value["phone"], ["last_cong" => $dt->format('Y-m-d H:i:s')]);
                         $this->journal("CRON", __FUNCTION__, "", $updateResult["status"], json_encode(["f" => "setProfileDataByPhone", "a" => [$value["phone"], ["last_cong" => $dt->format('Y-m-d H:i:s')]]]), json_encode($updateResult, JSON_UNESCAPED_UNICODE));
-                        
-                        $dt->add(new DateInterval('P'.$value["expiration"].'D'));
-                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до ".$dt->format('Y-m-d')."). Подробнее https://" . SITE_DOMAIN . "/application Ваша «Столица»", DEFAULT_SMS_PROVIDER);
+
+                        $dt->add(new DateInterval('P' . $value["expiration"] . 'D'));
+                        $sendMessageResult = $this->sendMessage($value["phone"], "С наступающим Днем Рождения! Дарим 1000 бонусов (активны до " . $dt->format('Y-m-d') . "). Подробнее https://" . SITE_DOMAIN . "/application Ваша «Столица»", DEFAULT_SMS_PROVIDER);
                     }
                 }
             }
         }
     }
 
-    private function service_chargeToReferrs($LMX) {
+    private function service_chargeToReferrs($LMX)
+    {
         $opResult = $this->getBonuscardsToReferralCong();
         if ($opResult["status"]) {
             foreach ($opResult["data"] as $key => $value) {
@@ -1442,7 +1482,8 @@ class BonusApp {
         }
     }
 
-    private function service_sendMessagesToClientsWithoutDrawing() {
+    private function service_sendMessagesToClientsWithoutDrawing()
+    {
         $operationResult = $this->getPhonesWhoCanParticipateInDrawing(50000);
         if ($operationResult["status"]) {
             foreach ($operationResult["data"] as $key => $value) {
@@ -1451,7 +1492,8 @@ class BonusApp {
         }
     }
 
-    public function service_regPhysCards() {
+    public function service_regPhysCards()
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT card_number FROM bonuscards WHERE status = 99 LIMIT 1");
@@ -1491,18 +1533,19 @@ class BonusApp {
                 $result["data"] = $cards;
             } else {
                 // debug([$cardNumber, "Не удалось зарегистрировать карту в SRC"]);
-                echo("Не удалось зарегистрировать карты в SRC");
+                echo ("Не удалось зарегистрировать карты в SRC");
             }
         }
 
         return $result;
     }
 
-    public function service_changeAccountDiscountSystem($LMX, $accountId, $personId, $preferredDiscount) {
-        
+    public function service_changeAccountDiscountSystem($LMX, $accountId, $personId, $preferredDiscount)
+    {
     }
 
-    private function sheduler_sendFeedbacks() {
+    private function sheduler_sendFeedbacks()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
@@ -1514,7 +1557,8 @@ class BonusApp {
         }
     }
 
-    public function service_sendFeedbacks($debug = false) {
+    public function service_sendFeedbacks($debug = false)
+    {
         $result = ["status" => false, "data" => []];
 
         $getFeedbacksToSendResult = $this->getFeedbacksToSend();
@@ -1531,20 +1575,21 @@ class BonusApp {
         return $result;
     }
 
-    private function service_sendFeedback($feedback, $debug = false) {
+    private function service_sendFeedback($feedback, $debug = false)
+    {
         $result = ["status" => false, "data" => []];
 
-        $message = 
-            "*".$feedback["time"]."*,".
-            " *".$feedback["name"]."*". 
-            " (".$feedback["reason"]."):".
-            " _'".$feedback["message"]."'_,".
-            " ".$feedback["phone"].",".
-            " ". $feedback["account_phone"].",".
-            " ".$feedback["email"];
+        $message =
+            "*" . $feedback["time"] . "*," .
+            " *" . $feedback["name"] . "*" .
+            " (" . $feedback["reason"] . "):" .
+            " _'" . $feedback["message"] . "'_," .
+            " " . $feedback["phone"] . "," .
+            " " . $feedback["account_phone"] . "," .
+            " " . $feedback["email"];
 
-        $patterns = ["/\(/","/\)/","/\[/","/\]/","/@/","/\./","/\-/","/\:/","/\,/","/\;/","/\_/","/\?/","/\!/"];
-        $replacements = ["\(","\)","\[","\]","\@","\.","\-","\:","\,","\;","\_","\?","\!"];
+        $patterns = ["/\(/", "/\)/", "/\[/", "/\]/", "/@/", "/\./", "/\-/", "/\:/", "/\,/", "/\;/", "/\_/", "/\?/", "/\!/"];
+        $replacements = ["\(", "\)", "\[", "\]", "\@", "\.", "\-", "\:", "\,", "\;", "\_", "\?", "\!"];
         $message = preg_replace($patterns, $replacements, $message);
 
         if ($debug) debug($message);
@@ -1573,7 +1618,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getFeedbacksToSend($limit = 10) {
+    private function getFeedbacksToSend($limit = 10)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -1603,14 +1649,19 @@ class BonusApp {
         return $result;
     }
 
-    private function setFeedbacksData($id, $data) {
+    private function setFeedbacksData($id, $data)
+    {
         $result = ["status" => false, "data" => null];
 
         $begin = false;
-        try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
+        try {
+            $this->pdo->beginTransaction();
+            $begin = true;
+        } catch (\Throwable $th) {
+        }
         foreach ($data as $key => $value) {
             if (in_array($key, ["sended", "ext_id"])) {
-                $query = $this->pdo->prepare("UPDATE feedbacks SET ".$key." = :value WHERE id = :id");
+                $query = $this->pdo->prepare("UPDATE feedbacks SET " . $key . " = :value WHERE id = :id");
                 $query->execute(["value" => $value, "id" => $id]);
 
                 $result["status"] = true;
@@ -1618,7 +1669,10 @@ class BonusApp {
                 $result["description"] = "Поле запрещено к редактированию.";
             }
         }
-        if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
+        if ($begin) try {
+            $this->pdo->commit();
+        } catch (\Throwable $th) {
+        }
 
         return $result;
     }
@@ -1627,7 +1681,8 @@ class BonusApp {
 
     // Хранение токенов Лоймакс
     //
-    private function getLMX() {
+    private function getLMX()
+    {
         $getSAPITokenResult = $this->getSAPIToken();
         if ($getSAPITokenResult["status"]) {
             $LMX = new LMX($getSAPITokenResult["data"]);
@@ -1643,7 +1698,8 @@ class BonusApp {
         return $LMX;
     }
 
-    private function getSAPIToken() {
+    private function getSAPIToken()
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
@@ -1666,14 +1722,19 @@ class BonusApp {
         return $result;
     }
 
-    private function setSAPIToken($data) {
+    private function setSAPIToken($data)
+    {
         // $data = ["SAPI_token" => "EXAMPLE", "SAPI_token_date" => "2021-11-22 17:15:00"];
         $result = ["status" => false];
 
         try {
             $begin = false;
 
-            try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
+            try {
+                $this->pdo->beginTransaction();
+                $begin = true;
+            } catch (\Throwable $th) {
+            }
             foreach ($data as $key => $value) {
                 if (in_array($key, ["SAPI_token", "SAPI_token_date"])) {
                     $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = ?");
@@ -1684,7 +1745,10 @@ class BonusApp {
                     $result["description"] = "Поле запрещено к редактированию.";
                 }
             }
-            if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
+            if ($begin) try {
+                $this->pdo->commit();
+            } catch (\Throwable $th) {
+            }
 
             $result["status"] = true;
         } catch (\Throwable $th) {
@@ -1696,7 +1760,8 @@ class BonusApp {
     //
     // Хранение токенов Лоймакс
 
-    private function getUpdates($phone, $options = null) {
+    private function getUpdates($phone, $options = null)
+    {
         // Подгрузим новости, магазины, профиль, номер карты и баланс
         /*
         $options = [
@@ -1740,7 +1805,7 @@ class BonusApp {
                 "email"                 => $fullAccountData["data"]["email"],
                 "city"                  => $fullAccountData["data"]["city"],
             ];
-            $personalHash = hash("md5" ,json_encode($personal));
+            $personalHash = hash("md5", json_encode($personal));
             if ($options["personalHash"] != $personalHash) {
                 $result["data"]["personal"] = $personal;
                 $result["data"]["personalHash"] = $personalHash;
@@ -1755,7 +1820,7 @@ class BonusApp {
                 "discount"              => $fullAccountData["data"]["discount"],
                 "discountValue"         => $fullAccountData["data"]["discount_value"],
                 "preferredDiscount"     => $fullAccountData["data"]["preferred_discount"],
-                
+
             ];
             $walletHash = hash("md5", json_encode($wallet));
             if ($options["walletHash"] != $walletHash) {
@@ -1787,7 +1852,9 @@ class BonusApp {
         $getStoresFullDataResult = $this->getStoresFullData();
         if ($getStoresFullDataResult["status"]) {
             $stores = $getStoresFullDataResult["data"];
-            $storesHash = hash("md5" ,implode("", array_map(function($item) { return $item["rsa_id"]; }, $result["data"]["stores"])));
+            $storesHash = hash("md5", implode("", array_map(function ($item) {
+                return $item["rsa_id"];
+            }, $result["data"]["stores"])));
             if ($options["storesHash"] != $storesHash) {
                 $result["data"]["stores"] = $stores;
                 $result["data"]["storesHash"] = $storesHash;
@@ -1797,7 +1864,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getCities() {
+    private function getCities()
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT id, status, title, discount_value, default_discount FROM `cities` WHERE status > 0 ORDER BY title");
@@ -1808,10 +1876,11 @@ class BonusApp {
             $result["data"]   = $queryResult;
         }
 
-        return $result;   
+        return $result;
     }
 
-    private function getCityById($id) {
+    private function getCityById($id)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT id, title, discount_value, default_discount FROM `cities` WHERE id = ?");
@@ -1822,10 +1891,11 @@ class BonusApp {
             $result["data"] = $queryResult[0];
         }
 
-        return $result;   
+        return $result;
     }
 
-    private function authByToken($token) {
+    private function authByToken($token)
+    {
         $result = ["status" => false, "description" => ""];
 
         $opResult = $this->checkToken($token);
@@ -1842,11 +1912,12 @@ class BonusApp {
         return $result;
     }
 
-    private function addToken($accountId, $token = null, $qty = -1, $validityDays = 256) {
+    private function addToken($accountId, $token = null, $qty = -1, $validityDays = 256)
+    {
         $result = ["status" => false, "data" => null];
 
         $dt = new DateTime();
-        $dt->add(new DateInterval('P'.$validityDays.'D'));
+        $dt->add(new DateInterval('P' . $validityDays . 'D'));
         $validity = $dt->format('Y-m-d H:i:s');
 
         if ($token == null) $token = bin2hex(random_bytes(16));
@@ -1871,16 +1942,18 @@ class BonusApp {
         return $result;
     }
 
-    private function getLinkByToken($token){
-        $customAlias = "https://".SITE_DOMAIN."/bd?tk=".$token;
-        $generateAlias = @file_get_contents("http://tinyurl.com/api-create.php?url=https://".SITE_DOMAIN."/bd?tk=".$token);
+    private function getLinkByToken($token)
+    {
+        $customAlias = "https://" . SITE_DOMAIN . "/bd?tk=" . $token;
+        $generateAlias = @file_get_contents("http://tinyurl.com/api-create.php?url=https://" . SITE_DOMAIN . "/bd?tk=" . $token);
 
         $alias = ($generateAlias) ? $generateAlias : $customAlias;
 
         return $alias;
     }
 
-    private function addNotExistTokens(){
+    private function addNotExistTokens()
+    {
         set_time_limit(300);
         $query = $this->pdo->prepare("SELECT a.id FROM accounts a WHERE a.id NOT IN(SELECT account_id FROM tokens)");
         $query->execute();
@@ -1894,7 +1967,8 @@ class BonusApp {
         }
     }
 
-    private function checkToken($token) {
+    private function checkToken($token)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -1920,7 +1994,8 @@ class BonusApp {
         return $result;
     }
 
-    private function updateToken($id, $data) {
+    private function updateToken($id, $data)
+    {
         $result = ["status" => false, "description" => ""];
 
         if (empty($data)) {
@@ -1928,10 +2003,14 @@ class BonusApp {
         } else {
             try {
                 $begin = false;
-                try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
+                try {
+                    $this->pdo->beginTransaction();
+                    $begin = true;
+                } catch (\Throwable $th) {
+                }
                 foreach ($data as $key => $value) {
                     if (in_array($key, ["token", "qty", "validity"])) {
-                        $query = $this->pdo->prepare("UPDATE tokens SET ".$key." = :value WHERE id = :id");
+                        $query = $this->pdo->prepare("UPDATE tokens SET " . $key . " = :value WHERE id = :id");
                         $query->execute(["value" => $value, "id" => $id]);
 
                         $result["status"] = true;
@@ -1939,7 +2018,10 @@ class BonusApp {
                         $result["description"] = "Поле запрещено к редактированию.";
                     }
                 }
-                if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
+                if ($begin) try {
+                    $this->pdo->commit();
+                } catch (\Throwable $th) {
+                }
             } catch (\Throwable $th) {
                 $result["description"] = $th->getMessage();
             }
@@ -1948,7 +2030,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getTokenByAccountId($accountId) {
+    private function getTokenByAccountId($accountId)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -1972,7 +2055,8 @@ class BonusApp {
         return $result;
     }
 
-    private function haveAccount($id) {
+    private function haveAccount($id)
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT id FROM accounts WHERE id = ?");
@@ -1987,11 +2071,13 @@ class BonusApp {
         return $result;
     }
 
-    private function getNextProvider($lastProvider) {
+    private function getNextProvider($lastProvider)
+    {
         return $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
     }
 
-    private function canSendMessage($phone) {
+    private function canSendMessage($phone)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT sent_at, provider FROM `messages` WHERE phone = :phone AND sent_at > DATE_ADD(NOW(), INTERVAL -5 MINUTE) ORDER BY sent_at DESC LIMIT 1");
@@ -2018,32 +2104,33 @@ class BonusApp {
         return $result;
     }
 
-    private function sendMessage($phone, $message, $provider = null, $callback = false) {
+    private function sendMessage($phone, $message, $provider = null, $callback = false)
+    {
         $result = NULL;
 
         if ($provider == null) $provider = DEFAULT_PROVIDER;
 
         switch ($provider) {
             default: {
-                $result = ["status" => false, "description" => "UNDEFINED_PROVIDER"];
-                break;
-            }
+                    $result = ["status" => false, "description" => "UNDEFINED_PROVIDER"];
+                    break;
+                }
             case "NT": {
-                $result = $this->callPassword($phone, $message);
-                break;
-            }
+                    $result = $this->callPassword($phone, $message);
+                    break;
+                }
             case "BEE": {
-                $result = $this->sms($phone, $message, $callback);
-                break;
-            }
+                    $result = $this->sms($phone, $message, $callback);
+                    break;
+                }
             case "DIG": {
-                $result = $this->sendMessageDig($phone, $message);
-                break;
-            }
+                    $result = $this->sendMessageDig($phone, $message);
+                    break;
+                }
             case "DIG_FC": {
-                $result = $this->sendMessageDig($phone, $message, "FLASHCALL");
-                break;
-            }
+                    $result = $this->sendMessageDig($phone, $message, "FLASHCALL");
+                    break;
+                }
         }
 
         if ($result["status"]) {
@@ -2059,13 +2146,14 @@ class BonusApp {
                 (isset($result["data"]["status"]) ? $result["data"]["status"] : null)
             ]);
         } else {
-            $this->journal("APP", "sendMessage", $phone . ", " . $message . ", ". $provider, $result["status"]);
+            $this->journal("APP", "sendMessage", $phone . ", " . $message . ", " . $provider, $result["status"]);
         }
 
         return $result;
     }
 
-    private function getFullAccountDataByToken($token) {
+    private function getFullAccountDataByToken($token)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT 
@@ -2124,7 +2212,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getFullAccountDataByPhone($phone) {
+    private function getFullAccountDataByPhone($phone)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT 
@@ -2162,7 +2251,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getAccountDataByPhone($phone) {
+    private function getAccountDataByPhone($phone)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT 
@@ -2180,7 +2270,8 @@ class BonusApp {
         return $result;
     }
 
-    private function checkAuthorization($journal = "", $source = "unknown") {
+    private function checkAuthorization($journal = "", $source = "unknown")
+    {
         $result = ["status" => false];
 
         $cookieToken = "";
@@ -2229,7 +2320,7 @@ class BonusApp {
                         "post" => $_POST,
                         "json" => file_get_contents('php://input')
                     ];
-                    
+
                     $this->journal("APP", $journal, $source, false, json_encode($input), json_encode($result, JSON_UNESCAPED_UNICODE));
                 }
             }
@@ -2240,7 +2331,8 @@ class BonusApp {
         return $result;
     }
 
-    public function getBearerToken() {
+    public function getBearerToken()
+    {
         $result = ["status" => false];
 
         $headersList = getallheaders();
@@ -2250,7 +2342,7 @@ class BonusApp {
             $tmpToken = explode("Bearer ", $headersListLowerCase["authorization"]);
             if (array_key_exists("1", $tmpToken)) {
                 $token = $tmpToken[1];
-                
+
                 if (!empty($token)) {
                     $result["status"] = true;
                     $result["data"] = $token;
@@ -2260,8 +2352,9 @@ class BonusApp {
 
         return $result;
     }
-    
-    private function checkInstantRegistration($phone) {
+
+    private function checkInstantRegistration($phone)
+    {
         $query = $this->pdo->prepare("SELECT 
                     count(`phone`)
                 FROM 
@@ -2273,11 +2366,12 @@ class BonusApp {
                     );");
         $query->execute(['phone' => $phone]);
         $countPhone = $query->fetchColumn();
-        
+
         return $countPhone;
     }
 
-    private function countLastDayConfirmations($koeff) {
+    private function countLastDayConfirmations($koeff)
+    {
         $query = $this->pdo->prepare("SELECT 
                     count(`sent_at`)
                 FROM 
@@ -2287,11 +2381,12 @@ class BonusApp {
                     ;");
         $query->execute();
         $count = $query->fetchColumn();
-        
-        return $count/($koeff/100 + 1);
+
+        return $count / ($koeff / 100 + 1);
     }
-    
-    private function averageWeekConfirmations() {
+
+    private function averageWeekConfirmations()
+    {
         $query = $this->pdo->prepare("SELECT 
                     count(`sent_at`)/7
                 FROM 
@@ -2303,11 +2398,12 @@ class BonusApp {
                     );");
         $query->execute();
         $count = $query->fetchColumn();
-        
+
         return $count;
     }
-    
-    private function existAlarmJournal() {
+
+    private function existAlarmJournal()
+    {
         $query = $this->pdo->prepare("SELECT 
                     count(`id`)
                 FROM 
@@ -2319,36 +2415,37 @@ class BonusApp {
                     );");
         $query->execute();
         $count = $query->fetchColumn();
-        
+
         return ($count > 0) ? true : false;
     }
-    
-    private function canSendConfirmationCode($phone, $provider = null) {
+
+    private function canSendConfirmationCode($phone, $provider = null)
+    {
         $percent = 25;
         $result = ["status" => false, "data" => null];
         $countInstant = $this->checkInstantRegistration($phone);
-        
+
         $provider = $provider ?? DEFAULT_PROVIDER;
-        
+
         if ($countInstant > 2) {
             $this->journal("HACK", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
-                 "header" => getallheaders(),
-                 "get" => $_GET,
-                 "post" => $_POST,
-                 "json" => file_get_contents('php://input')
+                "header" => getallheaders(),
+                "get" => $_GET,
+                "post" => $_POST,
+                "json" => file_get_contents('php://input')
             ]));
         }
-        
+
         if ($this->countLastDayConfirmations($percent) > $this->averageWeekConfirmations() && !$this->existAlarmJournal()) {
             $this->tg("Превышен лимит запросов на звонки, исходя из среднего количества за прошлую неделю, на " . $percent . "%");
             $this->journal("ALARM", "", $_SERVER['REMOTE_ADDR'], false, json_encode([
-                 "header" => getallheaders(),
-                 "get" => $_GET,
-                 "post" => $_POST,
-                 "json" => file_get_contents('php://input')
+                "header" => getallheaders(),
+                "get" => $_GET,
+                "post" => $_POST,
+                "json" => file_get_contents('php://input')
             ]));
         }
-        
+
         $query = $this->pdo->prepare("SELECT
                 sent_at,
                 provider,
@@ -2365,7 +2462,7 @@ class BonusApp {
         ");
         $query->execute([$phone, $phone, $provider]);
         $queryResult = $query->fetchAll();
-        
+
         if (count($queryResult)) {
             $cd = new DateTime();
             $cd_time = strtotime($cd->format('Y-m-d H:i:s'));
@@ -2389,14 +2486,17 @@ class BonusApp {
 
         return $result;
     }
-    
-    private function sendConfirmationCode($phone, $provider = null) {
+
+    private function sendConfirmationCode($phone, $provider = null)
+    {
         $result = ["status" => false, "description" => ""];
 
         $confirmation_code = "";
         $chars = '1234567890';
         $numChars = strlen($chars);
-        for ($i = 0; $i < 4; $i++) { $confirmation_code .= substr($chars, rand(1, $numChars) - 1, 1); }
+        for ($i = 0; $i < 4; $i++) {
+            $confirmation_code .= substr($chars, rand(1, $numChars) - 1, 1);
+        }
 
         if ($provider == null) $provider = DEFAULT_PROVIDER;
 
@@ -2404,27 +2504,27 @@ class BonusApp {
 
         switch ($provider) {
             case "BEE": {
-                $result = $this->sms($phone, 'Код подтверждения: ' . $confirmation_code, true);
-                $description = "Введите код из СМС.";
-                break;
-            }
+                    $result = $this->sms($phone, 'Код подтверждения: ' . $confirmation_code, true);
+                    $description = "Введите код из СМС.";
+                    break;
+                }
 
             case "NT": {
-                $result = $this->callPassword($phone, $confirmation_code);
-                $description = "Введите четыре последние цифры номера телефона входящего звонка.";
-                break;
-            }
+                    $result = $this->callPassword($phone, $confirmation_code);
+                    $description = "Введите четыре последние цифры номера телефона входящего звонка.";
+                    break;
+                }
 
             case "DIG": {
-                $result = $this->sendMessageDig($phone, $confirmation_code);
-                $description = "Введите код из СМС.";
-                break;
-            }
+                    $result = $this->sendMessageDig($phone, $confirmation_code);
+                    $description = "Введите код из СМС.";
+                    break;
+                }
             case "DIG_FC": {
-                $result = $this->sendMessageDig($phone, $confirmation_code, "FLASHCALL");
-                $description = "Введите четыре последние цифры номера телефона входящего звонка.";
-                break;
-            }
+                    $result = $this->sendMessageDig($phone, $confirmation_code, "FLASHCALL");
+                    $description = "Введите четыре последние цифры номера телефона входящего звонка.";
+                    break;
+                }
         }
 
         if ($result["status"]) {
@@ -2433,21 +2533,22 @@ class BonusApp {
 
             $result = [
                 "status" => true,
-                "description" => $description . (API_DEBUG ? " [".$confirmation_code."]" : ""),
+                "description" => $description . (API_DEBUG ? " [" . $confirmation_code . "]" : ""),
                 "data" => [
                     "need_confirmation" => true,
                     "seconds_left" => MESSAGE_TIMEOUT_SECONDS
                 ]
             ];
         } else {
-            $this->journal("APP", "sendConfirmationCode", $phone . "/" . $confirmation_code . "/". $provider, $result["status"]);
+            $this->journal("APP", "sendConfirmationCode", $phone . "/" . $confirmation_code . "/" . $provider, $result["status"]);
             $result["description"] = "Не удалось отправить код подтверждения, попробуйте позже.";
         }
 
         return $result;
     }
 
-    private function checkConfirmationCode($phone, $code) {
+    private function checkConfirmationCode($phone, $code)
+    {
         $result = ["status" => false, "description" => ""];
 
         // Если код указан
@@ -2470,7 +2571,7 @@ class BonusApp {
                     $query = $this->pdo->prepare("UPDATE confirmations SET attempts = :new_attempts WHERE phone = :phone AND sent_at = :sent_at");
                     $query->execute(["phone" => $phone, "new_attempts" => $newAttempts, "sent_at" => $queryResult[0]["sent_at"]]);
 
-                    $result = ["status" => false, "description" => "Код введен неправильно" , "data" => ["need_confirmation" => true]];
+                    $result = ["status" => false, "description" => "Код введен неправильно", "data" => ["need_confirmation" => true]];
                 }
             }
         } else {
@@ -2481,7 +2582,8 @@ class BonusApp {
         return $result;
     }
 
-    public function registration($phone, $pass, $discount = 0, $discountValue = 0, $preferredDiscount = 0) {
+    public function registration($phone, $pass, $discount = 0, $discountValue = 0, $preferredDiscount = 0)
+    {
         if (!$phone) return ["status" => 0, "description" => "Не указан логин!"];
         if (mb_strlen($phone, "UTF-8") < 6) return ["status" => 0, "description" => "Логин должен содержать не менее 6 символов."];
         if (!$pass) return ["status" => 0, "description" => "Не указан пароль!"];
@@ -2520,14 +2622,15 @@ class BonusApp {
         }
     }
 
-    public function updateAccount($account_id, $data) {
+    public function updateAccount($account_id, $data)
+    {
         $result = ["status" => false];
 
         try {
             $inTransaction = $this->pdo->inTransaction();
             if (!$inTransaction) $this->pdo->beginTransaction();
             foreach ($data as $key => $value) {
-                $query = $this->pdo->prepare("UPDATE accounts SET ".$key." = ? WHERE id = ?");
+                $query = $this->pdo->prepare("UPDATE accounts SET " . $key . " = ? WHERE id = ?");
                 $query->execute([$value, $account_id]);
             }
             if (!$inTransaction) $this->pdo->commit();
@@ -2539,7 +2642,8 @@ class BonusApp {
         return $result;
     }
 
-    public function getReferLink($account_id) {
+    public function getReferLink($account_id)
+    {
         $result = ["status" => false, "data" => ["link" => null, "referrals" => null, "description" => ""]];
 
         $result["status"] = true;
@@ -2573,7 +2677,8 @@ class BonusApp {
         return $result;
     }
 
-    public function checkPhone($phone) {
+    public function checkPhone($phone)
+    {
         $query = $this->pdo->prepare("SELECT
             phone FROM accounts WHERE phone = ? AND status != 0
         ");
@@ -2586,7 +2691,8 @@ class BonusApp {
         }
     }
 
-    public function checkPassword($phone, $pass) {
+    public function checkPassword($phone, $pass)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT token, pass FROM accounts WHERE phone = :phone AND status != 0");
@@ -2597,7 +2703,8 @@ class BonusApp {
         return $result;
     }
 
-    public function changePassword($phone, $oldPassword, $newPassword) {
+    public function changePassword($phone, $oldPassword, $newPassword)
+    {
         $result = ["status" => false];
 
         $result = $this->checkPassword($phone, $oldPassword);
@@ -2620,7 +2727,8 @@ class BonusApp {
         return $result;
     }
 
-    private function setNewPassword($phone, $newPassword) {
+    private function setNewPassword($phone, $newPassword)
+    {
         $result = ["status" => false];
 
         if (mb_strlen($newPassword, "UTF-8") >= 6) {
@@ -2638,7 +2746,8 @@ class BonusApp {
         return $result;
     }
 
-    private function logOff() {
+    private function logOff()
+    {
         $result = ["status" => false];
 
         try {
@@ -2651,7 +2760,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getProfileDataByPhone($phone) {
+    private function getProfileDataByPhone($phone)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -2697,7 +2807,8 @@ class BonusApp {
         return $result;
     }
 
-    private function setProfileDataByPhone($phone, $accountData) {
+    private function setProfileDataByPhone($phone, $accountData)
+    {
         $result = ["status" => false, "description" => ""];
 
         if (!count($accountData)) return $result;
@@ -2710,7 +2821,7 @@ class BonusApp {
                 $this->pdo->beginTransaction();
                 foreach ($accountData as $key => $value) {
                     if (in_array($key, ["ext_id", "firstname", "middlename", "lastname", "email", "sex", "birthdate", "city", "last_sync", "last_cong"])) {
-                        $query = $this->pdo->prepare("UPDATE profiles SET ".$key." = :value WHERE account_id IN (SELECT id FROM accounts WHERE phone = :phone)");
+                        $query = $this->pdo->prepare("UPDATE profiles SET " . $key . " = :value WHERE account_id IN (SELECT id FROM accounts WHERE phone = :phone)");
                         $query->execute(["value" => $value, "phone" => $phone]);
 
                         $result["status"] = true;
@@ -2751,7 +2862,8 @@ class BonusApp {
         return $result;
     }
 
-    private function addBonusCard($phone, $cardNumber) {
+    private function addBonusCard($phone, $cardNumber)
+    {
         $result = ["status" => false];
 
         try {
@@ -2777,7 +2889,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getBonusCardData($cardNumber) {
+    private function getBonusCardData($cardNumber)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT b.*, a.phone FROM bonuscards b LEFT JOIN accounts a ON b.account_id = a.id WHERE b.card_number = :cardNumber");
@@ -2791,14 +2904,19 @@ class BonusApp {
         return $result;
     }
 
-    private function setBonusCardData($cardNumber, $bonusCardData) {
+    private function setBonusCardData($cardNumber, $bonusCardData)
+    {
         $result = ["status" => false];
 
         $begin = false;
-        try { $this->pdo->beginTransaction(); $begin = true;} catch (\Throwable $th) {}
+        try {
+            $this->pdo->beginTransaction();
+            $begin = true;
+        } catch (\Throwable $th) {
+        }
         foreach ($bonusCardData as $key => $value) {
             if (in_array($key, ["balance", "activation", "life_times", "status", "last_sync", "account_id"])) {
-                $query = $this->pdo->prepare("UPDATE bonuscards SET ".$key." = :value WHERE card_number = :cardNumber");
+                $query = $this->pdo->prepare("UPDATE bonuscards SET " . $key . " = :value WHERE card_number = :cardNumber");
                 $query->execute(["value" => $value, "cardNumber" => $cardNumber]);
 
                 $result["status"] = true;
@@ -2806,12 +2924,16 @@ class BonusApp {
                 $result["description"] = "Поле запрещено к редактированию.";
             }
         }
-        if ($begin) try { $this->pdo->commit(); } catch (\Throwable $th) {}
+        if ($begin) try {
+            $this->pdo->commit();
+        } catch (\Throwable $th) {
+        }
 
         return $result;
     }
 
-    private function addTransaction($personId, $data) {
+    private function addTransaction($personId, $data)
+    {
         $result = ["status" => false];
 
         try {
@@ -2844,7 +2966,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getTransactionsIds($personId) {
+    private function getTransactionsIds($personId)
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT ext_id FROM transactions WHERE profile_ext_id = ?");
@@ -2860,7 +2983,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getTransactions($personId, $fromDate = "2021-01-01 00:00:00", $limit = 99) {
+    private function getTransactions($personId, $fromDate = "2021-01-01 00:00:00", $limit = 99)
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
@@ -2887,15 +3011,18 @@ class BonusApp {
                 "data" => $queryResult
             ];
 
-            usort($result["data"], function($a, $b) { return $a["date"] > $b["date"];});
+            usort($result["data"], function ($a, $b) {
+                return $a["date"] > $b["date"];
+            });
         }
-        
+
         return $result;
     }
 
-    private function getLastTransaction($personId) {
+    private function getLastTransaction($personId)
+    {
         $result = ["status" => false];
-        
+
         $query = $this->pdo->prepare("SELECT
                 *
             FROM
@@ -2917,7 +3044,8 @@ class BonusApp {
         return $result;
     }
 
-    private function addPurchase($purchase, $rsa_id, $person_id = null) {
+    private function addPurchase($purchase, $rsa_id, $person_id = null)
+    {
         $result = ["status" => false];
 
         try {
@@ -3002,7 +3130,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getPurchasesHash($personId) {
+    private function getPurchasesHash($personId)
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
@@ -3020,7 +3149,7 @@ class BonusApp {
         if (count($queryResult)) {
             $purchasesHash = [];
             foreach ($queryResult as $purchase) array_push($purchasesHash, (!empty($purchase["hash"]) ? $purchase["hash"] : md5($purchase["rsa_id"] . $purchase["sale_time"] . $purchase["number"])));
-        
+
             $result = [
                 "status" => true,
                 "data" => $purchasesHash
@@ -3029,10 +3158,11 @@ class BonusApp {
 
         return $result;
     }
-    
-    private function getLastPurchase($personId) {
+
+    private function getLastPurchase($personId)
+    {
         $result = ["status" => false];
-        
+
         $query = $this->pdo->prepare("SELECT
                 *
             FROM
@@ -3055,7 +3185,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getFullPurchasesDataNew($personId, $lastPurchaseDate = "2021-01-01 00:00:00", $limit = 50) {
+    private function getFullPurchasesDataNew($personId, $lastPurchaseDate = "2021-01-01 00:00:00", $limit = 50)
+    {
         $result = ["status" => false, "data" => []];
 
         $query = $this->pdo->prepare("SELECT
@@ -3158,9 +3289,11 @@ class BonusApp {
                     foreach ($positions as $key => $position) if ($purchase["id"] == $position["purchase_id"]) array_push($purchase["positions"], $position);
                     array_push($result["data"], $purchase);
                 }
-                
-                usort($result["data"], function($a, $b) { return $a["operation_date"] > $b["operation_date"];});
-                
+
+                usort($result["data"], function ($a, $b) {
+                    return $a["operation_date"] > $b["operation_date"];
+                });
+
                 $result["status"] = true;
             }
         } else {
@@ -3170,7 +3303,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getFullPurchasesData($personId, $limit = 50) {
+    private function getFullPurchasesData($personId, $limit = 50)
+    {
         $result = ["status" => false, "data" => []];
 
         $query = $this->pdo->prepare("SELECT
@@ -3269,7 +3403,7 @@ class BonusApp {
                     foreach ($positions as $key => $position) if ($purchase["id"] == $position["purchase_id"]) array_push($purchase["positions"], $position);
                     array_push($result["data"], $purchase);
                 }
-                
+
                 $result["status"] = true;
             }
         } else {
@@ -3279,7 +3413,8 @@ class BonusApp {
         return $result;
     }
 
-    private function importStores($stores) {
+    private function importStores($stores)
+    {
         $result = ["status" => false, "data" => []];
 
         try {
@@ -3287,7 +3422,9 @@ class BonusApp {
 
             $operationResult = $this->getStores();
             if ($operationResult["status"]) $currentStores = array_map(
-                function($store) { return $store["rsa_id"]; },
+                function ($store) {
+                    return $store["rsa_id"];
+                },
                 $operationResult["data"]
             );
 
@@ -3303,7 +3440,8 @@ class BonusApp {
         return $result;
     }
 
-    private function addStore($store) {
+    private function addStore($store)
+    {
         $result = ["status" => false];
 
         try {
@@ -3323,7 +3461,8 @@ class BonusApp {
         return $result;
     }
 
-    public function updateStore($store) {
+    public function updateStore($store)
+    {
         $result = ["status" => false];
 
         try {
@@ -3331,7 +3470,7 @@ class BonusApp {
             if (!$inTransaction) $this->pdo->beginTransaction();
             foreach ($store as $key => $value) {
                 if (in_array($key, ["rsa_id", "title"])) {
-                    $query = $this->pdo->prepare("UPDATE stores SET ".$key." = ? WHERE rsa_id = ?");
+                    $query = $this->pdo->prepare("UPDATE stores SET " . $key . " = ? WHERE rsa_id = ?");
                     $query->execute([$value, $store["rsa_id"]]);
 
                     $result["status"] = true;
@@ -3345,7 +3484,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getStores() {
+    private function getStores()
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
@@ -3362,8 +3502,8 @@ class BonusApp {
         ");
         $query->execute();
         $queryResult = $query->fetchAll();
-        foreach ($this->array_unique_key($queryResult, 'city_name') as $item){
-            if (!empty($item['city_name'])){
+        foreach ($this->array_unique_key($queryResult, 'city_name') as $item) {
+            if (!empty($item['city_name'])) {
                 $cities[] = [
                     'id' => $item['city_id'],
                     'name' => $item['city_name']
@@ -3382,7 +3522,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getStoresList($cityId) {
+    private function getStoresList($cityId)
+    {
         $result = ["status" => false];
 
 
@@ -3414,7 +3555,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getStoresFullData() {
+    private function getStoresFullData()
+    {
         $result = ["status" => false];
 
         $query = $this->pdo->prepare("SELECT
@@ -3459,17 +3601,18 @@ class BonusApp {
                     'coordinates'   => $storesItem['coordinates']
                 ];
             }
-            
+
             $result = [
                 "status" => true,
                 "data" => $queryResult
             ];
         }
 
-        return $result;   
+        return $result;
     }
 
-    function array_unique_key($array, $key) {
+    function array_unique_key($array, $key)
+    {
         $tmp = $key_array = array();
         $i = 0;
 
@@ -3483,7 +3626,8 @@ class BonusApp {
         return $tmp;
     }
 
-    public function updateProduct($product) {
+    public function updateProduct($product)
+    {
         $result = ["status" => false];
 
         try {
@@ -3491,7 +3635,7 @@ class BonusApp {
             if (!$inTransaction) $this->pdo->beginTransaction();
             foreach ($product as $key => $value) {
                 if (in_array($key, ["ext_id", "title"])) {
-                    $query = $this->pdo->prepare("UPDATE products SET ".$key." = ? WHERE ext_id = ?");
+                    $query = $this->pdo->prepare("UPDATE products SET " . $key . " = ? WHERE ext_id = ?");
                     $query->execute([$value, $product["ext_id"]]);
 
                     $result["status"] = true;
@@ -3505,7 +3649,8 @@ class BonusApp {
         return $result;
     }
 
-    public function updateBarcode($barcode) {
+    public function updateBarcode($barcode)
+    {
         $result = ["status" => false];
 
         try {
@@ -3527,7 +3672,8 @@ class BonusApp {
         return $result;
     }
 
-    private function journal($source, $event, $comment = "", $status = null, $input = null, $output = null) {
+    private function journal($source, $event, $comment = "", $status = null, $input = null, $output = null)
+    {
         $result = ["status" => false];
 
         try {
@@ -3547,7 +3693,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getBonuscardsWithBirthdates() {
+    private function getBonuscardsWithBirthdates()
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -3631,7 +3778,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getAccountsWithoutExtProfile($limit = 100) {
+    private function getAccountsWithoutExtProfile($limit = 100)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT a.phone, a.discount FROM accounts a LEFT JOIN profiles p ON a.id = p.account_id WHERE a.status != 0 AND p.ext_id IS NULL LIMIT ?");
@@ -3645,7 +3793,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getAccountsWithoutExtCard($limit = 100) {
+    private function getAccountsWithoutExtCard($limit = 100)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -3670,7 +3819,8 @@ class BonusApp {
         return $result;
     }
 
-    private function canParticipateInDrawing($cardNumber, $amount, $accountID) {
+    private function canParticipateInDrawing($cardNumber, $amount, $accountID)
+    {
         $result = ["status" => false, "data" => null];
         $query = $this->pdo->prepare("SELECT status FROM accounts WHERE id = ?");
         $query->execute([$accountID]);
@@ -3697,7 +3847,7 @@ class BonusApp {
 
         try {
             $queryResult = $query->fetchAll();
-            if($account["status"] == 3) {
+            if ($account["status"] == 3) {
                 $result = [
                     "status" => true,
                     "data" => [
@@ -3705,8 +3855,7 @@ class BonusApp {
                         "description" => "Вы не можете быть зарегистрированы.",
                     ]
                 ];
-            }
-            else{
+            } else {
                 if (count($queryResult)) {
                     if ($queryResult[0]["confirmation"]) {
                         $result = [
@@ -3744,7 +3893,8 @@ class BonusApp {
         return $result;
     }
 
-    private function addParticipateInDrawing($account_id, $participateData) {
+    private function addParticipateInDrawing($account_id, $participateData)
+    {
         $result = ["status" => false, "data" => null];
 
         if (!empty($participateData["firstname"]) && !empty($participateData["middlename"]) && !empty($participateData["lastname"]) && !empty($participateData["birthdate"])) {
@@ -3779,7 +3929,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getPhonesWhoCanParticipateInDrawing($amount) {
+    private function getPhonesWhoCanParticipateInDrawing($amount)
+    {
         $result = ["status" => false, "data" => null];
 
         try {
@@ -3814,7 +3965,8 @@ class BonusApp {
         return $result;
     }
 
-    private function addReferral($refAccountId, $accountId) {
+    private function addReferral($refAccountId, $accountId)
+    {
         $result = ["status" => false];
 
         try {
@@ -3834,7 +3986,8 @@ class BonusApp {
         return $result;
     }
 
-    private function updateReferral($account_id, $data) {
+    private function updateReferral($account_id, $data)
+    {
         $result = ["status" => false];
 
         try {
@@ -3842,7 +3995,7 @@ class BonusApp {
             if (!$inTransaction) $this->pdo->beginTransaction();
             foreach ($data as $key => $value) {
                 if (in_array($key, ["gifted"])) {
-                    $query = $this->pdo->prepare("UPDATE referrals SET ".$key." = ? WHERE account_id = ?");
+                    $query = $this->pdo->prepare("UPDATE referrals SET " . $key . " = ? WHERE account_id = ?");
                     $query->execute([$value, $account_id]);
 
                     $result["status"] = true;
@@ -3856,7 +4009,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getBonuscardsToReferralCong() {
+    private function getBonuscardsToReferralCong()
+    {
         $query = $this->pdo->prepare("SELECT DISTINCT
                 T1.account_id,
                 T4.card_number,
@@ -3881,8 +4035,8 @@ class BonusApp {
         $referralGift = $settingRefGiftQuery->fetch()['value'];
         $rows = [];
         if (count($queryResult)) {
-            foreach ($queryResult as $item){
-                if($item['gifted'] == 0){
+            foreach ($queryResult as $item) {
+                if ($item['gifted'] == 0) {
                     $item['referral_gift'] = $referralGift;
                     $rows[] = $item;
                 }
@@ -3895,7 +4049,8 @@ class BonusApp {
         ];
     }
 
-    private function getNews($lastNewsId = 0, $limit = 50) {
+    private function getNews($lastNewsId = 0, $limit = 50)
+    {
         $result = ["status" => true, "data" => []];
 
         $cd = new DateTime();
@@ -3925,7 +4080,8 @@ class BonusApp {
         return $result;
     }
 
-    private function getDrawingWinners(){
+    private function getDrawingWinners()
+    {
         $durations = [
             1 => [
                 'firstDay' => '2021-06-27',
@@ -3961,7 +4117,7 @@ class BonusApp {
             ],
         ];
 
-        foreach ($durations as $duration){
+        foreach ($durations as $duration) {
             $query = $this->pdo->prepare("SELECT
                 id,
                 SUBSTR(lastname,1,1) AS lastname,
@@ -3970,14 +4126,14 @@ class BonusApp {
                 confirmation_date
             FROM
                 drawing d
-            WHERE winner = 1 AND confirmation_date BETWEEN '". $duration['firstDay'] ."' AND '". $duration['lastDay'] ."'
+            WHERE winner = 1 AND confirmation_date BETWEEN '" . $duration['firstDay'] . "' AND '" . $duration['lastDay'] . "'
             ");
             $query->execute();
             $queryResult = $query->fetchAll();
 
             $result[] = [
                 'data' => $queryResult,
-                'duration' => "".$duration['firstDay']." - ".$duration['lastDay']."",
+                'duration' => "" . $duration['firstDay'] . " - " . $duration['lastDay'] . "",
             ];
         }
 
@@ -3985,14 +4141,14 @@ class BonusApp {
         return $result;
     }
 
-    private function showPopupDrawing(){
-        if(!isset($_SESSION['showPopupDrawing'])){
+    private function showPopupDrawing()
+    {
+        if (!isset($_SESSION['showPopupDrawing'])) {
             $_SESSION['showPopupDrawing'] = true;
             $result = [
                 "status" => true,
             ];
-        }
-        else{
+        } else {
             $result = [
                 "status" => false,
             ];
@@ -4001,12 +4157,13 @@ class BonusApp {
         return $result;
     }
 
-    private function setFeedback($phone = null, $data) {
+    private function setFeedback($phone = null, $data)
+    {
         $result = ["status" => true, "data" => $data, "phone" => $phone];
 
         try {
             $cd = new DateTime();
-            
+
             $query = $this->pdo->prepare("INSERT INTO feedbacks 
                 (
                     name,
@@ -4049,7 +4206,8 @@ class BonusApp {
 
     /* Работа с внешними ИБ */
 
-    private function updateWalletDataByLMX($personId, $cardNumber) {
+    private function updateWalletDataByLMX($personId, $cardNumber)
+    {
         $result = ["status" => false, "data" => ["purchases" => [], "transactions" => [], "setBonusCardData" => null]];
         if (empty($personId)) return $result;
 
@@ -4092,12 +4250,12 @@ class BonusApp {
                 $currentTransactions = [];
                 $getTansactionsIdsResult = $this->getTransactionsIds($personId);
                 if ($getTansactionsIdsResult["status"]) $currentTransactions = $getTansactionsIdsResult["data"];
-    
+
                 foreach ($getHistoryResult["data"] as $value)
                     array_push($result["data"]["transactions"], in_array($value["extId"], $currentTransactions) ?
                         ["status" => true, "data" => $value["extId"]] : $this->addTransaction($personId, $value));
             }
-            
+
             // Запись даты синхронизации баланса
             $setBonusCardDataResult = $this->setBonusCardData($cardNumber, [
                 "last_sync"     => $cd->format('Y-m-d H:i:s'),
@@ -4123,12 +4281,13 @@ class BonusApp {
 
     /* Работа с провайдерами сообщений */
 
-    private function sms($phone, $message, $callback = false) {
+    private function sms($phone, $message, $callback = false)
+    {
         $result = ["status" => false];
 
         try {
             $sms_text = $message;
-            $target = '+'.$phone;
+            $target = '+' . $phone;
             $sender = (API_DEBUG ? "" : "STOLICA-DV");
             $period = 600;
             $sms = new QTSMS(SMS_API_USER, SMS_API_PASS, "a2p-sms-https.beeline.ru");
@@ -4164,12 +4323,13 @@ class BonusApp {
         return $result;
     }
 
-    private function smsMulti($phones, $message) {
+    private function smsMulti($phones, $message)
+    {
         $result = ["status" => false];
 
         try {
             $sms_text = $message;
-            $targets = '+'.join(", +", $phones);
+            $targets = '+' . join(", +", $phones);
             $sender = (API_DEBUG ? "" : "STOLICA-DV");
             $period = 600;
             $sms = new QTSMS(SMS_API_USER, SMS_API_PASS, "a2p-sms-https.beeline.ru");
@@ -4188,7 +4348,8 @@ class BonusApp {
         return $result;
     }
 
-    private function callPassword($phone, $message) {
+    private function callPassword($phone, $message)
+    {
         $result = ["status" => false];
 
         $methodName = 'call-password/start-password-call';
@@ -4201,12 +4362,13 @@ class BonusApp {
         ]);
         $time = time();
 
-        $requestKey = NT_API_ACCESS_KEY . $time . hash('sha256',
+        $requestKey = NT_API_ACCESS_KEY . $time . hash(
+            'sha256',
             $methodName . "\n" .
-            $time . "\n" .
-            NT_API_ACCESS_KEY . "\n" .
-            $data . "\n" .
-            NT_API_SIGNATURE_KEY
+                $time . "\n" .
+                NT_API_ACCESS_KEY . "\n" .
+                $data . "\n" .
+                NT_API_SIGNATURE_KEY
         );
 
         $resId = curl_init();
@@ -4220,7 +4382,7 @@ class BonusApp {
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_URL =>'https://api.new-tel.net/call-password/start-password-call',
+            CURLOPT_URL => 'https://api.new-tel.net/call-password/start-password-call',
             CURLOPT_POSTFIELDS => $data,
         ]);
         $response = curl_exec($resId);
@@ -4234,7 +4396,8 @@ class BonusApp {
         return $result;
     }
 
-    private function sendMessageDig($phone, $message, $type = "SMS") {
+    private function sendMessageDig($phone, $message, $type = "SMS")
+    {
         $result = ["status" => false];
 
         if (empty($phone)) return ["status" => false, "data" => "Empty phone"];
@@ -4249,7 +4412,7 @@ class BonusApp {
                     "Authorization: Bearer $authToken",
                     "Content-Type: application/json"
                 ],
-                'content' => '[{"channelType":"'.$type.'","senderName":"sms info","destination":"'.$phone.'","content":"'.$message.'"}]'
+                'content' => '[{"channelType":"' . $type . '","senderName":"sms info","destination":"' . $phone . '","content":"' . $message . '"}]'
             )
         ));
 
@@ -4266,7 +4429,8 @@ class BonusApp {
         return $result;
     }
 
-    private function tg($message, $status = "info") {
+    private function tg($message, $status = "info")
+    {
         return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
     }
 }
