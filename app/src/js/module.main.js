@@ -4,6 +4,7 @@ const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
 const RULES_URL = DOMAIN + "/pravila";
 const REF_RULES_URL = DOMAIN + "/pravila-akcii";
+const VERSION_URL = DOMAIN + "/version";
 const LS_TOKEN = "LS_BearerToken";
 const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_CONTENTS = "LS_Contents";
@@ -1260,7 +1261,7 @@ async function checkUpdates(callback) {
     // }
 
     if (viewNewApp && SOURCE) {
-        fetch("version?platform=" + PLATFORM).then(r => r.text()).then(t => {
+        fetch(VERSION_URL + "?platform=" + PLATFORM).then(r => r.text()).then(t => {
             if (Number(t) > Number(SOURCE)) {
                 showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
             }
