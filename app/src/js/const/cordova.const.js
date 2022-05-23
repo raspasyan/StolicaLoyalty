@@ -1,4 +1,4 @@
-const SOURCE = "216";
+const SOURCE = "219";
 const DOMAIN = "https://bonus.stolica-dv.ru";
 const PLATFORM = "android";
 
