@@ -175,6 +175,11 @@ d.addEventListener("DOMContentLoaded", () => {
         wallet: 1,
         purchases: 1
     }));
+    
+    if (deviceType() !== "desktop" && !SOURCE) {
+        C(".alertUpdater__desc_name a").el.href = DOMAIN + "/application";
+        show(C("#alertUpdater").el);
+    }
 
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach((inp) => {
@@ -335,6 +340,10 @@ d.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+function closeUpdater() {
+    hide(C("#alertUpdater").el);
+}
 
 function permitRedrawSection(section) {
     let permit = true;
@@ -1416,8 +1425,8 @@ function validateBirthdate(el, isSubmit) {
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
 
     if (el.value.length > 9) {
-        let td = el.value.split("-");
-        bd = new Date(td[2], --td[1], td[0]),
+        let td = el.value.split("-"),
+            bd = new Date(td[2], --td[1], td[0]),
             cd = new Date(),
             age = (cd - bd);
 
