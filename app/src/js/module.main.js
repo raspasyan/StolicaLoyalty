@@ -176,7 +176,7 @@ d.addEventListener("DOMContentLoaded", () => {
         purchases: 1
     }));
     
-    if (deviceType() !== "desktop" && !SOURCE) {
+    if (deviceType() !== "desktop" && !SOURCE && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
         C(".alertUpdater__desc_name a").el.href = DOMAIN + "/application";
         show(C("#alertUpdater").el);
     }
@@ -342,6 +342,7 @@ d.addEventListener("DOMContentLoaded", () => {
 });
 
 function closeUpdater() {
+    C().setStor("NOW_DATE", new Date().toLocaleDateString());
     hide(C("#alertUpdater").el);
 }
 
