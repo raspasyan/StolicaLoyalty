@@ -9,6 +9,7 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <platform name="android">
+	<preference name="AndroidXEnabled" value="true" />
         <icon src="icons/36x36.png" density="ldpi" />
         <icon src="icons/48x48.png" density="mdpi" />
         <icon src="icons/72x72.png" density="hdpi" />

@@ -324,7 +324,7 @@ class BonusApp
                 }
         }
     }
-
+    
     private function api($rawRequestData)
     {
         $result = $this->initPDO();
@@ -3091,21 +3091,36 @@ class BonusApp
 
             $purchase_id = $this->pdo->lastInsertId();
             foreach ($purchase["positions"] as $position) {
+                $query = $this->pdo->prepare("INSERT IGNORE INTO products (title) VALUES (?)");
+                $query->execute([$position["title"]]);
+                $product_id = $this->pdo->lastInsertId();
+                
+                if (!$product_id > 0) {
+                    $query = $this->pdo->prepare("SELECT
+                                                        id
+                                                    FROM
+                                                        products
+                                                    WHERE
+                                                        title = ?
+                                                ");
+                    $query->execute([$position["title"]]);
+                    $queryResult = $query->fetch();
+                    $product_id = $queryResult["id"];
+                }
+                
                 $query = $this->pdo->prepare("INSERT INTO positions (
                         purchase_id,
                         product_id,
-                        title,
                         count,
                         cost,
                         cashback_amount,
                         discount_amount,
                         payment_amount,
                         amount
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $a = [
                     $purchase_id,
-                    $position["product_id"],
-                    $position["title"],
+                    $product_id,
                     $position["count"],
                     $position["cost"],
                     $position["cashback_amount"],
@@ -3113,7 +3128,7 @@ class BonusApp
                     $position["payment_amount"],
                     $position["amount"]
                 ];
-                // debug($a);
+
                 $query->execute($a);
             }
 
@@ -3221,7 +3236,7 @@ class BonusApp
                         WHEN purchases.profile_ext_id IS NULL THEN -ROUND(purchases.discount_amount / 100, 2)
                         ELSE ROUND(purchases.payment_amount / 100, 2)
                     END AS purchase_payment_amount,
-                    IFNULL(products.title, positions.title) AS product_title,
+                    products.title AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
                     ROUND(positions.count / 1000, 1) AS count,
@@ -3338,7 +3353,7 @@ class BonusApp
                         WHEN purchases.profile_ext_id IS NULL THEN -ROUND(purchases.discount_amount / 100, 2)
                         ELSE ROUND(purchases.payment_amount / 100, 2)
                     END AS purchase_payment_amount,
-                    positions.title AS product_title,
+                    products.title AS product_title,
                     (positions.cost / 100) cost,
                     ROUND(positions.cashback_amount / 100, 2) AS cashback_amount,
                     ROUND(positions.count / 1000, 1) AS count,
@@ -3356,6 +3371,8 @@ class BonusApp
                     ON purchases.id = positions.purchase_id
                 LEFT JOIN stores
                     ON purchases.rsa_id = stores.rsa_id
+                LEFT JOIN products
+                	ON positions.product_id = products.id
                 WHERE
                     purchases.id IN (" . join(",", $purchasesId) . ")
                 ORDER BY
