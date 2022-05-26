@@ -136,6 +136,8 @@ d.addEventListener("DOMContentLoaded", () => {
         }
         
         document.addEventListener('backbutton', function (e) {
+            e.preventDefault();
+            
             if (!closeOpenOverlays()) {
                 showPopup("Выйти из Столица.Бонусы?",
                         "",
@@ -363,26 +365,54 @@ d.addEventListener("DOMContentLoaded", () => {
 });
 
 function closeOpenOverlays() {
-    const list = ["#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".storeMap"];
+    const list = [".storeMap", "#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];
+    let disp = (id) => {
+        return C(id).el.style.display !== "none";
+    };
+    let rem = (id) => {
+        const el = C(id).el;
+        
+        if (el) {
+            el.parentNode.removeChild(el);
+            return true;
+        }
+        
+        return false;
+    };
     let isFind = false;
     
-    list.forEach((id) => {
-        if (id === ".storeMap") {
-            if (C(id).el) {
-                d.body.removeChild(C(id).el);
-                isFind = true;
+    for (let id of list) {
+        switch (id) {
+            case ".storeMap": {
+                isFind = rem(id);
+                break;
             }
-        } else {
-            if (C(id).el.style.display !== "none") {
-                hide(id);
-                isFind = true;
+            
+            case ".topNav__back": {
+                if (disp(id)) {
+                    routePrevSection();
+                    isFind = true;
+                }
+                break;
+            }
+            
+            default: {
+                if (disp(id)) {
+                    if (id === "#popupOverlay") {
+                        rem("#cancelText");
+                    }
+
+                    hide(id);
+                    isFind = true;
+                }
+                break;
             }
         }
         
-    });
-    
-    if (isFind) {
-        d.body.classList.remove("hideOverflow");
+        if (isFind) {
+            C("body").delclass("hideOverflow");
+            break;
+        }
     }
     
     return isFind;
