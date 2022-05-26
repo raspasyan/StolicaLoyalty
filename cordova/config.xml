@@ -9,7 +9,13 @@
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <platform name="android">
-	<preference name="AndroidXEnabled" value="true" />
+		<preference name="AndroidXEnabled" value="true" />
+		<resource-file src="res/google-services.json" target="app/google-services.json" />
+		<resource-file src="res/drawable/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
+		<resource-file src="res/drawable/drawable-hdpi/notification_icons.png" target="app/src/main/res/drawable-hdpi/notification_icons.png" />
+		<resource-file src="res/drawable/drawable-mdpi/notification_icons.png" target="app/src/main/res/drawable-mdpi/notification_icons.png" />
+		<resource-file src="res/drawable/drawable-xhdpi/notification_icons.png" target="app/src/main/res/drawable-xhdpi/notification_icons.png" />
+		<resource-file src="res/drawable/drawable-xxhdpi/notification_icons.png" target="app/src/main/res/drawable-xxhdpi/notification_icons.png" />
         <icon src="icons/36x36.png" density="ldpi" />
         <icon src="icons/48x48.png" density="mdpi" />
         <icon src="icons/72x72.png" density="hdpi" />

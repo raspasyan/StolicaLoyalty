@@ -116,6 +116,16 @@ const deviceType = () => {
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
+        window.pushNotification.registration(
+            (token) => {
+                //alert(token);
+                console.log(token);
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
         switch (device.platform) {
             case "Android":
                 clientInfo = "Android v" + SOURCE;
@@ -124,7 +134,18 @@ d.addEventListener("DOMContentLoaded", () => {
                 clientInfo = "iOS v" + SOURCE;
                 break;
         }
+        
+        document.addEventListener('backbutton', function (e) {
+            if (!closeOpenOverlays()) {
+                showPopup("Выйти из Столица.Бонусы?",
+                        "",
+                        "",
+                        ["Да", "Нет"],
+                        exitApp);
+            }
+        });
     });
+    
     /*
      if ('serviceWorker' in navigator) {
      window.addEventListener('load', () => {
@@ -340,6 +361,36 @@ d.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+function closeOpenOverlays() {
+    const list = ["#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".storeMap"];
+    let isFind = false;
+    
+    list.forEach((id) => {
+        if (id === ".storeMap") {
+            if (C(id).el) {
+                d.body.removeChild(C(id).el);
+                isFind = true;
+            }
+        } else {
+            if (C(id).el.style.display !== "none") {
+                hide(id);
+                isFind = true;
+            }
+        }
+        
+    });
+    
+    if (isFind) {
+        d.body.classList.remove("hideOverflow");
+    }
+    
+    return isFind;
+}
+
+function exitApp() {
+    navigator.app.exitApp();
+}
 
 function closeUpdater() {
     C().setStor("NOW_DATE", new Date().toLocaleDateString());
