@@ -10,6 +10,7 @@ const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_CONTENTS = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
 const LS_SECTION = "section";
+const LS_PUSHID = "LS_pushID";
 
 let lastPhone = "",
     secondsInterval = null,
@@ -118,11 +119,11 @@ d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
         window.pushNotification.registration(
             (token) => {
-                //alert(token);
-                console.log(token);
+                C().setStor(LS_PUSHID, token);
+                //console.log(token);
             },
             (error) => {
-                console.log(error);
+                //console.log(error);
             }
         );
 
@@ -147,44 +148,6 @@ d.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-    
-    /*
-     if ('serviceWorker' in navigator) {
-     window.addEventListener('load', () => {
-     navigator.serviceWorker.register('/sw.js').then((registration) => {
-     console.log('ServiceWorker registration successful with scope: ', registration.scope);
-     }, (err) => console.log('ServiceWorker registration failed: ', err) );
-     });
-     } else {
-     console.log('ServiceWorker do not work');
-     }
-     
-     function notifyMe() {
-     let notification = new Notification("Все еще работаешь?", {
-     tag: "ache-mail",
-     body: "Пора сделать паузу и отдохнуть"
-     //icon : "https://itproger.com/img/notify.png"
-     });
-     }
-     
-     function notifySet() {
-     if (!("Notification" in window)) {
-     console.log("Ваш браузер не поддерживает уведомления.");
-     } else if (Notification.permission === "granted") {
-     //setTimeout(notifyMe, 2000);
-     } else if (Notification.permission !== "denied") {
-     Notification.requestPermission((permission) => {
-     if (!('permission' in Notification)) {
-     Notification.permission = permission;
-     }
-     if (permission === "granted") {
-     //setTimeout(notifyMe, 2000);
-     }
-     });
-     }
-     }
-     notifySet();
-     */
 
     crashClearStorage();
     initPopups();
@@ -1427,7 +1390,7 @@ async function getUpdates() {
     if (contents.personal === "") {
         data = tempUpdate;
     }
-
+    
     if (initApp) {
         data.lastNews = 0;
         data.storesHash = "";
@@ -1435,7 +1398,9 @@ async function getUpdates() {
         data.lastTransaction = "";
         initApp = false;
     }
-
+    
+    data.pushId = C().getStor(LS_PUSHID);
+    
     return await api("getUpdates", data);
 }
 

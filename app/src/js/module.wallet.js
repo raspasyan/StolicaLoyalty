@@ -462,7 +462,15 @@ function download(filename, data, mimeType, dataURI) {
                         fileWriter.write(blob);
 
                         fileWriter.onwriteend = function() {
-                          showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+                            var url = file.toURL();
+                            cordova.plugins.fileOpener2.open(url, mimeType, {
+                              error: function error(err) {
+                                console.error(err);
+                              },
+                              success: function success() {
+                                console.log("success with opening the file");
+                              }
+                            });
                         };
 
                         fileWriter.onerror = function(err) {

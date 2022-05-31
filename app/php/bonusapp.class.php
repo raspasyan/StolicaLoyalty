@@ -1770,7 +1770,8 @@ class BonusApp
              "storesHash"         => "",
              "lastNews"           => "",
              "lastPurchase"       => "",
-             "lastTransaction"    => ""
+             "lastTransaction"    => "",
+             "pushId"             => ""
         ];
         */
 
@@ -1843,6 +1844,11 @@ class BonusApp
                 }
                 $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
+            }
+            
+            if (array_key_exists("push_id", $fullAccountData["data"]) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
+                $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
+                $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
             }
         }
 
@@ -2221,6 +2227,7 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
+                a.push_id,
                 p.ext_id,
                 p.sex,
                 p.firstname,
@@ -4445,7 +4452,52 @@ class BonusApp
 
         return $result;
     }
+    
+    private function pushApp($tokens, $title, $body)
+    {
+        $url = "https://fcm.googleapis.com/fcm/send";
+        $serverKey = 'AAAAtjaAPiY:APA91bEHrk-fdY0k0DxCQnU8Uu4ZLy8rEyGPS7wJy7_xsEzP-DT2wfMq7TtBlNh50zoB_QwwNZyE-4AMc6iv93IQmzSBM29j3drSUV1Z2IrGMu5gebuCbYzjKpA5P999a8a1fyzsrOIL';
+        
+        $notification = [
+            'title' => $title,
+            'body'  => $body,
+            'sound' => 'default',
+        ];
+        
+        $arrayToSend = [
+            'registration_ids' => $tokens, 
+            'notification'     => $notification,
+            'priority '        => 'high'
+        ];
+        
+        $json = json_encode($arrayToSend);
+        
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: key='. $serverKey
+        ];
 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST,"POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,$headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        
+        if (!$response) {
+            var_dump('CURL error: ' . curl_error($ch));
+            die();
+        }
+
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+        
+        return ($result['success'] === 1) ? true : false;
+    }
+    
     private function tg($message, $status = "info")
     {
         return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
