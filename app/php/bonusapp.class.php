@@ -61,7 +61,7 @@ class BonusApp
 
                     break;
                 }
-
+                
             case "add-news": {
                     $result = $this->initPDO();
 
