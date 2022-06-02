@@ -10,6 +10,12 @@ class BonusApp
         "BEE"                       // Digital Flash Call
     ];
 
+    private $providers2 = [
+        "PUSH",
+        "DIG_FC",                   // Билайн
+        "BEE"                       // Digital Flash Call
+    ];
+
     public function __construct()
     {
         $this->setCORS();
@@ -186,6 +192,41 @@ class BonusApp
                     break;
                 }
 
+            case "sms2": {
+                    // Пример: http://localhost/sms2?token=API_TOKEN&phone=79635658436&message=1234
+                    if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+
+                    $result = $this->initPDO();
+                    if (!$result["status"]) {
+                        echo (json_encode($result));
+                        exit;
+                    }
+
+                    $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
+                    $message = $_GET["message"];
+
+                    $result = $this->canSendMessage($phone);
+                    // ОТЛАДКА
+                    $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    if ($result["status"]) {
+                        $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+                        $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
+
+                        // ОТЛАДКА
+                        $this->journal("SMS", "sendMessage", "", $result["status"], json_encode(["f" => "sendMessage", "a" => [$phone, preg_replace("/[^0-9]/", "", $message), $provider]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    }
+
+                    // КОСТЫЛЬ: если сообщение не было отправлено сообщаем кассе код 404. Касса не умеет читать сообщение в теле, она ориентируется по кодам страницы.
+                    if (!$result["status"]) {
+                        header("HTTP/1.0 404 Not Found");
+                        header("HTTP/1.1 404 Not Found");
+                        header("Status: 404 Not Found");
+                    }
+
+                    echo (json_encode($result));
+                    break;
+                }
+                
             case "sms": {
                     // Пример: http://localhost/sms?token=API_TOKEN&phone=79635658436&message=hello
                     if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
@@ -2082,6 +2123,22 @@ class BonusApp
         return $result;
     }
 
+    private function getNextProvider2($lastProvider)
+    {
+        return $this->providers2[array_search($lastProvider, $this->providers2) == (count($this->providers2) - 1) ? 0 : array_search($lastProvider, $this->providers2) + 1];
+    }
+    
+    private function checkNextProvider2($lastProvider, $phone)
+    {
+        $nextProvider = $this->getNextProvider2($lastProvider);
+
+        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
+            $nextProvider = $this->getNextProvider2($nextProvider);
+        }
+        
+        return $nextProvider;
+    }
+    
     private function getNextProvider($lastProvider)
     {
         return $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
@@ -2089,9 +2146,9 @@ class BonusApp
     
     private function checkNextProvider($lastProvider, $phone)
     {
-        $nextProvider = $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
+        $nextProvider = $this->getNextProvider($lastProvider);
         
-        if ($nextProvider=="PUSH" && $this->getPushIDNotify($phone)) {
+        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
             $nextProvider = $this->getNextProvider($nextProvider);
         }
         
