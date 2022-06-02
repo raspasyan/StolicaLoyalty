@@ -19,11 +19,11 @@ $message->notification
             ->setBody($body);
 
 $message->data->fill([
-   'key1'=>'value1'
+   'title'=>$title
 ]);
-$message->data->set('key2','value2');
-$message->data->key3 = 'value3';
-$message->data['key4'] = 4;
+$message->data->set('body', $body);
+//$message->data->key3 = 'value3';
+//$message->data['key4'] = 4;
 
 $message->android->ttl = '10.4s';
 $message->android->setPriorityHigh();

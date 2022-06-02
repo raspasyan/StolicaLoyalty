@@ -63,7 +63,7 @@ class BonusApp
                 }
                 
             case "push": {
-                $this->sendPush("fHfh9LEpH7c:APA91bHNbWGPEAbXEs1OY78iKaUnG4YXv0PSL0FG1rqk19NtE75ZWyxgWtvUb52Tz7NxcwTo6HIFANAPoUnv15teIObW1bkYQOJaPB-bvE3Y0KjZ0kN1JnX1G70zWhJO5Xi5SPjdl72k", "4343", "");
+                $this->sendPush("fPzr1clvKUs:APA91bGUDiUWWX6JXkwlEEGV1c36ge3_x6cqeG_kLsO17KrrYzEFRIka-IW1HlyE0mZhEAJq_i6ynSp1UgSOBmgQxUM7AbuJeLtIGvdEXuSaPONVZ0hk80YFcvA9dLZf-mDGx13jejMO", "4343", "Ваш код");
                 break;
             }
                 

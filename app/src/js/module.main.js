@@ -117,7 +117,7 @@ const deviceType = () => {
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
-        
+
         /*
         window.pushNotification.registration(
             (token) => {
@@ -129,18 +129,17 @@ d.addEventListener("DOMContentLoaded", () => {
             }
         );
         */
-       
+        
         cordova.plugins.firebase.messaging.getToken().then(function(token) {
-            console.log("Got device token: ", token);
             C().setStor(LS_PUSHID, token);
         });
         
         cordova.plugins.firebase.messaging.onMessage(function(payload) {
-            alert("New foreground FCM message: ", payload);
+            showPopup(payload.title, payload.body);
         });
         
         cordova.plugins.firebase.messaging.onBackgroundMessage(function(payload) {
-            alert("New background FCM message: ", payload);
+            //
         });
 
         switch (device.platform) {
