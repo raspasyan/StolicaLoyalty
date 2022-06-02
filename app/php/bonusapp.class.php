@@ -62,6 +62,11 @@ class BonusApp
                     break;
                 }
                 
+            case "push": {
+                $this->sendPush("fHfh9LEpH7c:APA91bHNbWGPEAbXEs1OY78iKaUnG4YXv0PSL0FG1rqk19NtE75ZWyxgWtvUb52Tz7NxcwTo6HIFANAPoUnv15teIObW1bkYQOJaPB-bvE3Y0KjZ0kN1JnX1G70zWhJO5Xi5SPjdl72k", "4343", "");
+                break;
+            }
+                
             case "add-news": {
                     $result = $this->initPDO();
 
@@ -198,7 +203,7 @@ class BonusApp
                     // ОТЛАДКА
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
-                        $provider = isset($result["data"]["provider"]) ? $this->getNextProvider($result["data"]["provider"]) : null;
+                        $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider($result["data"]["provider"], $phone) : null;
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
                         // ОТЛАДКА
@@ -2081,6 +2086,26 @@ class BonusApp
     {
         return $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
     }
+    
+    private function checkNextProvider($lastProvider, $phone)
+    {
+        $nextProvider = $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
+        
+        if ($nextProvider=="PUSH" && $this->getPushIDNotify($phone)) {
+            $nextProvider = $this->getNextProvider($nextProvider);
+        }
+        
+        return $nextProvider;
+    }
+    
+    private function getPushIDNotify($phone)
+    {
+        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE phone = ?");
+        $query->execute([$phone]);
+        $queryResult = $query->fetch();
+        
+        return $queryResult["push_id"];
+    }
 
     private function canSendMessage($phone)
     {
@@ -2121,6 +2146,10 @@ class BonusApp
                     $result = ["status" => false, "description" => "UNDEFINED_PROVIDER"];
                     break;
                 }
+            case "PUSH": {
+                    $result = $this->push($phone, $message);
+                    break;
+            }
             case "NT": {
                     $result = $this->callPassword($phone, $message);
                     break;
@@ -4453,49 +4482,15 @@ class BonusApp
         return $result;
     }
     
-    private function pushApp($tokens, $title, $body)
+    private function push($phone, $message)
     {
-        $url = "https://fcm.googleapis.com/fcm/send";
-        $serverKey = 'AAAAtjaAPiY:APA91bEHrk-fdY0k0DxCQnU8Uu4ZLy8rEyGPS7wJy7_xsEzP-DT2wfMq7TtBlNh50zoB_QwwNZyE-4AMc6iv93IQmzSBM29j3drSUV1Z2IrGMu5gebuCbYzjKpA5P999a8a1fyzsrOIL';
-        
-        $notification = [
-            'title' => $title,
-            'body'  => $body,
-            'sound' => 'default',
-        ];
-        
-        $arrayToSend = [
-            'registration_ids' => $tokens, 
-            'notification'     => $notification,
-            'priority '        => 'high'
-        ];
-        
-        $json = json_encode($arrayToSend);
-        
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: key='. $serverKey
-        ];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST,"POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,$headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($ch);
-        
-        if (!$response) {
-            var_dump('CURL error: ' . curl_error($ch));
-            die();
-        }
-
-        curl_close($ch);
-
-        $result = json_decode($response, true);
-        
-        return ($result['success'] === 1) ? true : false;
+        return $this->sendPush($this->getPushIDNotify($phone), $message, "");
+    }
+    
+    private function sendPush($tokens, $title, $body)
+    {
+        require_once 'app/php/libs/firebase.php';
+        return $push_response;
     }
     
     private function tg($message, $status = "info")

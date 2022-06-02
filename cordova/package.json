@@ -14,23 +14,19 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@globules-io/cordova-plugin-ios-xhr": "^1.2.2",
-    "cordova-android": "^10.1.1",
-    "cordova-browser": "^6.0.0",
-    "cordova-ios": "^6.2.0",
+    "cordova-android": "^10.1.2",
     "cordova-plugin-add-swift-support": "^2.0.2",
     "cordova-plugin-android-mediastore": "github:remyweinstein/cordova-plugin-android-mediastore",
     "cordova-plugin-android-permissions": "^1.1.3",
     "cordova-plugin-device": "^2.1.0",
-    "cordova-plugin-file": "^7.0.0",
-    "cordova-plugin-file-opener2": "^3.0.5",
-    "cordova-plugin-push-notifications": "^1.1.5",
+    "cordova-plugin-firebase-analytics": "~6.1.0",
+    "cordova-plugin-firebase-messaging": "^6.1.2",
     "cordova-plugin-splashscreen": "^6.0.0",
+    "cordova-support-android-plugin": "~1.0.0",
     "device": "^0.3.12"
   },
   "cordova": {
     "platforms": [
-      "browser",
-      "ios",
       "android"
     ],
     "plugins": {
@@ -38,14 +34,11 @@
       "cordova-plugin-device": {},
       "cordova-plugin-android-mediastore": {},
       "cordova-plugin-android-permissions": {},
-      "cordova-plugin-push-notifications": {},
-      "cordova-plugin-file": {
-        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      },
-      "cordova-plugin-file-opener2": {
-        "ANDROID_SUPPORT_V4_VERSION": "27.+"
-      },
-      "@globules-io/cordova-plugin-ios-xhr": {}
+      "@globules-io/cordova-plugin-ios-xhr": {},
+      "cordova-plugin-firebase-messaging": {
+        "ANDROID_FIREBASE_MESSAGING_VERSION": "22.0.+",
+        "ANDROIDX_CORE_VERSION": "1.6.+"
+      }
     }
   }
 }

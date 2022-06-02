@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.stolica.bonuses" version="5.0.7" android-versionCode="222" ios-CFBundleVersion="219" ios-CFBundleIdentifier="com.stolica.bonuses" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.stolica.bonuses" version="5.0.9" android-versionCode="224" ios-CFBundleVersion="219" ios-CFBundleIdentifier="com.stolica.bonuses" xmlns:android="http://schemas.android.com/apk/res/android" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Столица</name>
     <description>Алкомаркеты Столица - программа лояльности</description>
     <author email="raspasyan8436@yandex.ru" href="https://bonus.stolica-dv.ru/">
@@ -8,7 +8,9 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+    
     <platform name="android">
+        <resource-file src="res/values/colors.xml" target="app/src/main/res/values/colors.xml"/>
         <preference name="AndroidXEnabled" value="true" />
         <resource-file src="res/google-services.json" target="app/google-services.json" />
         <resource-file src="res/drawable/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
@@ -22,6 +24,9 @@
         <icon src="icons/96x96.png" density="xhdpi" />
         <icon src="icons/144x144.png" density="xxhdpi" />
         <icon src="icons/192x192.png" density="xxxhdpi" />
+        <config-file parent="/manifest/application" target="AndroidManifest.xml">
+            <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/primary" />
+        </config-file>
     </platform>
     <platform name="ios">
         <!-- iOS 8.0+ -->
@@ -56,6 +61,7 @@
         <icon src="icons/100x100.png" width="100" height="100" />
         <!-- iTunes Marketing Image -->
         <icon src="icons/1024x1024.png" width="1024" height="1024" />
+        <resource-file src="res/GoogleService-Info.plist" />
     </platform>
 	
     <platform name="android">

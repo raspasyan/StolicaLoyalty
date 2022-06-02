@@ -1,0 +1,5 @@
+{
+    "require": {
+        "plokko/firebase-php": "^0.2.1"
+    }
+}

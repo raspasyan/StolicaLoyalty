@@ -16,4 +16,3 @@ require_once "app/php/libs/debug.php";
 
 $BonusApp = new BonusApp();
 $BonusApp->route();
-?>
