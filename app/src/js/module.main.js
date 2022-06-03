@@ -20,6 +20,13 @@ let lastPhone = "",
     resetCodeTimerValue = 0,
     viewNewApp = 1;
 
+const carouselSections = [
+    "news",
+    "stores",
+    "wallet",
+    "personal"
+];
+
 const sections = {
     "adult": {},
     "intro": {},
@@ -57,6 +64,7 @@ const sections = {
     "refer": {
         title: "Приглашение",
         showMenu: true,
+        prevSection: "personal",
         needAuth: true
     },
     "stores": {
@@ -117,19 +125,6 @@ const deviceType = () => {
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
-
-        /*
-        window.pushNotification.registration(
-            (token) => {
-                C().setStor(LS_PUSHID, token);
-                //console.log(token);
-            },
-            (error) => {
-                //console.log(error);
-            }
-        );
-        */
-        
         cordova.plugins.firebase.messaging.getToken().then(function(token) {
             C().setStor(LS_PUSHID, token);
         });
@@ -163,6 +158,11 @@ d.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    d.addEventListener('touchstart', touchStart);
+    d.addEventListener('touchend', touchEnd);
+    d.addEventListener('touchcancel', touchEnd);
+    d.addEventListener('touchmove', touchMove);
 
     crashClearStorage();
     initPopups();
@@ -341,6 +341,85 @@ d.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+let startSwipeX = 0;
+let stopSwipeX  = 0;
+let startSwipeY = 0;
+let stopSwipeY  = 0;
+
+function checkSwipeX() {
+    const currentSection = C().getStor(LS_SECTION);
+    
+    if (canSlidePages(currentSection)) {
+        const diffX = stopSwipeX - startSwipeX;
+        const diffY = Math.abs(stopSwipeY - startSwipeY);
+
+        if (Math.abs(diffX) > 200 && diffY < 100) {
+            let nextSection;
+            
+            if (diffX > 0) {
+                nextSection = getPrevSection(currentSection);
+            } else {
+                nextSection = getNextSection(currentSection);
+            }
+            
+            drawSection(nextSection);
+        }
+    }
+}
+
+function canSlidePages(currentSection) {
+    return carouselSections.includes(currentSection);
+}
+
+function getNextSection(currentSection) {
+    const i = carouselSections.indexOf(currentSection) + 1;
+    let count = carouselSections.length;
+    
+    if (count === i) {
+        return carouselSections[0];
+    }
+    
+    return carouselSections[i];
+}
+
+function getPrevSection(currentSection) {
+    const i = carouselSections.indexOf(currentSection) - 1;
+    let count = carouselSections.length - 1;
+    
+    if (i < 0) {
+        return carouselSections[count];
+    }
+    
+    return carouselSections[i];
+}
+
+function touchStart(e) {
+    const touches = e.changedTouches;
+
+    for (let i = 0; i < touches.length; i++) {
+        startSwipeX = touches[i].pageX;
+        startSwipeY = touches[i].pageY;
+    }
+}
+
+function touchMove(e) {
+    //const touches = e.changedTouches;
+    //for (let i = 0; i < touches.length; i++) {
+    //    console.log(`Move: ${touches[i].pageX}`);
+    //}
+}
+
+function touchEnd(e) {
+    const touches = e.changedTouches;
+
+    for (let i = 0; i < touches.length; i++) {
+        stopSwipeX = touches[i].pageX;
+        stopSwipeY = touches[i].pageY;
+    }
+    
+    checkSwipeX();
+}
 
 function closeOpenOverlays() {
     const list = [".storeMap", "#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];

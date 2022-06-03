@@ -439,7 +439,7 @@ class BonusApp
                     }
 
                 case "getUpdates": {
-                        $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
+                        $resultData = $this->checkAuthorization($requestData["method"], array_key_exists("source", $requestData) ? $requestData["source"] : NULL);
                         if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
 
                         break;
@@ -1892,7 +1892,7 @@ class BonusApp
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }
             
-            if (array_key_exists("push_id", $fullAccountData["data"]) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
+            if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
                 $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
                 $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
             }
