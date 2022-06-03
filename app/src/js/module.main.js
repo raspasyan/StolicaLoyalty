@@ -101,6 +101,7 @@ let currentSection = "",
     userActivityTimeout = null,
     initApp = true,
     clientInfo = "Сайт",
+    clientDevice,
     tempUpdate = {
         personalHash: "",
         walletHash: "",
@@ -136,7 +137,9 @@ d.addEventListener("DOMContentLoaded", () => {
         cordova.plugins.firebase.messaging.onBackgroundMessage(function(payload) {
             //
         });
-
+        
+        clientDevice = `${device.platform} ${device.version} (${device.manufacturer} ${device.model})`;
+        
         switch (device.platform) {
             case "Android":
                 clientInfo = "Android v" + SOURCE;
@@ -1494,6 +1497,10 @@ async function getUpdates() {
     }
     
     data.pushId = C().getStor(LS_PUSHID);
+    
+    if (clientDevice) {
+        data.clientDevice = clientDevice;
+    }
     
     return await api("getUpdates", data);
 }

@@ -1817,7 +1817,8 @@ class BonusApp
              "lastNews"           => "",
              "lastPurchase"       => "",
              "lastTransaction"    => "",
-             "pushId"             => ""
+             "pushId"             => "",
+             "clientDevice"       => ""
         ];
         */
 
@@ -1895,6 +1896,11 @@ class BonusApp
             if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
                 $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
                 $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
+            }
+            
+            if (array_key_exists("device", $fullAccountData["data"]) && array_key_exists("clientDevice", $options) && $fullAccountData["data"]["device"] != $options["clientDevice"]) {
+                $query = $this->pdo->prepare("UPDATE accounts SET device = :device WHERE phone = :phone");
+                $query->execute(["device" => $options["clientDevice"], "phone" => $phone]);
             }
         }
 
@@ -2314,6 +2320,7 @@ class BonusApp
                 a.discount_value,
                 a.preferred_discount,
                 a.push_id,
+                a.device,
                 p.ext_id,
                 p.sex,
                 p.firstname,
