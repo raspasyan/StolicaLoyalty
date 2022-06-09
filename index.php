@@ -5,6 +5,8 @@ ini_set('soap.wsdl_cache_ttl',0);
 date_default_timezone_set("Asia/Vladivostok");
 session_start();
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 require_once "app/php/version.php";
 require_once "app/php/const.php";
 require_once "app/php/bonusapp.class.php";

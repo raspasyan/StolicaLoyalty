@@ -131,7 +131,8 @@ d.addEventListener("DOMContentLoaded", () => {
         });
         
         cordova.plugins.firebase.messaging.onMessage(function(payload) {
-            showPopup(payload.title, payload.body);
+            let gcm = payload.gcm;
+            showPopup(gcm.title, gcm.body);
         });
         
         cordova.plugins.firebase.messaging.onBackgroundMessage(function(payload) {

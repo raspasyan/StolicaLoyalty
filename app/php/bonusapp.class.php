@@ -1,8 +1,12 @@
 <?php
+use phpFCMv1\Client;
+use phpFCMv1\Config;
+use phpFCMv1\Notification;
+use phpFCMv1\Recipient;
+Use phpFCMv1\Config\APNsConfig;
 
 class BonusApp
 {
-
     private $pdo = null;
 
     private $providers = [
@@ -69,10 +73,11 @@ class BonusApp
                 }
                 
             case "push": {
-                $this->sendPush("fPzr1clvKUs:APA91bGUDiUWWX6JXkwlEEGV1c36ge3_x6cqeG_kLsO17KrrYzEFRIka-IW1HlyE0mZhEAJq_i6ynSp1UgSOBmgQxUM7AbuJeLtIGvdEXuSaPONVZ0hk80YFcvA9dLZf-mDGx13jejMO", "4343", "Ваш код");
-                break;
-            }
-                
+					//print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
+					print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
+					break;
+				}
+               
             case "add-news": {
                     $result = $this->initPDO();
 
@@ -206,10 +211,16 @@ class BonusApp
                     $message = $_GET["message"];
 
                     $result = $this->canSendMessage($phone);
+										
                     // ОТЛАДКА
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
-                        $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+						if ($this->getPushIDNotify($phone)) {
+							$provider = "PUSH";
+						} else {
+							$provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+						}
+						
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
                         // ОТЛАДКА
@@ -371,6 +382,49 @@ class BonusApp
         }
     }
     
+	private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token) 
+	{
+		// url (endpoint)
+		$url = "{$http2_server}/3/device/{$token}";
+		$cert = realpath($apple_cert);
+		
+		// headers
+		$headers = array(
+			"apns-topic: {$app_bundle_id}",
+			"User-Agent: My Sender"
+		);
+		
+		curl_setopt_array($http2ch, array(
+			CURLOPT_URL => $url,
+			CURLOPT_PORT => 443,
+			CURLOPT_HTTPHEADER => $headers,
+			CURLOPT_POST => TRUE,
+			CURLOPT_POSTFIELDS => $message,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_TIMEOUT => 30,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSLCERT => $cert,
+			CURLOPT_SSLCERTPASSWD => 'jpn19810112',
+			CURLOPT_SSLCERTTYPE => 'P12',
+			CURLOPT_HEADER => 1
+		));
+		
+		$result = curl_exec($http2ch);
+		
+		print_r($result);
+		
+		if ($result === FALSE) {
+		  //throw new Exception("Curl failed: " .  curl_error($http2ch));
+		}
+		
+		// get response
+		$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+		if($status=="200")
+			echo "SENT|NA";
+		else
+			echo "FAILED|$status";
+	}
+	
     private function api($rawRequestData)
     {
         $result = $this->initPDO();
@@ -2166,8 +2220,9 @@ class BonusApp
         $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE phone = ?");
         $query->execute([$phone]);
         $queryResult = $query->fetch();
-        
-        return $queryResult["push_id"];
+        $token = $queryResult["push_id"];
+		
+        return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
     }
 
     private function canSendMessage($phone)
@@ -2210,7 +2265,7 @@ class BonusApp
                     break;
                 }
             case "PUSH": {
-                    $result = $this->push($phone, $message);
+                    $result = $this->push($phone, "", $message);
                     break;
             }
             case "NT": {
@@ -4546,16 +4601,59 @@ class BonusApp
         return $result;
     }
     
-    private function push($phone, $message)
+    private function push($phone, $title, $message)
     {
-        return $this->sendPush($this->getPushIDNotify($phone), $message, "");
+        return $this->sendPush($this->getPushIDNotify($phone), $title, $message);
     }
     
-    private function sendPush($tokens, $title, $body)
+    private function sendPush($token, $title, $body)
     {
-        require_once 'app/php/libs/firebase.php';
-        return $push_response;
+        return (strripos($token, ":") === FALSE) ? $this->sendPushIos($token, $title, $body) : $this->sendPushAndroid($token, $title, $body);
     }
+	
+	private function sendPushAndroid($token, $title, $body)
+	{
+		$result["status"] = FALSE;
+		$client = new Client('indriver-148622-a5223bc8248e.json');
+		$recipient = new Recipient();
+		$notification = new Notification();
+		$config = new Config();
+		
+		$recipient -> setSingleRecipient($token);
+		$notification -> setNotification($title, $body, array("title" => $title, "body" => $body));
+		
+		$config -> setPriority(Config::PRIORITY_HIGH);
+		$client -> build($recipient, $notification, null, $config);
+		$response = $client -> fire();
+		
+        $result["status"] = array_key_exists("error", $response) ? FALSE : TRUE;
+		
+		if ($result["status"] && array_key_exists("name", $response)) {
+			$result["data"] = ["ext_id" => end(explode("/", $response["name"]))];
+		}
+		
+		return $result;
+	}
+	
+	private function sendPushIos($token, $title, $body)
+	{
+		$apiHost  = 'api.push.apple.com';
+		$apnsCert = 'cert.p12';
+		$apnsPass = 'jpn19810112';
+		$payload['aps'] = 
+		  array(
+			'alert' => array (
+				'title' => $title,
+				'body'  => $body
+				), 
+			'badge' => 42
+		  );
+		
+		$payload = json_encode($payload);
+		
+		exec('curl -d \''.$payload.'\' --cert-type P12 --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/'.$token, $output);
+		var_dump($output);
+	}
     
     private function tg($message, $status = "info")
     {
