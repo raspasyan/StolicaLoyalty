@@ -1,11 +1,21 @@
 <?php
+use phpFCMv1\Client;
+use phpFCMv1\Config;
+use phpFCMv1\Notification;
+use phpFCMv1\Recipient;
+Use phpFCMv1\Config\APNsConfig;
 
 class BonusApp
 {
-
     private $pdo = null;
 
     private $providers = [
+        "DIG_FC",                   // Билайн
+        "BEE"                       // Digital Flash Call
+    ];
+
+    private $providers2 = [
+        "PUSH",
         "DIG_FC",                   // Билайн
         "BEE"                       // Digital Flash Call
     ];
@@ -61,7 +71,13 @@ class BonusApp
 
                     break;
                 }
-
+                
+            case "push": {
+					//print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
+					print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
+					break;
+				}
+               
             case "add-news": {
                     $result = $this->initPDO();
 
@@ -181,6 +197,47 @@ class BonusApp
                     break;
                 }
 
+            case "sms2": {
+                    // Пример: http://localhost/sms2?token=API_TOKEN&phone=79635658436&message=1234
+                    if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+
+                    $result = $this->initPDO();
+                    if (!$result["status"]) {
+                        echo (json_encode($result));
+                        exit;
+                    }
+
+                    $phone = preg_replace("/[^0-9]/", "", $_GET["phone"]);
+                    $message = $_GET["message"];
+
+                    $result = $this->canSendMessage($phone);
+										
+                    // ОТЛАДКА
+                    $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    if ($result["status"]) {
+						if ($this->getPushIDNotify($phone)) {
+							$provider = "PUSH";
+						} else {
+							$provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+						}
+						
+                        $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
+
+                        // ОТЛАДКА
+                        $this->journal("SMS", "sendMessage", "", $result["status"], json_encode(["f" => "sendMessage", "a" => [$phone, preg_replace("/[^0-9]/", "", $message), $provider]]), json_encode($result, JSON_UNESCAPED_UNICODE));
+                    }
+
+                    // КОСТЫЛЬ: если сообщение не было отправлено сообщаем кассе код 404. Касса не умеет читать сообщение в теле, она ориентируется по кодам страницы.
+                    if (!$result["status"]) {
+                        header("HTTP/1.0 404 Not Found");
+                        header("HTTP/1.1 404 Not Found");
+                        header("Status: 404 Not Found");
+                    }
+
+                    echo (json_encode($result));
+                    break;
+                }
+                
             case "sms": {
                     // Пример: http://localhost/sms?token=API_TOKEN&phone=79635658436&message=hello
                     if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
@@ -198,7 +255,7 @@ class BonusApp
                     // ОТЛАДКА
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
-                        $provider = isset($result["data"]["provider"]) ? $this->getNextProvider($result["data"]["provider"]) : null;
+                        $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider($result["data"]["provider"], $phone) : null;
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
                         // ОТЛАДКА
@@ -325,6 +382,49 @@ class BonusApp
         }
     }
     
+	private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token) 
+	{
+		// url (endpoint)
+		$url = "{$http2_server}/3/device/{$token}";
+		$cert = realpath($apple_cert);
+		
+		// headers
+		$headers = array(
+			"apns-topic: {$app_bundle_id}",
+			"User-Agent: My Sender"
+		);
+		
+		curl_setopt_array($http2ch, array(
+			CURLOPT_URL => $url,
+			CURLOPT_PORT => 443,
+			CURLOPT_HTTPHEADER => $headers,
+			CURLOPT_POST => TRUE,
+			CURLOPT_POSTFIELDS => $message,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_TIMEOUT => 30,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSLCERT => $cert,
+			CURLOPT_SSLCERTPASSWD => 'jpn19810112',
+			CURLOPT_SSLCERTTYPE => 'P12',
+			CURLOPT_HEADER => 1
+		));
+		
+		$result = curl_exec($http2ch);
+		
+		print_r($result);
+		
+		if ($result === FALSE) {
+		  //throw new Exception("Curl failed: " .  curl_error($http2ch));
+		}
+		
+		// get response
+		$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+		if($status=="200")
+			echo "SENT|NA";
+		else
+			echo "FAILED|$status";
+	}
+	
     private function api($rawRequestData)
     {
         $result = $this->initPDO();
@@ -393,7 +493,7 @@ class BonusApp
                     }
 
                 case "getUpdates": {
-                        $resultData = $this->checkAuthorization($requestData["method"], $requestData["source"]);
+                        $resultData = $this->checkAuthorization($requestData["method"], array_key_exists("source", $requestData) ? $requestData["source"] : NULL);
                         if ($resultData["status"]) $resultData = $this->getUpdates($resultData["data"]["phone"], $requestData["data"]);
 
                         break;
@@ -1770,7 +1870,9 @@ class BonusApp
              "storesHash"         => "",
              "lastNews"           => "",
              "lastPurchase"       => "",
-             "lastTransaction"    => ""
+             "lastTransaction"    => "",
+             "pushId"             => "",
+             "clientDevice"       => ""
         ];
         */
 
@@ -1843,6 +1945,16 @@ class BonusApp
                 }
                 $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
+            }
+            
+            if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
+                $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
+                $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
+            }
+            
+            if (array_key_exists("device", $fullAccountData["data"]) && array_key_exists("clientDevice", $options) && $fullAccountData["data"]["device"] != $options["clientDevice"]) {
+                $query = $this->pdo->prepare("UPDATE accounts SET device = :device WHERE phone = :phone");
+                $query->execute(["device" => $options["clientDevice"], "phone" => $phone]);
             }
         }
 
@@ -2071,9 +2183,46 @@ class BonusApp
         return $result;
     }
 
+    private function getNextProvider2($lastProvider)
+    {
+        return $this->providers2[array_search($lastProvider, $this->providers2) == (count($this->providers2) - 1) ? 0 : array_search($lastProvider, $this->providers2) + 1];
+    }
+    
+    private function checkNextProvider2($lastProvider, $phone)
+    {
+        $nextProvider = $this->getNextProvider2($lastProvider);
+
+        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
+            $nextProvider = $this->getNextProvider2($nextProvider);
+        }
+        
+        return $nextProvider;
+    }
+    
     private function getNextProvider($lastProvider)
     {
         return $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
+    }
+    
+    private function checkNextProvider($lastProvider, $phone)
+    {
+        $nextProvider = $this->getNextProvider($lastProvider);
+        
+        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
+            $nextProvider = $this->getNextProvider($nextProvider);
+        }
+        
+        return $nextProvider;
+    }
+    
+    private function getPushIDNotify($phone)
+    {
+        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE phone = ?");
+        $query->execute([$phone]);
+        $queryResult = $query->fetch();
+        $token = $queryResult["push_id"];
+		
+        return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
     }
 
     private function canSendMessage($phone)
@@ -2115,6 +2264,10 @@ class BonusApp
                     $result = ["status" => false, "description" => "UNDEFINED_PROVIDER"];
                     break;
                 }
+            case "PUSH": {
+                    $result = $this->push($phone, "", $message);
+                    break;
+            }
             case "NT": {
                     $result = $this->callPassword($phone, $message);
                     break;
@@ -2221,6 +2374,8 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
+                a.push_id,
+                a.device,
                 p.ext_id,
                 p.sex,
                 p.firstname,
@@ -4445,7 +4600,61 @@ class BonusApp
 
         return $result;
     }
-
+    
+    private function push($phone, $title, $message)
+    {
+        return $this->sendPush($this->getPushIDNotify($phone), $title, $message);
+    }
+    
+    private function sendPush($token, $title, $body)
+    {
+        return (strripos($token, ":") === FALSE) ? $this->sendPushIos($token, $title, $body) : $this->sendPushAndroid($token, $title, $body);
+    }
+	
+	private function sendPushAndroid($token, $title, $body)
+	{
+		$result["status"] = FALSE;
+		$client = new Client('indriver-148622-a5223bc8248e.json');
+		$recipient = new Recipient();
+		$notification = new Notification();
+		$config = new Config();
+		
+		$recipient -> setSingleRecipient($token);
+		$notification -> setNotification($title, $body, array("title" => $title, "body" => $body));
+		
+		$config -> setPriority(Config::PRIORITY_HIGH);
+		$client -> build($recipient, $notification, null, $config);
+		$response = $client -> fire();
+		
+        $result["status"] = array_key_exists("error", $response) ? FALSE : TRUE;
+		
+		if ($result["status"] && array_key_exists("name", $response)) {
+			$result["data"] = ["ext_id" => end(explode("/", $response["name"]))];
+		}
+		
+		return $result;
+	}
+	
+	private function sendPushIos($token, $title, $body)
+	{
+		$apiHost  = 'api.push.apple.com';
+		$apnsCert = 'cert.p12';
+		$apnsPass = 'jpn19810112';
+		$payload['aps'] = 
+		  array(
+			'alert' => array (
+				'title' => $title,
+				'body'  => $body
+				), 
+			'badge' => 42
+		  );
+		
+		$payload = json_encode($payload);
+		
+		exec('curl -d \''.$payload.'\' --cert-type P12 --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/'.$token, $output);
+		var_dump($output);
+	}
+    
     private function tg($message, $status = "info")
     {
         return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);

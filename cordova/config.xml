@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.stolica.bonuses" version="5.0.6" android-versionCode="221" ios-CFBundleVersion="219" ios-CFBundleIdentifier="com.stolica.bonuses" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.stolica.bonuses" version="5.1.0" android-versionCode="225" ios-CFBundleVersion="224" ios-CFBundleIdentifier="com.stolica.bonuses" xmlns:android="http://schemas.android.com/apk/res/android" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Столица</name>
     <description>Алкомаркеты Столица - программа лояльности</description>
     <author email="raspasyan8436@yandex.ru" href="https://bonus.stolica-dv.ru/">
@@ -8,20 +8,25 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+    
     <platform name="android">
-		<preference name="AndroidXEnabled" value="true" />
-		<resource-file src="res/google-services.json" target="app/google-services.json" />
-		<resource-file src="res/drawable/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
-		<resource-file src="res/drawable/drawable-hdpi/notification_icons.png" target="app/src/main/res/drawable-hdpi/notification_icons.png" />
-		<resource-file src="res/drawable/drawable-mdpi/notification_icons.png" target="app/src/main/res/drawable-mdpi/notification_icons.png" />
-		<resource-file src="res/drawable/drawable-xhdpi/notification_icons.png" target="app/src/main/res/drawable-xhdpi/notification_icons.png" />
-		<resource-file src="res/drawable/drawable-xxhdpi/notification_icons.png" target="app/src/main/res/drawable-xxhdpi/notification_icons.png" />
+        <resource-file src="res/values/colors.xml" target="app/src/main/res/values/colors.xml"/>
+        <preference name="AndroidXEnabled" value="true" />
+        <resource-file src="res/google-services.json" target="app/google-services.json" />
+        <resource-file src="res/drawable/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
+        <resource-file src="res/drawable/drawable-hdpi/notification_icons.png" target="app/src/main/res/drawable-hdpi/notification_icons.png" />
+        <resource-file src="res/drawable/drawable-mdpi/notification_icons.png" target="app/src/main/res/drawable-mdpi/notification_icons.png" />
+        <resource-file src="res/drawable/drawable-xhdpi/notification_icons.png" target="app/src/main/res/drawable-xhdpi/notification_icons.png" />
+        <resource-file src="res/drawable/drawable-xxhdpi/notification_icons.png" target="app/src/main/res/drawable-xxhdpi/notification_icons.png" />
         <icon src="icons/36x36.png" density="ldpi" />
         <icon src="icons/48x48.png" density="mdpi" />
         <icon src="icons/72x72.png" density="hdpi" />
         <icon src="icons/96x96.png" density="xhdpi" />
         <icon src="icons/144x144.png" density="xxhdpi" />
         <icon src="icons/192x192.png" density="xxxhdpi" />
+        <config-file parent="/manifest/application" target="AndroidManifest.xml">
+            <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/primary" />
+        </config-file>
     </platform>
     <platform name="ios">
         <!-- iOS 8.0+ -->
@@ -56,32 +61,33 @@
         <icon src="icons/100x100.png" width="100" height="100" />
         <!-- iTunes Marketing Image -->
         <icon src="icons/1024x1024.png" width="1024" height="1024" />
+        <resource-file src="res/GoogleService-Info.plist" />
     </platform>
 	
-	<platform name="android">
-		<splash src="res/screen/android/splash-port-200-320.png" density="hdpi"/>
-		<splash src="res/screen/android/splash-port-320-480.png" density="ldpi"/>
-		<splash src="res/screen/android/splash-port-480-800.png" density="mdpi"/>
-		<splash src="res/screen/android/splash-port-720-1280.png" density="xhdpi"/>
-		<splash src="res/screen/android/splash-port-960-1600.png" density="xxhdpi"/>
-	
-		<splash src="res/screen/android/splash-land-320-200.png" density="land-ldpi" />
-		<splash src="res/screen/android/splash-land-480-320.png" density="land-hdpi" />
-		<splash src="res/screen/android/splash-land-800-480.png" density="land-mdpi" />
-		<splash src="res/screen/android/splash-land-1280-720.png" density="land-xhdpi" />
-		<splash src="res/screen/android/splash-land-1600-960.png" density="land-xxhdpi" />
-		<splash src="res/screen/android/splash-land-1920-1280.png" density="land-xxxhdpi" />
+    <platform name="android">
+        <splash src="res/screen/android/splash-port-200-320.png" density="hdpi"/>
+        <splash src="res/screen/android/splash-port-320-480.png" density="ldpi"/>
+        <splash src="res/screen/android/splash-port-480-800.png" density="mdpi"/>
+        <splash src="res/screen/android/splash-port-720-1280.png" density="xhdpi"/>
+        <splash src="res/screen/android/splash-port-960-1600.png" density="xxhdpi"/>
 
-		<splash src="res/screen/android/splash-port-200-320.png" density="port-ldpi" />
-		<splash src="res/screen/android/splash-port-320-480.png" density="port-hdpi" />
-		<splash src="res/screen/android/splash-port-480-800.png" density="port-mdpi" />
-		<splash src="res/screen/android/splash-port-720-1280.png" density="port-xhdpi" />
-		<splash src="res/screen/android/splash-port-960-1600.png" density="port-xxhdpi" />
-		<splash src="res/screen/android/splash-port-1280-1920.png" density="port-xxxhdpi" /> 
-	</platform>
+        <splash src="res/screen/android/splash-land-320-200.png" density="land-ldpi" />
+        <splash src="res/screen/android/splash-land-480-320.png" density="land-hdpi" />
+        <splash src="res/screen/android/splash-land-800-480.png" density="land-mdpi" />
+        <splash src="res/screen/android/splash-land-1280-720.png" density="land-xhdpi" />
+        <splash src="res/screen/android/splash-land-1600-960.png" density="land-xxhdpi" />
+        <splash src="res/screen/android/splash-land-1920-1280.png" density="land-xxxhdpi" />
 
-	<platform name="ios">
-		<splash src="res/screen/ios/Default@2x~universal~anyany.png" />
+        <splash src="res/screen/android/splash-port-200-320.png" density="port-ldpi" />
+        <splash src="res/screen/android/splash-port-320-480.png" density="port-hdpi" />
+        <splash src="res/screen/android/splash-port-480-800.png" density="port-mdpi" />
+        <splash src="res/screen/android/splash-port-720-1280.png" density="port-xhdpi" />
+        <splash src="res/screen/android/splash-port-960-1600.png" density="port-xxhdpi" />
+        <splash src="res/screen/android/splash-port-1280-1920.png" density="port-xxxhdpi" /> 
+    </platform>
+
+    <platform name="ios">
+        <splash src="res/screen/ios/Default@2x~universal~anyany.png" />
         <splash src="res/screen/ios/Default@2x~universal~comany.png" />
         <splash src="res/screen/ios/Default@2x~universal~comcom.png" />
         <splash src="res/screen/ios/Default@3x~universal~anyany.png" />
@@ -93,7 +99,7 @@
         <splash src="res/screen/ios/Default@3x~iphone~anyany.png" />
         <splash src="res/screen/ios/Default@3x~iphone~anycom.png" />
         <splash src="res/screen/ios/Default@3x~iphone~comany.png" />
-	</platform>
+    </platform>
 
     <!-- Android -->
     <preference name="ShowSplashScreenSpinner" value="false"/>      <!-- Android - показывать индикатор загрузки при старте приложения -->
@@ -104,4 +110,9 @@
     <!-- iOS -->
     <preference name="BackgroundColor" value="#FFFFFF" />           <!-- iOS -->
     <preference name="DisallowOverscroll" value="true" />           <!-- iOS -->
+    <preference name="allowFileAccessFromFileURLs" value="true" />           <!-- iOS -->
+    <preference name="allowUniversalAccessFromFileURLs" value="true" />           <!-- iOS -->
+    <preference name="iosPersistentFileLocation" value="Library" />
+    <preference name="iosPersistentFileLocation" value="Compatibility" />
+    
 </widget>

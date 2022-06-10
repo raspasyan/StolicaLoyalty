@@ -10,6 +10,7 @@ const LS_CURR_UPDATE = "LS_CurrentUpdate";
 const LS_CONTENTS = "LS_Contents";
 const LS_NEED_UPDATE = "LS_NeedUpdate";
 const LS_SECTION = "section";
+const LS_PUSHID = "LS_pushID";
 
 let lastPhone = "",
     secondsInterval = null,
@@ -18,6 +19,13 @@ let lastPhone = "",
     resetCodeTimer = null,
     resetCodeTimerValue = 0,
     viewNewApp = 1;
+
+const carouselSections = [
+    "news",
+    "stores",
+    "wallet",
+    "personal"
+];
 
 const sections = {
     "adult": {},
@@ -56,6 +64,7 @@ const sections = {
     "refer": {
         title: "Приглашение",
         showMenu: true,
+        prevSection: "personal",
         needAuth: true
     },
     "stores": {
@@ -92,6 +101,7 @@ let currentSection = "",
     userActivityTimeout = null,
     initApp = true,
     clientInfo = "Сайт",
+    clientDevice,
     tempUpdate = {
         personalHash: "",
         walletHash: "",
@@ -116,16 +126,21 @@ const deviceType = () => {
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
-        window.pushNotification.registration(
-            (token) => {
-                //alert(token);
-                console.log(token);
-            },
-            (error) => {
-                console.log(error);
-            }
-        );
-
+        cordova.plugins.firebase.messaging.getToken().then(function(token) {
+            C().setStor(LS_PUSHID, token);
+        });
+        
+        cordova.plugins.firebase.messaging.onMessage(function(payload) {
+            let gcm = payload.gcm;
+            showPopup(gcm.title, gcm.body);
+        });
+        
+        cordova.plugins.firebase.messaging.onBackgroundMessage(function(payload) {
+            //
+        });
+        
+        clientDevice = `${device.platform} ${device.version} (${device.manufacturer} ${device.model})`;
+        
         switch (device.platform) {
             case "Android":
                 clientInfo = "Android v" + SOURCE;
@@ -147,44 +162,11 @@ d.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-    
-    /*
-     if ('serviceWorker' in navigator) {
-     window.addEventListener('load', () => {
-     navigator.serviceWorker.register('/sw.js').then((registration) => {
-     console.log('ServiceWorker registration successful with scope: ', registration.scope);
-     }, (err) => console.log('ServiceWorker registration failed: ', err) );
-     });
-     } else {
-     console.log('ServiceWorker do not work');
-     }
-     
-     function notifyMe() {
-     let notification = new Notification("Все еще работаешь?", {
-     tag: "ache-mail",
-     body: "Пора сделать паузу и отдохнуть"
-     //icon : "https://itproger.com/img/notify.png"
-     });
-     }
-     
-     function notifySet() {
-     if (!("Notification" in window)) {
-     console.log("Ваш браузер не поддерживает уведомления.");
-     } else if (Notification.permission === "granted") {
-     //setTimeout(notifyMe, 2000);
-     } else if (Notification.permission !== "denied") {
-     Notification.requestPermission((permission) => {
-     if (!('permission' in Notification)) {
-     Notification.permission = permission;
-     }
-     if (permission === "granted") {
-     //setTimeout(notifyMe, 2000);
-     }
-     });
-     }
-     }
-     notifySet();
-     */
+
+    d.addEventListener('touchstart', touchStart);
+    d.addEventListener('touchend', touchEnd);
+    d.addEventListener('touchcancel', touchEnd);
+    d.addEventListener('touchmove', touchMove);
 
     crashClearStorage();
     initPopups();
@@ -363,6 +345,85 @@ d.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+let startSwipeX = 0;
+let stopSwipeX  = 0;
+let startSwipeY = 0;
+let stopSwipeY  = 0;
+
+function checkSwipeX() {
+    const currentSection = C().getStor(LS_SECTION);
+    
+    if (canSlidePages(currentSection)) {
+        const diffX = stopSwipeX - startSwipeX;
+        const diffY = Math.abs(stopSwipeY - startSwipeY);
+
+        if (Math.abs(diffX) > 200 && diffY < 100) {
+            let nextSection;
+            
+            if (diffX > 0) {
+                nextSection = getPrevSection(currentSection);
+            } else {
+                nextSection = getNextSection(currentSection);
+            }
+            
+            drawSection(nextSection);
+        }
+    }
+}
+
+function canSlidePages(currentSection) {
+    return carouselSections.includes(currentSection);
+}
+
+function getNextSection(currentSection) {
+    const i = carouselSections.indexOf(currentSection) + 1;
+    let count = carouselSections.length;
+    
+    if (count === i) {
+        return carouselSections[0];
+    }
+    
+    return carouselSections[i];
+}
+
+function getPrevSection(currentSection) {
+    const i = carouselSections.indexOf(currentSection) - 1;
+    let count = carouselSections.length - 1;
+    
+    if (i < 0) {
+        return carouselSections[count];
+    }
+    
+    return carouselSections[i];
+}
+
+function touchStart(e) {
+    const touches = e.changedTouches;
+
+    for (let i = 0; i < touches.length; i++) {
+        startSwipeX = touches[i].pageX;
+        startSwipeY = touches[i].pageY;
+    }
+}
+
+function touchMove(e) {
+    //const touches = e.changedTouches;
+    //for (let i = 0; i < touches.length; i++) {
+    //    console.log(`Move: ${touches[i].pageX}`);
+    //}
+}
+
+function touchEnd(e) {
+    const touches = e.changedTouches;
+
+    for (let i = 0; i < touches.length; i++) {
+        stopSwipeX = touches[i].pageX;
+        stopSwipeY = touches[i].pageY;
+    }
+    
+    checkSwipeX();
+}
 
 function closeOpenOverlays() {
     const list = [".storeMap", "#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];
@@ -1361,7 +1422,7 @@ async function checkUpdates(callback) {
     }
 
     const curSection = C().getStor(LS_SECTION),
-        updates = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
+          updates = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
     let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : { "personal": "", "wallet": "" };
 
     if (status) {
@@ -1427,7 +1488,7 @@ async function getUpdates() {
     if (contents.personal === "") {
         data = tempUpdate;
     }
-
+    
     if (initApp) {
         data.lastNews = 0;
         data.storesHash = "";
@@ -1435,7 +1496,13 @@ async function getUpdates() {
         data.lastTransaction = "";
         initApp = false;
     }
-
+    
+    data.pushId = C().getStor(LS_PUSHID);
+    
+    if (clientDevice) {
+        data.clientDevice = clientDevice;
+    }
+    
     return await api("getUpdates", data);
 }
 
@@ -1499,6 +1566,29 @@ function getValueByMask(value, mask, full) {
     return newPhone;
 }
 
+function isValidDate(dateString) {
+    if (!/^\d{2}-\d{2}-\d{4}$/.test(dateString)) {
+        return false;
+    }
+
+    const parts = dateString.split("-"),
+          day   = parseInt(parts[0], 10),
+          month = parseInt(parts[1], 10),
+          year  = parseInt(parts[2], 10);
+  
+    let monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+    if (year < 1000 || year > 3000 || month == 0 || month > 12) {
+        return false;
+    }
+    
+    if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) {
+        monthLength[1] = 29;
+    }
+
+    return day > 0 && day <= monthLength[month - 1];
+}
+
 function validateBirthdate(el, isSubmit) {
     if (!isSubmit) {
         isSubmit = false;
@@ -1507,12 +1597,13 @@ function validateBirthdate(el, isSubmit) {
     el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
 
     if (el.value.length > 9) {
-        let td = el.value.split("-"),
-            bd = new Date(td[2], --td[1], td[0]),
-            cd = new Date(),
+        let val = el.value,
+            td  = val.split("-"),
+            bd  = new Date(td[2], --td[1], td[0]),
+            cd  = new Date(),
             age = (cd - bd);
 
-        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date") {
+        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date" || !isValidDate(val)) {
             showInputPopup("reg-birthdate");
         } else {
             return true;
