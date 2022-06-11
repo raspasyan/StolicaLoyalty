@@ -29,6 +29,8 @@ class BonusApp
     {
         debug($this->initPDO());
 
+        // debug($this->prolongation());
+
         exit;
     }
 
@@ -381,49 +383,6 @@ class BonusApp
                 }
         }
     }
-    
-	private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token) 
-	{
-		// url (endpoint)
-		$url = "{$http2_server}/3/device/{$token}";
-		$cert = realpath($apple_cert);
-		
-		// headers
-		$headers = array(
-			"apns-topic: {$app_bundle_id}",
-			"User-Agent: My Sender"
-		);
-		
-		curl_setopt_array($http2ch, array(
-			CURLOPT_URL => $url,
-			CURLOPT_PORT => 443,
-			CURLOPT_HTTPHEADER => $headers,
-			CURLOPT_POST => TRUE,
-			CURLOPT_POSTFIELDS => $message,
-			CURLOPT_RETURNTRANSFER => TRUE,
-			CURLOPT_TIMEOUT => 30,
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_SSLCERT => $cert,
-			CURLOPT_SSLCERTPASSWD => 'jpn19810112',
-			CURLOPT_SSLCERTTYPE => 'P12',
-			CURLOPT_HEADER => 1
-		));
-		
-		$result = curl_exec($http2ch);
-		
-		print_r($result);
-		
-		if ($result === FALSE) {
-		  //throw new Exception("Curl failed: " .  curl_error($http2ch));
-		}
-		
-		// get response
-		$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
-		if($status=="200")
-			echo "SENT|NA";
-		else
-			echo "FAILED|$status";
-	}
 	
     private function api($rawRequestData)
     {
@@ -752,68 +711,6 @@ class BonusApp
 
         echo (json_encode($resultData, JSON_UNESCAPED_UNICODE));
     }
-
-    private function getNewsById($id)
-    {
-        $query = $this->pdo->prepare("SELECT * FROM news WHERE id=:id;");
-        $query->execute([$id]);
-
-        return $query->fetch();
-    }
-
-    private function getListNews()
-    {
-        $query = $this->pdo->prepare("SELECT id, title FROM news ORDER BY id DESC;");
-        $query->execute();
-
-        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
-    }
-
-    private function sendNewsToServer()
-    {
-        $result = FALSE;
-        $data   = $_POST;
-
-        if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
-            return $result;
-        }
-
-        $uploaddir  = dirname(__DIR__) . "/assets/news/";
-        $name       = date("dmy") . rand(1, 100) . '.jpg';
-        $uploadfile = $uploaddir . $name;
-
-        if (array_key_exists('id', $data) && $data['id'] > 0) {
-            $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?  WHERE id = ?;");
-            $query->execute([$data['date'], $data['desc'], $data['title'], $data['id']]);
-
-            if (isset($_FILES) && array_key_exists('img', $_FILES) && $_FILES['img']['tmp_name'] !== "") {
-                if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-                    $query = $this->pdo->prepare("UPDATE news SET image = ?  WHERE id = ?;");
-                    $query->execute(["app/assets/news/" . $name, $data['id']]);
-                }
-            }
-
-            $result = TRUE;
-        } else {
-            if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-                $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
-                $query->execute([
-                    date("Y-m-d"),
-                    $data["date"],
-                    $data["title"],
-                    "app/assets/news/" . $name,
-                    $data["desc"]
-                ]);
-
-                if ($this->pdo->lastInsertId() > 0) {
-                    $result = TRUE;
-                }
-            }
-        }
-
-        return $result;
-    }
-
 
     /* Обработчики API */
 
@@ -1372,7 +1269,157 @@ class BonusApp
         }
     }
 
+    private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token) 
+	{
+		// url (endpoint)
+		$url = "{$http2_server}/3/device/{$token}";
+		$cert = realpath($apple_cert);
+		
+		// headers
+		$headers = array(
+			"apns-topic: {$app_bundle_id}",
+			"User-Agent: My Sender"
+		);
+		
+		curl_setopt_array($http2ch, array(
+			CURLOPT_URL => $url,
+			CURLOPT_PORT => 443,
+			CURLOPT_HTTPHEADER => $headers,
+			CURLOPT_POST => TRUE,
+			CURLOPT_POSTFIELDS => $message,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_TIMEOUT => 30,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSLCERT => $cert,
+			CURLOPT_SSLCERTPASSWD => 'jpn19810112',
+			CURLOPT_SSLCERTTYPE => 'P12',
+			CURLOPT_HEADER => 1
+		));
+		
+		$result = curl_exec($http2ch);
+		
+		print_r($result);
+		
+		if ($result === FALSE) {
+		  //throw new Exception("Curl failed: " .  curl_error($http2ch));
+		}
+		
+		// get response
+		$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+		if($status=="200")
+			echo "SENT|NA";
+		else
+			echo "FAILED|$status";
+	}
+
     /* Сервисные ф-ии */
+
+    function service_prolongation() {
+        $operationResult = $this->initPDO();
+        if ($operationResult["status"]) {
+            $start = microtime(true);
+
+            $this->prolongation();
+
+            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 4), true);
+        }
+    }
+
+    function prolongation() {
+        $result = ["status" => false];
+
+        // $dtEnd = new DateTime("2022-06-11T22:00:00");
+        // $dtStart = new DateTime("2022-06-11T22:00:00");
+        // $dtStart->modify("-5 minutes");
+        $dtEnd = new DateTime();
+        $dtStart = new DateTime();
+        $dtStart = $dtEnd->modify("-5 minutes");
+
+        $LMX = $this->getLMX();
+        $getPurchasesResult = $LMX->getPurchases([
+            "startChequeTime" => $dtStart->format("Y-m-d H:i:s"),
+            "lastChequeTime" => $dtEnd->format("Y-m-d H:i:s"),
+            "count" => 1000,
+            "from" => 0,
+            "state" => "Confirmed"
+        ]);
+        if ($getPurchasesResult["status"])
+        {
+            $bonusCards = [];
+            foreach ($getPurchasesResult["data"]->data as $value) {
+                if (!empty($value->personIdentifier) && !in_array($value->personIdentifier, $bonusCards)) array_push($bonusCards, $value->personIdentifier);
+            }
+            // $bonusCards = ["00000028N1H63E"];
+
+            if (count($bonusCards)) {
+                $query = $this->pdo->prepare("SELECT
+                        a.phone,
+                        p.ext_id,
+                        p.last_pron,
+                        b.card_number
+                    FROM
+                        profiles p
+                        LEFT JOIN accounts a ON a.id = p.account_id
+                        LEFT JOIN bonuscards b ON a.id = b.account_id AND b.status = 1
+                    WHERE
+                        p.account_id IN (SELECT
+                                account_id
+                            FROM
+                                bonuscards
+                            WHERE card_number IN ('" . implode("','", $bonusCards) . "')
+                        )
+                        AND (p.last_pron IS NULL OR p.last_pron < :dtStart)
+                ");
+                $query->execute(["dtStart" => $dtStart->format("Y-m-d H:i:s")]);
+                $queryResult = $query->fetchAll();
+                if (count($queryResult)) {
+                    foreach ($queryResult as $queryResultRow) {
+                        $getBalanceResult = $LMX->getBalance($queryResultRow["ext_id"]);
+                        if ($getBalanceResult["status"] && count($getBalanceResult["data"]["lifeTimes"])) {
+                            $totalAmount = 0;
+                            foreach ($getBalanceResult["data"]["lifeTimes"] as $lifeTime) if ($lifeTime["amount"] < 0) $totalAmount += $lifeTime["amount"] * -1;
+                            $totalAmount = round($totalAmount / 100);
+
+                            if ($totalAmount) {
+                                $result["data"][] = [
+                                    "phone" => $queryResultRow["phone"],
+                                    "personId" => $queryResultRow["ext_id"],
+                                    "prolongationAmount" => $totalAmount
+                                ];
+                                $withdrawResult = $LMX->chargeOn($queryResultRow["card_number"], $totalAmount, 2, "prolongation", false);
+                                if ($withdrawResult["status"]) {
+                                    $depositResult = $LMX->chargeOn($queryResultRow["card_number"], $totalAmount, 2, "prolongation");
+                                    if ($depositResult["status"]) {
+                                        $setProfileDataByPhoneResult = $this->setProfileDataByPhone($queryResultRow["phone"], ["last_pron" => $dtEnd->format("Y-m-d H:i:s")]);
+
+                                        $result["data"]["setProfileDataByPhoneResult"] = $setProfileDataByPhoneResult;
+                                    } else {
+                                        $result["data"]["depositResult"] = $depositResult;
+                                    }
+                                } else {
+                                    $result["data"]["withdrawResult"] = $withdrawResult;
+                                }
+                            } else {
+                                //
+                            }
+                        } else {
+                            //
+                        }
+                    }
+                } else {
+                    // 
+                }
+
+                $result["status"] = true;
+            } else {
+                $result["status"] = true;
+            }
+        } else {
+            $result["data"] = "Не удалось получить список чеков.";
+        }
+
+        return $result;
+    }
 
     public function service_completeRegistration()
     {
@@ -1802,23 +1849,27 @@ class BonusApp
     {
         $result = ["status" => false];
 
-        $query = $this->pdo->prepare("SELECT
-                s2.value AS token
-            FROM
-                settings s,
-                settings s2
-            WHERE
-                s.setting = 'SAPI_token_date'
-                AND DATE_ADD(s.value, INTERVAL 21 DAY) > NOW()
-                AND s2.setting = 'SAPI_token'
-        ");
-        $query->execute();
-        $queryResult = $query->fetchAll();
-        if (count($queryResult)) {
-            $result["status"] = true;
-            $result["data"] = $queryResult[0]["token"];
+        try {
+            $query = $this->pdo->prepare("SELECT
+                    s2.value AS token
+                FROM
+                    settings s,
+                    settings s2
+                WHERE
+                    s.setting = 'SAPI_token_date'
+                    AND DATE_ADD(s.value, INTERVAL 21 DAY) > NOW()
+                    AND s2.setting = 'SAPI_token'
+            ");
+            $query->execute();
+            $queryResult = $query->fetchAll();
+            if (count($queryResult)) {
+                $result["status"] = true;
+                $result["data"] = $queryResult[0]["token"];
+            }
+        } catch (\Throwable $th) {
+            $result["data"] = $th->getMessage();
         }
-
+        
         return $result;
     }
 
@@ -1828,13 +1879,8 @@ class BonusApp
         $result = ["status" => false];
 
         try {
-            $begin = false;
+            $this->pdo->beginTransaction();
 
-            try {
-                $this->pdo->beginTransaction();
-                $begin = true;
-            } catch (\Throwable $th) {
-            }
             foreach ($data as $key => $value) {
                 if (in_array($key, ["SAPI_token", "SAPI_token_date"])) {
                     $query = $this->pdo->prepare("UPDATE settings SET value = ? WHERE setting = ?");
@@ -1845,13 +1891,12 @@ class BonusApp
                     $result["description"] = "Поле запрещено к редактированию.";
                 }
             }
-            if ($begin) try {
-                $this->pdo->commit();
-            } catch (\Throwable $th) {
-            }
+            
+            $this->pdo->commit();
 
             $result["status"] = true;
         } catch (\Throwable $th) {
+            $this->pdo->rollBack();
             $result["description"] = $th->getMessage();
         }
 
@@ -2975,7 +3020,7 @@ class BonusApp
             if (count($queryResult)) {
                 $this->pdo->beginTransaction();
                 foreach ($accountData as $key => $value) {
-                    if (in_array($key, ["ext_id", "firstname", "middlename", "lastname", "email", "sex", "birthdate", "city", "last_sync", "last_cong"])) {
+                    if (in_array($key, ["ext_id", "firstname", "middlename", "lastname", "email", "sex", "birthdate", "city", "last_sync", "last_cong", "last_pron"])) {
                         $query = $this->pdo->prepare("UPDATE profiles SET " . $key . " = :value WHERE account_id IN (SELECT id FROM accounts WHERE phone = :phone)");
                         $query->execute(["value" => $value, "phone" => $phone]);
 
@@ -3154,6 +3199,7 @@ class BonusApp
                 profile_ext_id = ?
                 AND date > ?
                 AND is_active = 1
+                AND NOT description like '%prolongation%'
             ORDER BY
                 date DESC
             LIMIT ?
@@ -4371,6 +4417,67 @@ class BonusApp
             ];
         } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
+    private function getNewsById($id)
+    {
+        $query = $this->pdo->prepare("SELECT * FROM news WHERE id=:id;");
+        $query->execute([$id]);
+
+        return $query->fetch();
+    }
+
+    private function getListNews()
+    {
+        $query = $this->pdo->prepare("SELECT id, title FROM news ORDER BY id DESC;");
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    private function sendNewsToServer()
+    {
+        $result = FALSE;
+        $data   = $_POST;
+
+        if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
+            return $result;
+        }
+
+        $uploaddir  = dirname(__DIR__) . "/assets/news/";
+        $name       = date("dmy") . rand(1, 100) . '.jpg';
+        $uploadfile = $uploaddir . $name;
+
+        if (array_key_exists('id', $data) && $data['id'] > 0) {
+            $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?  WHERE id = ?;");
+            $query->execute([$data['date'], $data['desc'], $data['title'], $data['id']]);
+
+            if (isset($_FILES) && array_key_exists('img', $_FILES) && $_FILES['img']['tmp_name'] !== "") {
+                if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+                    $query = $this->pdo->prepare("UPDATE news SET image = ?  WHERE id = ?;");
+                    $query->execute(["app/assets/news/" . $name, $data['id']]);
+                }
+            }
+
+            $result = TRUE;
+        } else {
+            if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
+                $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
+                $query->execute([
+                    date("Y-m-d"),
+                    $data["date"],
+                    $data["title"],
+                    "app/assets/news/" . $name,
+                    $data["desc"]
+                ]);
+
+                if ($this->pdo->lastInsertId() > 0) {
+                    $result = TRUE;
+                }
+            }
         }
 
         return $result;
