@@ -638,10 +638,11 @@ class LMX {
         return $result;
     }
 
-    public function chargeOn($cardNumber, $amount, $extId, $description = "bonus.stolica-dv.ru") {
+    public function chargeOn($cardNumber, $amount, $extId, $description = "bonus.stolica-dv.ru", $deposit = true) {
         $result = $this->initSAPIToken();
         if ($result["status"]) {
-            // $rawData = '{"operations":[{"$type":"Loymax.SystemApi.Models.BatchOperations.OperationCardModel, Loymax.SystemApi","cardNumber":"' . $cardNumber . '","amount":' . $amount . ',"description":"","externalInfo":""}],"lifeTimeDefinition":{"id":'.$extId.'},"legal":{"id":12,"partnerId":1},"currency":{"id":1,"name":"Бонусы (81477251.10)"},"loyaltyProgram":{"externalId":"D28308F6-B7F2-4851-8AAD-245A2BD4FFB9","description":null,"paymentSystemId":1,"images":null,"id":1,"name":"Default"},"partner":{"id":1,"externalId":"d43db70f-dfb5-7158-df0d-f28ac938f3a4","name":"Столица","canEdit":true,"loyaltyPrograms":[{"id":1,"name":"Default"}],"legalName":null},"targetGroup":null,"type":"Deposit","description":"'.$description.'","internalDescription":"'.$description.'"}';
+            $type = ($deposit ? "Deposit" : "Withdraw");
+
             $rawData = '{
                 "operations": [
                     {
@@ -685,7 +686,7 @@ class LMX {
                     "legalName": null
                 },
                 "targetGroup": null,
-                "type": "Deposit",
+                "type": "' . $type . '",
                 "description": "'.$description.'",
                 "internalDescription": "'.$description.'"
             }';
