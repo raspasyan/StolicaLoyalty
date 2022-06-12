@@ -31,6 +31,10 @@ class BonusApp
 
         // debug($this->prolongation());
 
+        // debug($this->getDeposits(100));
+
+        // debug($this->executeProlongations(100));
+
         exit;
     }
 
@@ -1314,37 +1318,45 @@ class BonusApp
 
     /* Сервисные ф-ии */
 
-    function service_prolongation() {
+    function service_prepareProlongations() {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
 
-            $this->prolongation();
+            $this->prepareProlongations();
 
             $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 4), true);
         }
     }
 
-    function prolongation() {
-        $result = ["status" => false];
+    function prepareProlongations() {
+        $result = ["status" => false, "data" => []];
 
-        // $dtEnd = new DateTime("2022-06-11T22:00:00");
-        // $dtStart = new DateTime("2022-06-11T22:00:00");
-        // $dtStart->modify("-5 minutes");
-        $dtEnd = new DateTime();
-        $dtStart = new DateTime();
-        $dtStart = $dtEnd->modify("-5 minutes");
+        $startTotal = microtime(true);
+
+        $dtEnd = new DateTime("2022-06-12T22:00:00");
+        $dtStart = new DateTime("2022-06-12T22:00:00");
+        // $dtEnd = new DateTime();
+        // $dtStart = new DateTime();
+        $dtStart->modify("-5 minutes");
+
+        $startGetPurchases = microtime(true);
 
         $LMX = $this->getLMX();
         $getPurchasesResult = $LMX->getPurchases([
             "startChequeTime" => $dtStart->format("Y-m-d H:i:s"),
             "lastChequeTime" => $dtEnd->format("Y-m-d H:i:s"),
-            "count" => 1000,
+            "count" => 9999,
             "from" => 0,
             "state" => "Confirmed"
         ]);
+
+        $result["data"]["LMX->getPurchases"] = round(microtime(true) - $startGetPurchases, 4);
+
         if ($getPurchasesResult["status"])
         {
+            $result["status"] = true;
+
             $bonusCards = [];
             foreach ($getPurchasesResult["data"]->data as $value) {
                 if (!empty($value->personIdentifier) && !in_array($value->personIdentifier, $bonusCards)) array_push($bonusCards, $value->personIdentifier);
@@ -1352,6 +1364,8 @@ class BonusApp
             // $bonusCards = ["00000028N1H63E"];
 
             if (count($bonusCards)) {
+                $start = microtime(true);
+
                 $query = $this->pdo->prepare("SELECT
                         a.phone,
                         p.ext_id,
@@ -1372,51 +1386,161 @@ class BonusApp
                 ");
                 $query->execute(["dtStart" => $dtStart->format("Y-m-d H:i:s")]);
                 $queryResult = $query->fetchAll();
+
+                $result["data"]["queryResult"] = round(microtime(true) - $start, 4);
+
                 if (count($queryResult)) {
+                    $result["data"]["prolongations"] = [];
+
                     foreach ($queryResult as $queryResultRow) {
+                        $currentResult = [
+                            "phone" => $queryResultRow["phone"],
+                            "personId" => $queryResultRow["ext_id"],
+                            "prolongationAmount" => 0
+                        ];
+
+                        $start = microtime(true);
+
                         $getBalanceResult = $LMX->getBalance($queryResultRow["ext_id"]);
-                        if ($getBalanceResult["status"] && count($getBalanceResult["data"]["lifeTimes"])) {
-                            $totalAmount = 0;
-                            foreach ($getBalanceResult["data"]["lifeTimes"] as $lifeTime) if ($lifeTime["amount"] < 0) $totalAmount += $lifeTime["amount"] * -1;
-                            $totalAmount = round($totalAmount / 100);
 
-                            if ($totalAmount) {
-                                $result["data"][] = [
-                                    "phone" => $queryResultRow["phone"],
-                                    "personId" => $queryResultRow["ext_id"],
-                                    "prolongationAmount" => $totalAmount
-                                ];
-                                $withdrawResult = $LMX->chargeOn($queryResultRow["card_number"], $totalAmount, 2, "prolongation", false);
-                                if ($withdrawResult["status"]) {
-                                    $depositResult = $LMX->chargeOn($queryResultRow["card_number"], $totalAmount, 2, "prolongation");
-                                    if ($depositResult["status"]) {
-                                        $setProfileDataByPhoneResult = $this->setProfileDataByPhone($queryResultRow["phone"], ["last_pron" => $dtEnd->format("Y-m-d H:i:s")]);
+                        $currentResult["LMX->getBalance"] = round(microtime(true) - $start, 4);
+                        if ($getBalanceResult["status"]) {
+                            $updatePron = true;
 
-                                        $result["data"]["setProfileDataByPhoneResult"] = $setProfileDataByPhoneResult;
-                                    } else {
-                                        $result["data"]["depositResult"] = $depositResult;
-                                    }
-                                } else {
-                                    $result["data"]["withdrawResult"] = $withdrawResult;
+                            if (count($getBalanceResult["data"]["lifeTimes"])) {
+                                $totalAmount = 0;
+                                foreach ($getBalanceResult["data"]["lifeTimes"] as $lifeTime) if ($lifeTime["amount"] < 0) $totalAmount += $lifeTime["amount"] * -1;
+                                $totalAmount = round($totalAmount / 100);
+                                if ($totalAmount) {
+                                    $currentResult["prolongationAmount"] = $totalAmount;
+
+                                    $setDepositsResult = $this->setDeposits([
+                                        ["card_number" => $queryResultRow["card_number"], "deposit" => 0, "amount" => $totalAmount, "description" => "prolongation"],
+                                        ["card_number" => $queryResultRow["card_number"], "deposit" => 1, "amount" => $totalAmount, "description" => "prolongation"]
+                                    ]);
+                                    $currentResult["setDepositsResult"] = $setDepositsResult;
+
+                                    $updatePron = $setDepositsResult["status"];
                                 }
-                            } else {
-                                //
+                            }
+
+                            if ($updatePron) {
+                                $setProfileDataByPhoneResult = $this->setProfileDataByPhone($queryResultRow["phone"], ["last_pron" => $dtEnd->format("Y-m-d H:i:s")]);
+                                $currentResult["setProfileDataByPhoneResult"] = $setProfileDataByPhoneResult;
                             }
                         } else {
-                            //
+                            $currentResult["description"] = $getBalanceResult["data"];
                         }
-                    }
-                } else {
-                    // 
-                }
 
-                $result["status"] = true;
-            } else {
-                $result["status"] = true;
+                        $result["data"]["prolongations"][] = $currentResult;
+                    }
+                }
             }
         } else {
             $result["data"] = "Не удалось получить список чеков.";
         }
+
+        $result["data"]["totalTime"] = round(microtime(true) - $startTotal, 4);
+
+        return $result;
+    }
+
+    function service_executeProlongations() {
+        $operationResult = $this->initPDO();
+        if ($operationResult["status"]) {
+            $start = microtime(true);
+
+            $this->executeProlongations(100);
+
+            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 4), true);
+        }
+    }
+
+    public function executeProlongations($limit) {
+        $result = ["status" => false, "data" => []];
+
+        $getDepositsResult = $this->getDeposits($limit);
+        if ($getDepositsResult["status"]) {
+            if (count($getDepositsResult["data"])) {
+                $LMX = $this->getLMX();
+
+                foreach ($getDepositsResult["data"] as $deposit) {
+                    $chargeOnResult = $LMX->chargeOn($deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]);
+                    if ($chargeOnResult["status"]) {
+                        $setDepositsResult = $this->setDeposits([["id" => $deposit["id"], "status" => 1]]);
+
+                        $result["data"][] = $setDepositsResult;
+
+                        $this->journal("CRON", __FUNCTION__, "", $setDepositsResult["status"], json_encode(["f" => "setDeposits", "a" => ["id" => $deposit["id"], "status" => 1]]), json_encode($setDepositsResult, JSON_UNESCAPED_UNICODE));
+                    } else {
+                        $this->journal("CRON", __FUNCTION__, "", $chargeOnResult["status"], json_encode(["f" => "LMX->chargeOn", "a" => [$deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]]]), json_encode($chargeOnResult, JSON_UNESCAPED_UNICODE));
+                    }
+                }
+            }
+
+            $result["status"] = true;
+        }
+
+        return $result;
+    }
+    
+    public function setDeposits($deposits) {
+        $result = ["status" => false, "data" => []];
+
+        $externalTransaction = $this->pdo->inTransaction();
+        if (!$externalTransaction) $this->pdo->beginTransaction();
+
+        try {
+            foreach ($deposits as $deposit) {
+                if (isset($deposit["id"])) {
+                    foreach ($deposit as $key => $value) {
+                        if (in_array($key, ["status"])) {
+                            $query = $this->pdo->prepare("UPDATE deposits SET " . $key . " = :value WHERE id = :id");
+                            $query->execute(["value" => $value, "id" => $deposit["id"]]);
+                        }
+                    }
+
+                    $result["data"][] = ["id" => $deposit["id"], "result" => "UPDATE"];
+                } else {
+                    $query = $this->pdo->prepare("INSERT INTO deposits (card_number, deposit, amount, status, description) VALUES (?, ?, ?, ?, ?)");
+                    $query->execute([$deposit["card_number"], $deposit["deposit"], $deposit["amount"], 0, $deposit["description"]]);
+
+                    $result["data"][] = ["id" => $this->pdo->lastInsertId(), "result" => "INSERT"];  
+                }
+            }
+
+            $result["status"] = true;
+
+            if (!$externalTransaction) $this->pdo->commit();
+        } catch (\Throwable $th) {
+            if (!$externalTransaction) $this->pdo->rollBack();
+
+            $result["data"] = $th->getMessage();
+        }
+
+        return $result;
+    }
+
+    public function getDeposits($limit = 100) {
+        $result = ["status" => false, "data" => null];
+
+        $query = $this->pdo->prepare("SELECT
+                id,
+                card_number,
+                deposit,
+                amount,
+                description
+            FROM
+                deposits
+            WHERE
+                status = 0
+            LIMIT :limit
+        ");
+        $query->execute(["limit" => $limit]);
+        $queryResult = $query->fetchAll();
+
+        $result["status"] = true;
+        if (count($queryResult)) $result["data"] = $queryResult;
 
         return $result;
     }
@@ -1897,6 +2021,7 @@ class BonusApp
             $result["status"] = true;
         } catch (\Throwable $th) {
             $this->pdo->rollBack();
+
             $result["description"] = $th->getMessage();
         }
 
@@ -3013,12 +3138,14 @@ class BonusApp
 
         if (!count($accountData)) return $result;
 
+        $externalTransaction = $this->pdo->inTransaction();
+        if (!$externalTransaction) $this->pdo->beginTransaction();
+
         try {
             $query = $this->pdo->prepare("SELECT id FROM profiles WHERE account_id IN (SELECT id FROM accounts WHERE phone = ?)");
             $query->execute([$phone]);
             $queryResult = $query->fetchAll();
             if (count($queryResult)) {
-                $this->pdo->beginTransaction();
                 foreach ($accountData as $key => $value) {
                     if (in_array($key, ["ext_id", "firstname", "middlename", "lastname", "email", "sex", "birthdate", "city", "last_sync", "last_cong", "last_pron"])) {
                         $query = $this->pdo->prepare("UPDATE profiles SET " . $key . " = :value WHERE account_id IN (SELECT id FROM accounts WHERE phone = :phone)");
@@ -3027,7 +3154,6 @@ class BonusApp
                         $result["status"] = true;
                     }
                 }
-                $this->pdo->commit();
             } else {
                 $cd = new DateTime();
 
@@ -3053,10 +3179,16 @@ class BonusApp
                     "city" => (isset($accountData["city"]) ? $accountData["city"] : ""),
                     "last_sync" => $cd->format('Y-m-d H:i:s')
                 ]);
+
                 $result["status"] = true;
+                $result["data"] = $this->pdo->lastInsertId();
             }
+
+            if (!$externalTransaction) $this->pdo->commit();
         } catch (\Throwable $th) {
-            $result["description"] = $th->getMessage();
+            if (!$externalTransaction) $this->pdo->rollBack();
+
+            $result["data"] = $th->getMessage();
         }
 
         return $result;
