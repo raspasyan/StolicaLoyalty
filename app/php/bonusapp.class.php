@@ -29,7 +29,7 @@ class BonusApp
     {
         debug($this->initPDO());
 
-        // debug($this->prolongation());
+        // debug($this->prepareProlongations());
 
         // debug($this->getDeposits(100));
 
@@ -323,6 +323,14 @@ class BonusApp
                         case "sendfeedbacks": {
                                 print_r($this->sheduler_sendFeedbacks());
                                 break;
+                            }
+                        case "prepareprolongations": {
+                            $this->service_prepareProlongations();
+                            break;
+                            }
+                        case "executeprolongations": {
+                            $this->service_executeProlongations();
+                            break;
                             }
                     }
 
@@ -1325,7 +1333,8 @@ class BonusApp
 
             $this->prepareProlongations();
 
-            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 4), true);
+            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 2), true);
+            echo round(microtime(true) - $start, 2);
         }
     }
 
@@ -1334,11 +1343,11 @@ class BonusApp
 
         $startTotal = microtime(true);
 
-        $dtEnd = new DateTime("2022-06-12T22:00:00");
-        $dtStart = new DateTime("2022-06-12T22:00:00");
-        // $dtEnd = new DateTime();
-        // $dtStart = new DateTime();
-        $dtStart->modify("-5 minutes");
+        // $dtEnd = new DateTime("2022-06-13T11:00:00");
+        // $dtStart = new DateTime("2022-06-13T11:00:00");
+        $dtEnd = new DateTime();
+        $dtStart = new DateTime();
+        $dtStart->modify("-10 minutes");
 
         $startGetPurchases = microtime(true);
 
@@ -1452,7 +1461,8 @@ class BonusApp
 
             $this->executeProlongations(100);
 
-            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 4), true);
+            $this->journal("CRON", __FUNCTION__, round(microtime(true) - $start, 2), true);
+            echo round(microtime(true) - $start, 2);
         }
     }
 
