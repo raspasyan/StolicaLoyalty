@@ -1478,10 +1478,13 @@ class BonusApp
                     $chargeOnResult = $LMX->chargeOn($deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]);
                     if ($chargeOnResult["status"]) {
                         $setDepositsResult = $this->setDeposits([["id" => $deposit["id"], "status" => 1]]);
+                        if ($setDepositsResult["status"]) {
+                            //
+                        } else {
+                            $this->journal("CRON", __FUNCTION__, "", $setDepositsResult["status"], json_encode(["f" => "setDeposits", "a" => ["id" => $deposit["id"], "status" => 1]]), json_encode($setDepositsResult, JSON_UNESCAPED_UNICODE));
+                        }
 
                         $result["data"][] = $setDepositsResult;
-
-                        $this->journal("CRON", __FUNCTION__, "", $setDepositsResult["status"], json_encode(["f" => "setDeposits", "a" => ["id" => $deposit["id"], "status" => 1]]), json_encode($setDepositsResult, JSON_UNESCAPED_UNICODE));
                     } else {
                         $this->journal("CRON", __FUNCTION__, "", $chargeOnResult["status"], json_encode(["f" => "LMX->chargeOn", "a" => [$deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]]]), json_encode($chargeOnResult, JSON_UNESCAPED_UNICODE));
                     }
