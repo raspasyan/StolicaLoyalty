@@ -19,6 +19,7 @@
     "cordova-plugin-android-mediastore": "github:remyweinstein/cordova-plugin-android-mediastore",
     "cordova-plugin-android-permissions": "^1.1.3",
     "cordova-plugin-apns-push": "^1.0.1",
+    "cordova-plugin-brightness": "^0.2.0",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-firebase-analytics": "~6.1.0",
     "cordova-plugin-firebase-messaging": "^6.1.2",
@@ -55,7 +56,8 @@
         "platform-specific": [
           "ios"
         ]
-      }
+      },
+      "cordova-plugin-brightness": {}
     }
   }
 }

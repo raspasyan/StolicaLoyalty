@@ -228,6 +228,28 @@ a[data-click="openBalanceView"] {
     position: relative;
 }
 
+.qrcodeOverlay {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    margin-top: env(safe-area-inset-top,0);
+    background-color: #fff;
+    z-index: 4;
+    overflow: auto;
+    
+    .qrcodeOverlay__cont {
+        background-color: #fff;
+        margin: 5rem 1rem;
+        padding: 1rem;
+        min-height: 80vh;
+        
+        button {
+            margin-top: 3rem;
+        }
+    }
+}
+
 .positionOverlay {
     position: fixed;
     top: 0;

@@ -18,7 +18,8 @@ let lastPhone = "",
     d = document,
     resetCodeTimer = null,
     resetCodeTimerValue = 0,
-    viewNewApp = 1;
+    viewNewApp = 1,
+    currentBrightness;
 
 const carouselSections = [
     "news",
@@ -126,6 +127,14 @@ const deviceType = () => {
 // Инициализация св-в приложения
 d.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("deviceready", function () {
+        let brightness = cordova.plugins.brightness;
+
+        brightness.getBrightness((res) => {
+            currentBrightness = res;
+        }, (err) => {
+            console.log(JSON.stringify(err));
+        });
+        
         cordova.plugins.firebase.messaging.getToken().then(function(token) {
             C().setStor(LS_PUSHID, token);
         });
@@ -426,7 +435,7 @@ function touchEnd(e) {
 }
 
 function closeOpenOverlays() {
-    const list = [".storeMap", "#overlay-menu", "#feedback", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];
+    const list = [".storeMap", "#overlay-menu", "#feedback", ".qrcodeOverlay", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];
     let disp = (id) => {
         return C(id).el.style.display !== "none";
     };
@@ -455,6 +464,12 @@ function closeOpenOverlays() {
                     isFind = true;
                 }
                 break;
+            }
+            
+            case ".qrcodeOverlay": {
+                document.addEventListener("deviceready", function() {
+                    cordova.plugins.brightness.setBrightness(currentBrightness, (suc) => {}, (err) => {});
+                });
             }
             
             default: {

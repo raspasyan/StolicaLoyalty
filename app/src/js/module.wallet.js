@@ -61,7 +61,7 @@ function drawWallet(walletData) {
                 if (qrEl.children.length) {
                     removeChildrens(qrEl);
                 }
-                drawBonusCard(walletData.cardNumber);
+                drawBonusCard(walletData.cardNumber, "#qrcode");
             }
         }
 
@@ -273,7 +273,7 @@ function drawPurchase(purchase) {
         name = "Подарок";
     }
     
-    let type = {icon, name}
+    let type = {icon, name};
     
     if (purchase.positions) {
         tempOld = ` <h4><center>Детализация</center></h4>
@@ -374,8 +374,54 @@ function closePositions() {
     d.body.classList.remove("hideOverflow");
 }
 
-function drawBonusCard(cardNumber) {
-    const qrEl = C("#qrcode");
+function closeQrOverlay() {
+    C(".qrcodeOverlay__cont").html("");
+    hide(".qrcodeOverlay");
+    d.body.classList.remove("hideOverflow");
+    
+    document.addEventListener("deviceready", function() {
+        cordova.plugins.brightness.setBrightness(currentBrightness, (suc) => {}, (err) => {});
+    });
+}
+
+function openQrOverlay() {
+    const cardNumber = JSON.parse(C().getStor(LS_CONTENTS)).wallet.cardNumber;
+
+    show(".qrcodeOverlay");
+    C(".qrcodeOverlay__cont").html(`<span style="position:relative;display:block;text-align:right;margin-bottom:5rem">
+                                            <i class="icon-cancel" onClick="closeQrOverlay()" style="position:absolute;right:0rem;top:-5rem;font-size:2.5rem"></i>
+                                        </span>
+                                        <h4><center>Бонусная карта</center></h4>
+                                        <p style="text-align:center;margin-top:-2.5rem">Покажите QR код кассиру</p>
+                                        <div id="qrc" style="text-align:center;width:100%;margin:0 auto"></div>
+                                    `);
+    
+    d.body.classList.add("hideOverflow");
+
+    let cardImg  = new Image(),
+        qrCanvas = C().create("img"),
+        qr = new QRious({
+              element: qrCanvas.el,
+              size: 1024,
+              value: cardNumber,
+              foreground: "#4062b7"
+          });
+    const qrEl = C("#qrc");
+
+    //qrCanvas.el.width  = "512";
+    //qrCanvas.el.height = "512";
+    qrCanvas.el.style.width = "100%";
+    qrCanvas.el.style.height = "auto";
+    qrEl.el.cardNumber = cardNumber;
+    qrEl.append(qrCanvas);
+    
+    document.addEventListener("deviceready", function() {
+        cordova.plugins.brightness.setBrightness(1, (suc) => {}, (err) => {});
+    });
+}
+
+function drawBonusCard(cardNumber, el) {
+    const qrEl = C(el);
     let cardImg  = new Image(),
         qrCanvas = C().create("img"),
         qr = new QRious({
@@ -394,6 +440,7 @@ function drawBonusCard(cardNumber) {
     
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
+    qrEl.el.addEventListener("click", openQrOverlay);
     cardImg.addEventListener("load", () => {
         let cardCanvas = d.createElement("canvas");
         cardCanvas.width = cardImageW;
