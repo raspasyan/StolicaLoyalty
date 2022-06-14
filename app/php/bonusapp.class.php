@@ -79,10 +79,10 @@ class BonusApp
                 }
                 
             case "push": {
-					//print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
-					print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
-					break;
-				}
+                    //print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
+                    print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
+                    break;
+                }
                
             case "add-news": {
                     $result = $this->initPDO();
@@ -2397,7 +2397,7 @@ class BonusApp
     
     private function getPushIDNotify($phone)
     {
-        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE phone = ?");
+        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ?)");
         $query->execute([$phone]);
         $queryResult = $query->fetch();
         $token = $queryResult["push_id"];
@@ -4857,6 +4857,12 @@ class BonusApp
     
     private function sendPush($token, $title, $body)
     {
+        $result["status"] = FALSE;
+        
+        if (!$token) {
+            return $result;
+        }
+        
         return (strripos($token, ":") === FALSE) ? $this->sendPushIos($token, $title, $body) : $this->sendPushAndroid($token, $title, $body);
     }
 	
