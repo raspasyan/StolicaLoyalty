@@ -1,9 +1,10 @@
 <?php
+
 use phpFCMv1\Client;
 use phpFCMv1\Config;
 use phpFCMv1\Notification;
 use phpFCMv1\Recipient;
-Use phpFCMv1\Config\APNsConfig;
+use phpFCMv1\Config\APNsConfig;
 
 class BonusApp
 {
@@ -28,12 +29,6 @@ class BonusApp
     private function __overload()
     {
         debug($this->initPDO());
-
-        // debug($this->prepareProlongations());
-
-        // debug($this->getDeposits(100));
-
-        // debug($this->executeProlongations(100));
 
         exit;
     }
@@ -77,13 +72,13 @@ class BonusApp
 
                     break;
                 }
-                
+
             case "push": {
                     //print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
                     print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
                     break;
                 }
-               
+
             case "add-news": {
                     $result = $this->initPDO();
 
@@ -217,16 +212,16 @@ class BonusApp
                     $message = $_GET["message"];
 
                     $result = $this->canSendMessage($phone);
-										
+
                     // ОТЛАДКА
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
-						if ($this->getPushIDNotify($phone)) {
-							$provider = "PUSH";
-						} else {
-							$provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
-						}
-						
+                        if ($this->getPushIDNotify($phone)) {
+                            $provider = "PUSH";
+                        } else {
+                            $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+                        }
+
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
                         // ОТЛАДКА
@@ -243,7 +238,7 @@ class BonusApp
                     echo (json_encode($result));
                     break;
                 }
-                
+
             case "sms": {
                     // Пример: http://localhost/sms?token=API_TOKEN&phone=79635658436&message=hello
                     if (empty($_GET) || $_GET["token"] != API_TOKEN || empty($_GET["phone"]) || empty($_GET["message"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
@@ -325,12 +320,12 @@ class BonusApp
                                 break;
                             }
                         case "prepareprolongations": {
-                            $this->service_prepareProlongations();
-                            break;
+                                $this->service_prepareProlongations();
+                                break;
                             }
                         case "executeprolongations": {
-                            $this->service_executeProlongations();
-                            break;
+                                $this->service_executeProlongations();
+                                break;
                             }
                     }
 
@@ -395,7 +390,7 @@ class BonusApp
                 }
         }
     }
-	
+
     private function api($rawRequestData)
     {
         $result = $this->initPDO();
@@ -492,17 +487,27 @@ class BonusApp
                             if (!empty($requestData["data"]["pass"])) {
                                 $pass = $requestData["data"]["pass"];
 
-                                $resultData = $this->API_registrationHandler(
-                                    $phone,
-                                    $pass,
-                                    [
-                                        "firstname" => $requestData["data"]["firstname"],
-                                        "birthdate" => $requestData["data"]["birthdate"],
-                                        "email"     => $requestData["data"]["email"]
-                                    ],
-                                    $requestData["data"]["discount"],
-                                    $requestData["data"]["city"]
-                                );
+                                if (!empty($requestData["data"]["birthdate"])) {
+                                    try {
+                                        $dt = new DateTime($requestData["data"]["birthdate"]);
+
+                                        $resultData = $this->API_registrationHandler(
+                                            $phone,
+                                            $pass,
+                                            [
+                                                "firstname" => $requestData["data"]["firstname"],
+                                                "birthdate" => $dt->format("Y-m-d"),
+                                                "email"     => $requestData["data"]["email"]
+                                            ],
+                                            $requestData["data"]["discount"],
+                                            $requestData["data"]["city"]
+                                        );
+                                    } catch (\Throwable $th) {
+                                        $resultData["description"] = "Уточните дату рождения";
+                                    }
+                                } else {
+                                    $resultData["description"] = "Введите дату рождения";
+                                }
                             } else {
                                 $resultData["description"] = "Введите пароль";
                             }
@@ -1281,52 +1286,53 @@ class BonusApp
         }
     }
 
-    private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token) 
-	{
-		// url (endpoint)
-		$url = "{$http2_server}/3/device/{$token}";
-		$cert = realpath($apple_cert);
-		
-		// headers
-		$headers = array(
-			"apns-topic: {$app_bundle_id}",
-			"User-Agent: My Sender"
-		);
-		
-		curl_setopt_array($http2ch, array(
-			CURLOPT_URL => $url,
-			CURLOPT_PORT => 443,
-			CURLOPT_HTTPHEADER => $headers,
-			CURLOPT_POST => TRUE,
-			CURLOPT_POSTFIELDS => $message,
-			CURLOPT_RETURNTRANSFER => TRUE,
-			CURLOPT_TIMEOUT => 30,
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_SSLCERT => $cert,
-			CURLOPT_SSLCERTPASSWD => 'jpn19810112',
-			CURLOPT_SSLCERTTYPE => 'P12',
-			CURLOPT_HEADER => 1
-		));
-		
-		$result = curl_exec($http2ch);
-		
-		print_r($result);
-		
-		if ($result === FALSE) {
-		  //throw new Exception("Curl failed: " .  curl_error($http2ch));
-		}
-		
-		// get response
-		$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
-		if($status=="200")
-			echo "SENT|NA";
-		else
-			echo "FAILED|$status";
-	}
+    private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token)
+    {
+        // url (endpoint)
+        $url = "{$http2_server}/3/device/{$token}";
+        $cert = realpath($apple_cert);
+
+        // headers
+        $headers = array(
+            "apns-topic: {$app_bundle_id}",
+            "User-Agent: My Sender"
+        );
+
+        curl_setopt_array($http2ch, array(
+            CURLOPT_URL => $url,
+            CURLOPT_PORT => 443,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => $message,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSLCERT => $cert,
+            CURLOPT_SSLCERTPASSWD => 'jpn19810112',
+            CURLOPT_SSLCERTTYPE => 'P12',
+            CURLOPT_HEADER => 1
+        ));
+
+        $result = curl_exec($http2ch);
+
+        print_r($result);
+
+        if ($result === FALSE) {
+            //throw new Exception("Curl failed: " .  curl_error($http2ch));
+        }
+
+        // get response
+        $status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+        if ($status == "200")
+            echo "SENT|NA";
+        else
+            echo "FAILED|$status";
+    }
 
     /* Сервисные ф-ии */
 
-    function service_prepareProlongations() {
+    function service_prepareProlongations()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
@@ -1338,7 +1344,8 @@ class BonusApp
         }
     }
 
-    function prepareProlongations() {
+    function prepareProlongations()
+    {
         $result = ["status" => false, "data" => []];
 
         $startTotal = microtime(true);
@@ -1362,8 +1369,7 @@ class BonusApp
 
         $result["data"]["LMX->getPurchases"] = round(microtime(true) - $startGetPurchases, 4);
 
-        if ($getPurchasesResult["status"])
-        {
+        if ($getPurchasesResult["status"]) {
             $result["status"] = true;
 
             $bonusCards = [];
@@ -1454,7 +1460,8 @@ class BonusApp
         return $result;
     }
 
-    function service_executeProlongations() {
+    function service_executeProlongations()
+    {
         $operationResult = $this->initPDO();
         if ($operationResult["status"]) {
             $start = microtime(true);
@@ -1466,7 +1473,8 @@ class BonusApp
         }
     }
 
-    public function executeProlongations($limit) {
+    public function executeProlongations($limit)
+    {
         $result = ["status" => false, "data" => []];
 
         $getDepositsResult = $this->getDeposits($limit);
@@ -1477,7 +1485,8 @@ class BonusApp
                 foreach ($getDepositsResult["data"] as $deposit) {
                     $chargeOnResult = $LMX->chargeOn($deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]);
                     if ($chargeOnResult["status"]) {
-                        $setDepositsResult = $this->setDeposits([["id" => $deposit["id"], "status" => 1]]);
+                        $cd = new DateTime();
+                        $setDepositsResult = $this->setDeposits([["id" => $deposit["id"], "status" => 1, "time" => $cd->format("Y-m-d H:i:s")]]);
                         if ($setDepositsResult["status"]) {
                             //
                         } else {
@@ -1496,8 +1505,9 @@ class BonusApp
 
         return $result;
     }
-    
-    public function setDeposits($deposits) {
+
+    public function setDeposits($deposits)
+    {
         $result = ["status" => false, "data" => []];
 
         $externalTransaction = $this->pdo->inTransaction();
@@ -1507,7 +1517,7 @@ class BonusApp
             foreach ($deposits as $deposit) {
                 if (isset($deposit["id"])) {
                     foreach ($deposit as $key => $value) {
-                        if (in_array($key, ["status"])) {
+                        if (in_array($key, ["status", "time"])) {
                             $query = $this->pdo->prepare("UPDATE deposits SET " . $key . " = :value WHERE id = :id");
                             $query->execute(["value" => $value, "id" => $deposit["id"]]);
                         }
@@ -1515,10 +1525,12 @@ class BonusApp
 
                     $result["data"][] = ["id" => $deposit["id"], "result" => "UPDATE"];
                 } else {
-                    $query = $this->pdo->prepare("INSERT INTO deposits (card_number, deposit, amount, status, description) VALUES (?, ?, ?, ?, ?)");
-                    $query->execute([$deposit["card_number"], $deposit["deposit"], $deposit["amount"], 0, $deposit["description"]]);
+                    $cd = new DateTime();
 
-                    $result["data"][] = ["id" => $this->pdo->lastInsertId(), "result" => "INSERT"];  
+                    $query = $this->pdo->prepare("INSERT INTO deposits (card_number, deposit, amount, status, description, time) VALUES (?, ?, ?, ?, ?, ?)");
+                    $query->execute([$deposit["card_number"], $deposit["deposit"], $deposit["amount"], 0, $deposit["description"], $cd->format("Y-m-d H:i:s")]);
+
+                    $result["data"][] = ["id" => $this->pdo->lastInsertId(), "result" => "INSERT"];
                 }
             }
 
@@ -1534,7 +1546,8 @@ class BonusApp
         return $result;
     }
 
-    public function getDeposits($limit = 100) {
+    public function getDeposits($limit = 100)
+    {
         $result = ["status" => false, "data" => null];
 
         $query = $this->pdo->prepare("SELECT
@@ -2006,7 +2019,7 @@ class BonusApp
         } catch (\Throwable $th) {
             $result["data"] = $th->getMessage();
         }
-        
+
         return $result;
     }
 
@@ -2028,7 +2041,7 @@ class BonusApp
                     $result["description"] = "Поле запрещено к редактированию.";
                 }
             }
-            
+
             $this->pdo->commit();
 
             $result["status"] = true;
@@ -2129,12 +2142,12 @@ class BonusApp
                 $getTransactionsResult = $this->getTransactions($personId, $options["lastTransaction"]);
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }
-            
+
             if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
                 $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
                 $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
             }
-            
+
             if (array_key_exists("device", $fullAccountData["data"]) && array_key_exists("clientDevice", $options) && $fullAccountData["data"]["device"] != $options["clientDevice"]) {
                 $query = $this->pdo->prepare("UPDATE accounts SET device = :device WHERE phone = :phone");
                 $query->execute(["device" => $options["clientDevice"], "phone" => $phone]);
@@ -2370,41 +2383,41 @@ class BonusApp
     {
         return $this->providers2[array_search($lastProvider, $this->providers2) == (count($this->providers2) - 1) ? 0 : array_search($lastProvider, $this->providers2) + 1];
     }
-    
+
     private function checkNextProvider2($lastProvider, $phone)
     {
         $nextProvider = $this->getNextProvider2($lastProvider);
 
-        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
+        if ($nextProvider == "PUSH" && !$this->getPushIDNotify($phone)) {
             $nextProvider = $this->getNextProvider2($nextProvider);
         }
-        
+
         return $nextProvider;
     }
-    
+
     private function getNextProvider($lastProvider)
     {
         return $this->providers[array_search($lastProvider, $this->providers) == (count($this->providers) - 1) ? 0 : array_search($lastProvider, $this->providers) + 1];
     }
-    
+
     private function checkNextProvider($lastProvider, $phone)
     {
         $nextProvider = $this->getNextProvider($lastProvider);
-        
-        if ($nextProvider=="PUSH" && !$this->getPushIDNotify($phone)) {
+
+        if ($nextProvider == "PUSH" && !$this->getPushIDNotify($phone)) {
             $nextProvider = $this->getNextProvider($nextProvider);
         }
-        
+
         return $nextProvider;
     }
-    
+
     private function getPushIDNotify($phone)
     {
         $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ?)");
         $query->execute([$phone]);
         $queryResult = $query->fetch();
         $token = $queryResult["push_id"];
-		
+
         return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
     }
 
@@ -2450,7 +2463,7 @@ class BonusApp
             case "PUSH": {
                     $result = $this->push($phone, "", $message);
                     break;
-            }
+                }
             case "NT": {
                     $result = $this->callPassword($phone, $message);
                     break;
@@ -3440,7 +3453,7 @@ class BonusApp
                 $query = $this->pdo->prepare("INSERT IGNORE INTO products (title) VALUES (?)");
                 $query->execute([$position["title"]]);
                 $product_id = $this->pdo->lastInsertId();
-                
+
                 if (!$product_id > 0) {
                     $query = $this->pdo->prepare("SELECT
                                                         id
@@ -3453,7 +3466,7 @@ class BonusApp
                     $queryResult = $query->fetch();
                     $product_id = $queryResult["id"];
                 }
-                
+
                 $query = $this->pdo->prepare("INSERT INTO positions (
                         purchase_id,
                         product_id,
@@ -4852,67 +4865,67 @@ class BonusApp
 
         return $result;
     }
-    
+
     private function push($phone, $title, $message)
     {
         return $this->sendPush($this->getPushIDNotify($phone), $title, $message);
     }
-    
+
     private function sendPush($token, $title, $body)
     {
         $result["status"] = FALSE;
-        
+
         if (!$token) {
             return $result;
         }
-        
+
         return (strripos($token, ":") === FALSE) ? $this->sendPushIos($token, $title, $body) : $this->sendPushAndroid($token, $title, $body);
     }
-	
-	private function sendPushAndroid($token, $title, $body)
-	{
-		$result["status"] = FALSE;
-		$client = new Client('indriver-148622-a5223bc8248e.json');
-		$recipient = new Recipient();
-		$notification = new Notification();
-		$config = new Config();
-		
-		$recipient -> setSingleRecipient($token);
-		$notification -> setNotification($title, $body, array("title" => $title, "body" => $body));
-		
-		$config -> setPriority(Config::PRIORITY_HIGH);
-		$client -> build($recipient, $notification, null, $config);
-		$response = $client -> fire();
-		
+
+    private function sendPushAndroid($token, $title, $body)
+    {
+        $result["status"] = FALSE;
+        $client = new Client('indriver-148622-a5223bc8248e.json');
+        $recipient = new Recipient();
+        $notification = new Notification();
+        $config = new Config();
+
+        $recipient -> setSingleRecipient($token);
+        $notification -> setNotification($title, $body, array("title" => $title, "body" => $body));
+
+        $config -> setPriority(Config::PRIORITY_HIGH);
+        $client -> build($recipient, $notification, null, $config);
+        $response = $client -> fire();
+
         $result["status"] = array_key_exists("error", $response) ? FALSE : TRUE;
-		
-		if ($result["status"] && array_key_exists("name", $response)) {
-			$result["data"] = ["ext_id" => end(explode("/", $response["name"]))];
-		}
-		
-		return $result;
-	}
-	
-	private function sendPushIos($token, $title, $body)
-	{
-		$apiHost  = 'api.push.apple.com';
-		$apnsCert = 'cert.p12';
-		$apnsPass = 'jpn19810112';
-		$payload['aps'] = 
-		  array(
-			'alert' => array (
-				'title' => $title,
-				'body'  => $body
-				), 
-			'badge' => 42
-		  );
-		
-		$payload = json_encode($payload);
-		
-		exec('curl -d \''.$payload.'\' --cert-type P12 --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/'.$token, $output);
-		var_dump($output);
-	}
-    
+
+        if ($result["status"] && array_key_exists("name", $response)) {
+        	$result["data"] = ["ext_id" => end(explode("/", $response["name"]))];
+        }
+
+        return $result;
+    }
+
+    private function sendPushIos($token, $title, $body)
+    {
+        $apiHost  = 'api.push.apple.com';
+        $apnsCert = 'cert.p12';
+        $apnsPass = 'jpn19810112';
+        $payload['aps'] =
+            array(
+                'alert' => array(
+                    'title' => $title,
+                    'body'  => $body
+                ),
+                'badge' => 42
+            );
+
+        $payload = json_encode($payload);
+
+        exec('curl -d \'' . $payload . '\' --cert-type P12 --cert ' . $apnsCert . ':' . $apnsPass . ' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/' . $token, $output);
+        var_dump($output);
+    }
+
     private function tg($message, $status = "info")
     {
         return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
