@@ -79,8 +79,16 @@ class BonusApp
                 }
                 
             case "push": {
-                    //print_r($this->sendPush("c54a4cc07e892827a9d4b47f931d5d51267451d5355e2f3a4dcfedfaf7299837", "Ваш код", "4343"));
-                    print_r($this->sendPush("fsNUcexRTQSSJQJOMX3s8A:APA91bGptqIXIUzf4tnGSaTv2RWRzP38twqq0c2Qs1ZhxRv3hwdPtcKB4N12FDji4lP4fooJAaj5xD0RN3yXoTtf7trqJGk40fZqckgAJFnP3_KBuPkBTpyH70ObqkSd7BIZ97ryVZMS", "Ваш код", "4528"));
+                    // Пример: http://localhost/push?token=API_TOKEN&phone=79635658436&title=title&message=message
+                    $pdo = $this->initPDO();
+                
+                    $phone   = preg_replace("/[^0-9]/", "", $_GET["phone"]);
+                    $title   = $_GET["title"];
+                    $message = $_GET["message"];
+                    $token   = $this->getPushIDNotify($phone);
+                    
+                    print_r($this->sendPush($token, $title, $message));
+                    
                     break;
                 }
                
@@ -222,9 +230,9 @@ class BonusApp
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
 						if ($this->getPushIDNotify($phone)) {
-							$provider = "PUSH";
+                                                    $provider = "PUSH";
 						} else {
-							$provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
+                                                    $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
 						}
 						
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
@@ -2401,10 +2409,11 @@ class BonusApp
     private function getPushIDNotify($phone)
     {
         $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ?)");
+
         $query->execute([$phone]);
         $queryResult = $query->fetch();
         $token = $queryResult["push_id"];
-		
+        	
         return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
     }
 
@@ -4895,8 +4904,8 @@ class BonusApp
 	
 	private function sendPushIos($token, $title, $body)
 	{
-		$apiHost  = 'api.push.apple.com';
-		$apnsCert = 'cert.p12';
+		$apiHost  = 'https://api.push.apple.com/3/device/' . $token;
+		$apnsCert = 'cert.pem';
 		$apnsPass = 'jpn19810112';
 		$payload['aps'] = 
 		  array(
@@ -4909,8 +4918,8 @@ class BonusApp
 		
 		$payload = json_encode($payload);
 		
-		exec('curl -d \''.$payload.'\' --cert-type P12 --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/'.$token, $output);
-		var_dump($output);
+		exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
+		return $output;
 	}
     
     private function tg($message, $status = "info")

@@ -135,27 +135,59 @@ d.addEventListener("DOMContentLoaded", () => {
             console.log(JSON.stringify(err));
         });
         
-        cordova.plugins.firebase.messaging.getToken().then(function(token) {
-            C().setStor(LS_PUSHID, token);
-        });
-        
-        cordova.plugins.firebase.messaging.onMessage(function(payload) {
-            let gcm = payload.gcm;
-            showPopup(gcm.title, gcm.body);
-        });
-        
-        cordova.plugins.firebase.messaging.onBackgroundMessage(function(payload) {
-            //
-        });
-        
         clientDevice = `${device.platform} ${device.version} (${device.manufacturer} ${device.model})`;
         
         switch (device.platform) {
             case "Android":
                 clientInfo = "Android v" + SOURCE;
+                
+                let messaging = cordova.plugins.firebase.messaging;
+                
+                messaging.getToken().then(function(token) {
+                    C().setStor(LS_PUSHID, token);
+                });
+                messaging.onMessage(function(payload) {
+                    let gcm = payload.gcm;
+                    showPopup(gcm.title, gcm.body);
+                });
+                messaging.onBackgroundMessage(function(payload) {
+                    //
+                });
                 break;
             case "iOS":
                 clientInfo = "iOS v" + SOURCE;
+                
+                let push = window['APNSPushNotification'].init({
+                        ios: {
+                            alert: "true",
+                            badge: "true",
+                            sound: "true"
+                        }
+                    });
+                push.on('registration', (data) => {
+                    const token = data.registrationId;
+                    C().setStor(LS_PUSHID, token);
+                    //alert(token);
+                    this.sendRegDetails(token);
+                });
+                push.on('other', (data) => {
+                    //alert(data);
+                });
+                push.on('notification', (data) => {
+                    //alert(data);
+                    //showPopup(data.title, data.message);
+                    window['cordova'].plugins.notification.local.schedule({
+                        title: data.title,
+                        text: data.message,
+                        sound: data.sound,
+                        at: new Date().getTime()
+                    });
+                });
+                push.on('error', (e) => {
+                    // e.message
+                    //alert(e.message);
+                });
+                
                 break;
         }
         
