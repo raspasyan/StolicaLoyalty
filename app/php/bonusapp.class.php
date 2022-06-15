@@ -2421,13 +2421,16 @@ class BonusApp
 
     private function getPushIDNotify($phone)
     {
+        $result = FALSE;
+        
         $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ?)");
 
         $query->execute([$phone]);
         $queryResult = $query->fetch();
-        $token = $queryResult["push_id"];
+        $result = $queryResult["push_id"];
 
-        return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
+        //return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
+        return $result;
     }
 
     private function canSendMessage($phone)
@@ -4917,22 +4920,23 @@ class BonusApp
 
     private function sendPushIos($token, $title, $body)
     {
-        $apiHost  = 'api.push.apple.com';
-        $apnsCert = 'cert.p12';
+        $apiHost  = 'https://api.push.apple.com/3/device/' . $token;
+        $apnsCert = 'cert.pem';
         $apnsPass = 'jpn19810112';
-        $payload['aps'] =
-            array(
-                'alert' => array(
-                    'title' => $title,
-                    'body'  => $body
-                ),
+        $payload['aps'] = 
+          array(
+                'alert' => array (
+                        'title' => $title,
+                        'body'  => $body
+                        ), 
                 'badge' => 42
-            );
+          );
 
         $payload = json_encode($payload);
 
-        exec('curl -d \'' . $payload . '\' --cert-type P12 --cert ' . $apnsCert . ':' . $apnsPass . ' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2  https://' . $apiHost . '/3/device/' . $token, $output);
-        var_dump($output);
+        exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
+        
+        return $output;
     }
 
     private function tg($message, $status = "info")
