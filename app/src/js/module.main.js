@@ -1469,6 +1469,9 @@ async function checkUpdates(callback) {
 
         if (data.transactions.length) {
             updates.lastTransaction = data.transactions[data.transactions.length - 1].date;
+            if (!data.lastPurchase) {
+                drawPurchases([], data.transactions);
+            }
         }
 
         // Всех авторизованных отправляем на страницу кошелька

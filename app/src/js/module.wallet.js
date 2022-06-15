@@ -165,6 +165,8 @@ function drawPurchases(purchases, transactions) {
         return false;
     }
     
+    //C("#transactions").html("");
+    
     const tempTransactions = transactions.reduce(function(acc, el, i, arr) {
         acc.push({ id: el.id,
                    operation_date: el.date, 
