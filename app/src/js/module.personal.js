@@ -3,17 +3,26 @@
 // Переход на пластиковую карту
 C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
 
-C('input[name="enableNotify"]').el.addEventListener("change", (e) => {
-    changeEnableNotify(Number(e.currentTarget.checked));
+C('input[name="enablePushNotify"]').el.addEventListener("change", (e) => {
+    changeEnableNotify("push", Number(e.currentTarget.checked));
 });
 
-async function changeEnableNotify(value) {
+C('input[name="enableSmsNotify"]').el.addEventListener("change", (e) => {
+    changeEnableNotify("sms", Number(e.currentTarget.checked));
+});
+
+C('input[name="enableEmailNotify"]').el.addEventListener("change", (e) => {
+    changeEnableNotify("email", Number(e.currentTarget.checked));
+});
+
+async function changeEnableNotify(type, value) {
     let result = await api("changeEnableNotify", {
-                        value: value
+                        value: value,
+                        type: type
                     });
 
     if (result.status) {
-        updateCashContent("personal", "enable_notify", value);
+        updateCashContent("personal", type, value);
     }
     
     if (result.description) {
@@ -80,9 +89,14 @@ function drawPersonal(personal) {
         return;
     }
 
-    let notifyInp = C('input[name="enableNotify"]').el;
-    
-    notifyInp.checked = (personal.enable_notify && personal.enable_notify === 1);
+    let notifyPushInp = C('input[name="enablePushNotify"]').el;
+    notifyPushInp.checked = (personal.enable_push_notify && personal.enable_push_notify === 1);
+
+    let notifySmsInp = C('input[name="enableSmsNotify"]').el;
+    notifySmsInp.checked = (personal.enable_sms_notify && personal.enable_sms_notify === 1);
+
+    let notifyEmailInp = C('input[name="enableEmailNotify"]').el;
+    notifyEmailInp.checked = (personal.enable_email_notify && personal.enable_email_notify === 1);
 
     if (personal.firstname || personal.middlename || personal.lastname) {
         C("#personal_name").text([personal.firstname, personal.middlename, personal.lastname].join(" "));

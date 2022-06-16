@@ -94,6 +94,12 @@ const sections = {
         showMenu: true,
         prevSection: "personal_update",
         needAuth: true
+    },
+    "setting_notify": {
+        title: "Разрешения на уведомления",
+        showMenu: true,
+        prevSection: "personal_update",
+        needAuth: true
     }
 };
 

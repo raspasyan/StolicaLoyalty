@@ -716,14 +716,15 @@ class BonusApp
                     
                 case "changeEnableNotify": {
                         $resultData = $this->checkAuthorization($requestData["method"]);
-                        if ($resultData) $resultData = $this->API_changeEnableNotify($resultData["data"]["id"], $requestData["data"]["value"]);
-
+                        if ($resultData) $resultData = $this->API_changeEnableNotify($resultData["data"]["id"], $requestData["data"]["type"], $requestData["data"]["value"]);
+                        
                         break;
                     }
 
                 case "setCard": {
                         $resultData = $this->checkAuthorization($requestData["method"]);
                         if ($resultData["status"]) $resultData = $this->API_setCard($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["card_number"]);
+                        
                         break;
                     }
 
@@ -1029,12 +1030,12 @@ class BonusApp
         return $result;
     }
     
-    private function API_changeEnableNotify($accountId, $value)
+    private function API_changeEnableNotify($accountId, $type, $value)
     {
         $result = ["status" => false, "description" => ($value) ? "Уведомления включены" : "Уведомления выключены"];
 
         if ($accountId > 0) {
-            $query = $this->pdo->prepare("UPDATE accounts SET enable_notify = ? WHERE id = ?;");
+            $query = $this->pdo->prepare("UPDATE accounts_notify SET enable_" . $type . "_notify = ? WHERE account_id = ?;");
             $query->execute([$value, $accountId]);
             $result["status"] = true;
         }
@@ -2130,7 +2131,9 @@ class BonusApp
                 "birthdate"             => $fullAccountData["data"]["birthdate"],
                 "email"                 => $fullAccountData["data"]["email"],
                 "city"                  => $fullAccountData["data"]["city"],
-                "enable_notify"         => $fullAccountData["data"]["enable_notify"],
+                "enable_push_notify"    => $fullAccountData["data"]["enable_push_notify"],
+                "enable_sms_notify"     => $fullAccountData["data"]["enable_sms_notify"],
+                "enable_email_notify"   => $fullAccountData["data"]["enable_email_notify"],
             ];
             $personalHash = hash("md5", json_encode($personal));
             if ($options["personalHash"] != $personalHash) {
@@ -2444,13 +2447,12 @@ class BonusApp
     {
         $result = FALSE;
         
-        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ? AND enable_notify = 1)");
+        $query = $this->pdo->prepare("SELECT a.push_id FROM accounts a, accounts_notify b WHERE (a.device not regexp 'huawei' and b.account_id = a.id AND a.phone = ? AND b.enable_push_notify = 1)");
 
         $query->execute([$phone]);
         $queryResult = $query->fetch();
         $result = $queryResult["push_id"];
 
-        //return ($token && (strripos($token, ":") !== FALSE)) ? $token : FALSE;
         return $result;
     }
 
@@ -2603,7 +2605,9 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
-                a.enable_notify,
+                c.enable_push_notify,
+                c.enable_sms_notify,
+                c.enable_email_notify,
                 a.push_id,
                 a.device,
                 p.ext_id,
@@ -2623,6 +2627,7 @@ class BonusApp
                 accounts AS a
                 LEFT JOIN profiles AS p ON a.id = p.account_id
                 LEFT JOIN bonuscards AS b ON a.id = b.account_id
+                LEFT JOIN accounts_notify AS c ON a.id = c.account_id
             WHERE
                 a.phone = ?
         ");
@@ -3153,7 +3158,9 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
-                a.enable_notify,
+                c.enable_push_notify,
+                c.enable_sms_notify,
+                c.enable_email_notify,
                 a.phone,
                 a.id as account_id,
                 p.ext_id,
@@ -3173,6 +3180,8 @@ class BonusApp
                 ON p.account_id = b.account_id AND b.status = 1
                 LEFT JOIN accounts a
                     ON p.account_id = a.id
+                LEFT JOIN accounts_notify c
+                    ON c.account_id = a.id
             WHERE
                 p.account_id IN(
                 SELECT

@@ -35,7 +35,7 @@
             <span class="loader__rotation"></span>
         </div>
 
-        <div class="popupOverlay" id="popupOverlay" style="display: none;">
+        <div class="popupOverlay" id="popupOverlay" style="display:none">
             <div class="popupCont" id="popupCont">
                 <h4 id="popupTitle"></h4>
                 <hr>
@@ -45,15 +45,15 @@
             </div>
         </div>
 
-        <div class="qrcodeOverlay" style="display: none;">
+        <div class="qrcodeOverlay" style="display:none">
             <div class="qrcodeOverlay__cont animated animate__fadeInDown"></div>
         </div>
 
-        <div class="positionOverlay" style="display: none;">
+        <div class="positionOverlay" style="display:none">
             <div class="positionOverlay__cont animated animate__fadeInDown"></div>
         </div>
 
-        <div class="newsOverlay" style="display: none;">
+        <div class="newsOverlay" style="display:none">
             <div class="newsOverlay__cont animated animate__fadeInDown">
                 <img class="newsOverlay__image" src="" alt="">
                 <div class="newsOverlay__details">
@@ -65,7 +65,7 @@
             </div>
         </div>
 
-        <div class="mainMenu animated animate__slideInLeft animate__faster" id="overlay-menu" style="display: none;" >
+        <div class="mainMenu animated animate__slideInLeft animate__faster" id="overlay-menu" style="display:none" >
             <div class="mainMenu__head">
                 <div class="mainMenu__head_left"></div>
                 <div class="mainMenu__head_title"><span>Меню</span></div>
@@ -92,7 +92,7 @@
             </div>
         </div>
 
-        <div class="feedback animated animate__slideInDown" id="feedback" style="display: none;">
+        <div class="feedback animated animate__slideInDown" id="feedback" style="display:none">
             <div class="container">
                 <div class="row">
                     <div class="six columns">
@@ -119,7 +119,7 @@
                 <div class="popup"><span class="popup-text" id="feedback-message-popup">Введите сообщение</span></div>
                 <label for="feedback-message">Сообщение</label>
                 <textarea class="u-full-width" placeholder="Здравствуйте!" id="feedback-message"></textarea>
-                <input id="feedback-account" disabled style="display: none;" />
+                <input id="feedback-account" disabled style="display:none" />
                 <div class="row">
                     <div class="six columns">
                         <input id="feedback-submit" class="u-full-width button-primary" type="submit" value="Отправить">
@@ -131,7 +131,7 @@
             </div>
         </div>
 
-        <div class="terms" id="terms" style="display: none">
+        <div class="terms" id="terms" style="display:none">
             <iframe loading="lazy" src="" frameborder="0"></iframe>
             <div class="terms__button">
                 <button onclick='closeTerms()'>Принять</button>
@@ -158,7 +158,7 @@
                 <i class="icon-mail topNav__msg" aria-hidden="true" onclick="showFeedback();closeNav()"></i>
                 <h6>&nbsp;</h6>
                 <i class="icon-menu topNav__menu" onclick="openNav()"></i>
-                <span id="top-nav-indicator" class="lds-rotation" style="display: none;"></span>
+                <span id="top-nav-indicator" class="lds-rotation" style="display:none"></span>
             </header>
 
             <main class="main">
@@ -172,7 +172,7 @@
                         <h5>
                             Подтвердите, что Вам есть 18 лет
                         </h5>
-                        <button class="button button-primary u-full-width" onclick="drawSection('intro')">мне исполнилось 18
+                        <button class="button button-primary u-full-width" onclick="drawSection('intro');return false;">мне исполнилось 18
                             лет</button>
                         <button class="button button-leave u-full-width">мне нет 18 лет</button>
                     </div>
@@ -184,9 +184,9 @@
                          app/assets/logo/logo_256x3.png 3x,
                          app/assets/logo/logo_256x4.png 4x">
                     <div class="container">
-                        <button class="button button-primary u-full-width" onclick="drawSection('authorization')">Войти</button>
+                        <button class="button button-primary u-full-width" onclick="drawSection('authorization');return false;">Войти</button>
                         <div class="textWings">или</div>
-                        <a href="#" class="link" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
+                        <a href="#" class="link" onclick="drawSection('pre-registration');return false;">Зарегистрироваться</a>
                     </div>
                 </div>
 
@@ -205,12 +205,12 @@
                             <i class="icon-eye-off"></i>
                         </div>
                         <!-- Кнопки -->
-                        <p style="text-align: right;"><a class="link" href="#" onclick="drawSection('reset')">Забыли
+                        <p style="text-align:right"><a class="link" href="#" onclick="drawSection('reset');return false;">Забыли
                                 пароль?</a></p>
                         <button id="auth-button" class="button button-primary u-full-width">Войти</button>
                         <p  class="link">
                             <span>У вас ещё нет аккунта?</span>
-                            <a href="#" onclick="drawSection('pre-registration')">Зарегистрироваться</a>
+                            <a href="#" onclick="drawSection('pre-registration');return false;">Зарегистрироваться</a>
                         </p>
                     </div>
                 </div>
@@ -218,28 +218,28 @@
                 <div id="reset">
                     <div class="container">
                         <h3>Не удается войти?</h3>
-                        <i class="icon-lock-open-alt" style="font-size: 48px"></i>
+                        <i class="icon-lock-open-alt" style="font-size:48px"></i>
                         <p class="hero-heading">Введите ваш номер мобильного телефона</p>
                         <div class="popup"><span class="popup-text" id="reset-phone-mask-popup">Введите номер телефона</span></div>
                         <div class="maskedInput">
                             <input id="reset-phone-mask" type="tel" />
                         </div>
-                        <button class="button button-primary" style="width: 100%;" id="reset_button" disabled>Получить код для входа</button>
+                        <button class="button button-primary" style="width:100%" id="reset_button" disabled>Получить код для входа</button>
                         <!-- Блок подтверждения входа -->
-                        <div id="reset_confirmation" style="display: none;" class="animated animate__fadeIn">
-                            <div id="reset_confirmation_info" style="font-weight: bold;"></div>
+                        <div id="reset_confirmation" style="display:none" class="animated animate__fadeIn">
+                            <div id="reset_confirmation_info" style="font-weight:bold"></div>
                             <input class="u-full-width" maxlength="4" type="tel" placeholder="Код" id="reset_confirmation_code" />
-                            <p id="reset_confirmation_time" class="neutral" style="display: none;"></p>
+                            <p id="reset_confirmation_time" class="neutral" style="display:none"></p>
                             <p class="link">
                                 <span>Мне не позвонили,</span>
                                 <a href="#" onclick="showRequestSms()">что мне делать?</a>
                             </p>
-                            <button class="button button-primary" style="width: 100%;" onclick="checkResetConfirmationCode()"
+                            <button class="button button-primary" style="width:100%" onclick="checkResetConfirmationCode()"
                                     id="reset_confirmation_button" disabled>Войти</button>
                         </div>
                         <div class="textWings">или</div>
                         <p class="link">
-                            <a href="#" onclick="drawSection('pre-registration')">Создать новый аккаунт</a>
+                            <a href="#" onclick="drawSection('pre-registration');return false;">Создать новый аккаунт</a>
                         </p>
                     </div>
                 </div>
@@ -253,8 +253,8 @@
                             <option value="" disabled selected>Загрузка...</option>
                         </select>
                         <p class="link">
-                            <button class="button button-primary" style="width: 100%;"
-                                    onclick="drawSection('registration')">Готово</button>
+                            <button class="button button-primary" style="width:100%"
+                                    onclick="drawSection('registration');return false;">Готово</button>
                         </p>
                     </div>
                 </div>
@@ -312,23 +312,23 @@
                                 согласие
                                 на <a onclick="showTerms()">обработку персональных данных</a>.</p>
                             <!-- Кнопка регистрации -->
-                            <button id="reg-button" class="button button-primary" style="width: 100%;">Создать аккаунт</button>
+                            <button id="reg-button" class="button button-primary" style="width:100%">Создать аккаунт</button>
                         </div>
                         <!-- Блок подтверждения регистрации -->
-                        <div id="reg_confirmation" class="registration__confirm" style="display: none;">
+                        <div id="reg_confirmation" class="registration__confirm" style="display:none">
                             <div id="reg_confirmation_info"></div>
                             <div id="reg_confirmation_remind"></div>
                             <div class="popup"><span class="popup-text" id="reg-confirmation-code-popup"></span></div>
                             <input class="u-full-width" type="tel" maxlength="4" placeholder="Код" id="reg-confirmation-code" />
-                            <button class="button button-primary" style="width: 100%;" onclick="confirmation()"
+                            <button class="button button-primary" style="width:100%" onclick="confirmation()"
                                     id="confirmation_button" disabled>Подтвердить</button>
-                            <button class="button button-primary" style="width: 100%; display: none" onclick="confirmationReset()"
+                            <button class="button button-primary" style="width:100%;display:none" onclick="confirmationReset()"
                                     id="confirmation_button_reset">Получить СМС</button>
                         </div>
                         <!-- Авторизация -->
                         <p class="reg_auth link">
                             <span>Постойте, но ведь</span>
-                            <a href="#" onclick="drawSection('authorization')">я уже зарегистрирован</a>
+                            <a href="#" onclick="drawSection('authorization');return false;">я уже зарегистрирован</a>
                         </p>
                     </div>
                 </div>
@@ -338,17 +338,17 @@
                         <div class="container">
                             <div class="reg_success-top-block">
                                 <img src="app/assets/backs/success-reg.png">
-                                <p>Ваша ВИРТУАЛЬНАЯ карта готова к использованию! Для использования перейдите в <a href="#"
-                                                                                                                   onclick="drawSection('wallet')">КОШЕЛЕК</a> и предьявите QR-код продавцу.</p>
+                                <p>Ваша ВИРТУАЛЬНАЯ карта готова к использованию! Для использования перейдите в 
+                                    <a href="#" onclick="drawSection('wallet');return false;">КОШЕЛЕК</a> и предьявите QR-код продавцу.</p>
                                 <p> ПЛАСТИКОВАЯ карта больше не нужна!</p>
-                                <p> Если вам не удобно пользоваться виртуальной картой, вы можете получить пластиковую карту в <a href="#"
-                                                                                                                                  onclick="drawSection('stores')">любом магазине</a>. </p>
+                                <p> Если вам не удобно пользоваться виртуальной картой, вы можете получить пластиковую карту в 
+                                    <a href="#" onclick="drawSection('stores');return false;">любом магазине</a>.</p>
                             </div>
                         </div>
                     </div>
                     <div class="reg_success-bottom">
                         <div class="container">
-                            <button class="button" style="width: 100%;" onclick="drawSection('wallet')">Перейти в кошелек</button>
+                            <button class="button" style="width:100%" onclick="drawSection('wallet');return false;">Перейти в кошелек</button>
                         </div>
                     </div>
                 </div>
@@ -374,23 +374,26 @@
                             Завтра Ваша карта станет <span id="notMatchCardTypeValue"></span>
                         </div>
                         <div class="personal__footer_event">
-                            <button onclick="drawSection('personal_update')">сменить данные</button>
+                            <button onclick="drawSection('personal_update');return false;">сменить данные</button>
                         </div>
                     </div>
                 </div>
 
                 <div id="personal_update" class="personalUpdate">
                     <div class="container">
-                        <div class="personalUpdate__replaceCard" id="replace_card" style="display: none">
+                        <div class="personalUpdate__replaceCard" id="replace_card" style="display:none">
                             <p>Переход на пластиковую карту:</p>
                             <div class="popup"><span class="popup-text" id="personal_new_card_popup">Введите номер карты</span></div>
                             <input class="u-full-width" type="text" placeholder="Номер карты" id="personal_new_card" />
                             <button id="personal_changeCard_button" class="button-primary">Подтвердить</button>
                         </div>
                         <div class="personalUpdate__setPlastic">
-                            <a href="#" onclick="drawSection('set_plastic')">Привязать пластиковую карту</a>
+                            <a href="#" onclick="drawSection('set_plastic');return false;">Привязать пластиковую карту</a>
+                            <p>&nbsp;</p>
                             <p>Пластиковую карту можно получить в магазине.</p>
-                            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
+                            <a href="#" onclick="drawSection('stores');return false;">Найти магазин.</a>
+                            <p>&nbsp;</p>
+                            <p><a href="#" onclick="drawSection('setting_notify');return false">Разрешения на уведомления</a></p>
                         </div>
                         <p class="personalUpdate__h">Изменить пароль</p>
                         <div class="popup"><span class="popup-text" id="personal-new-pass-popup">Введите новый пароль</span></div>
@@ -420,8 +423,7 @@
                                     </div>
 
                                     <div class="system_tabsContent">
-                                        <div class="tab_c_active"><span>С покупок Вы получаете кэшбек
-                                                бонусными
+                                        <div class="tab_c_active"><span>С покупок Вы получаете кэшбек бонусными
                                                 рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
                                         <div><span>Вы можете получать скидки от 5% до 10% на товар,
                                                 который можно приобрести со скидкой.</span></div>
@@ -430,21 +432,37 @@
                             </div>
                         </div>
                         <div class="container">
-                            <p style="text-align: center;font-size: 13px;">Сменить вид программы Вы можете один раз в сутки. <a
+                            <p style="text-align:center;font-size:13px">Сменить вид программы Вы можете один раз в сутки. <a
                                     onclick="showRules()">Подробнее</a></p>
                         </div>
                         <div class="container">
-                            <p style="text-align: left;font-size: 13px;">
-                                <label class="switch">
-                                    <input type="checkbox" name="enableNotify">
-                                    <span class="slider round"></span>
-                                </label> Включить уведомления
-                            </p>
-                        </div>
-                        <div class="container">
-                            <button id="personal_changePassword_button" class="button button-primary" style="width: 100%;">Внести
+                            <button id="personal_changePassword_button" class="button button-primary" style="width:100%">Внести
                                 изменения</button>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="settingNotify" id="setting_notify">
+                    <div class="container">
+                        <p>&nbsp;</p>
+                        <p>
+                            <label class="switch">
+                                <input type="checkbox" name="enablePushNotify">
+                                <span class="slider round"></span>
+                            </label> Включить PUSH уведомления
+                        </p>
+                        <p>
+                            <label class="switch">
+                                <input type="checkbox" name="enableSmsNotify">
+                                <span class="slider round"></span>
+                            </label> Включить SMS уведомления
+                        </p>
+                        <p>
+                            <label class="switch">
+                                <input type="checkbox" name="enableEmailNotify">
+                                <span class="slider round"></span>
+                            </label> Включить E-mail уведомления
+                        </p>
                     </div>
                 </div>
 
@@ -453,7 +471,7 @@
                         <div class="setPlastic__head">
                             <span>Привязать пластиковую карту</span>
                             <p>Пластиковую карту можно получить в магазине.</p>
-                            <a href="#" onclick="drawSection('stores')">Найти магазин.</a>
+                            <a href="#" onclick="drawSection('stores');return false;">Найти магазин.</a>
                         </div>
                         <div class="setPlastic__foot">
                             <button id="scanerQR" class="setPlastic__foot_scanerQR">
@@ -483,19 +501,19 @@
                         <!--<div class="temporary">Загрузка...</div>-->
                         
                         <div class="news__container shadow temporary">
-                            <p class="img" style="height: 30%;"></p>
-                            <div class="news__container_details" style="height: 42%;">
-                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);height: 3rem;margin-bottom:1rem;"></span>
-                                <span class="news__container_details_date" style="width: 93%;background-color: rgb(0 0 0 / 0.05);height: 4rem;margin-top: 0rem;"></span>
-                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);width: 100%;height: 4rem;margin-top: 1rem;border-radius: 5px;"></span>
+                            <p class="img" style="height:30%"></p>
+                            <div class="news__container_details" style="height:42%">
+                                <span class="news__container_details_date" style="width:25%;background-color:rgb(0 0 0 / 0.05);height:3rem;margin-bottom:1rem"></span>
+                                <span class="news__container_details_date" style="width:93%;background-color:rgb(0 0 0 / 0.05);height:4rem;margin-top:0rem"></span>
+                                <span class="news__container_details_date" style="width:25%;background-color:rgb(0 0 0 / 0.05);width:100%;height:4rem;margin-top:1rem;border-radius:5px"></span>
                             </div>
                         </div>
                         <div class="news__container shadow temporary">
-                            <p class="img" style="height: 30%;"></p>
-                            <div class="news__container_details" style="height: 42%;">
-                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);height: 3rem;margin-bottom:1rem;"></span>
-                                <span class="news__container_details_date" style="width: 93%;background-color: rgb(0 0 0 / 0.05);height: 4rem;margin-top: 0rem;"></span>
-                                <span class="news__container_details_date" style="width: 25%;background-color: rgb(0 0 0 / 0.05);width: 100%;height: 4rem;margin-top: 1rem;border-radius: 5px;"></span>
+                            <p class="img" style="height:30%"></p>
+                            <div class="news__container_details" style="height:42%">
+                                <span class="news__container_details_date" style="width:25%;background-color:rgb(0 0 0 / 0.05);height:3rem;margin-bottom:1rem"></span>
+                                <span class="news__container_details_date" style="width:93%;background-color:rgb(0 0 0 / 0.05);height:4rem;margin-top:0rem"></span>
+                                <span class="news__container_details_date" style="width:25%;background-color:rgb(0 0 0 / 0.05);width:100%;height:4rem;margin-top:1rem;border-radius:5px"></span>
                             </div>
                         </div>
                         
@@ -505,8 +523,8 @@
                 <div id="wallet" class="wallet">
                     <div class="wallet__content">
                         <div class="container">
-                            <div class="wallet__content_placeholder" id="wallet-placeholder" style="display: none;">
-                                <div style="padding: 2rem;"><i class="icon-pied-piper" style="font-size: 4rem;"></i></div>
+                            <div class="wallet__content_placeholder" id="wallet-placeholder" style="display:none">
+                                <div style="padding:2rem"><i class="icon-pied-piper" style="font-size:4rem"></i></div>
                                 <h6>Почти готово! Осуществляется начисление бонусов, в течение минуты всё будет завершено.</h6>
                             </div>
                             <div class="wallet__content_loader" id="wallet-loader">
@@ -517,14 +535,14 @@
                                     <div></div>
                                 </div>
                             </div>
-                            <div class="wallet__content_data" id="wallet-data" style="display: none;">
+                            <div class="wallet__content_data" id="wallet-data" style="display:none">
                                 <div class="wallet__content_data_type" id="cardType"></div>
-                                <div class="wallet__content_data_qr animated animate__fadeIn" id="qrcode" style="display: none;"></div>
-                                <div style="display: none">Ваш персональный код:</div>
-                                <div style="display: none">
+                                <div class="wallet__content_data_qr animated animate__fadeIn" id="qrcode" style="display:none"></div>
+                                <div style="display:none">Ваш персональный код:</div>
+                                <div style="display:none">
                                     <span class="cardNumber neutral" id="cardNumber">Загрузка...</span>
                                 </div>
-                                <button id="downloadCard" style="display: none" class="animated animate__fadeIn">Скачать QR код</button>
+                                <button id="downloadCard" style="display:none" class="animated animate__fadeIn">Скачать QR код</button>
                                 <button class="wallet__content_data_balance button">
                                     <span id="cardInfo">Баланс</span>&nbsp;&nbsp;&nbsp;
                                     <span id="bonuses" class="load"></span>
@@ -542,20 +560,20 @@
                         </div>
                     </div>
                     <div class="wallet__bottom">
-                        <div id="cardDataDiscount" class="wallet__bottom_dataDicount" style="display: none">
+                        <div id="cardDataDiscount" class="wallet__bottom_dataDicount" style="display:none">
                             <div>С бонусами выгоднее!</div>
                             <div>Переходи на бонусы,</div>
                             <div>получай скидки до 50% и кэшбек до 15%!</div>
-                            <a href="#" onclick="drawSection('personal_update')">Хочу бонусную карту!</a>
+                            <a href="#" onclick="drawSection('personal_update');return false;">Хочу бонусную карту!</a>
                         </div>
-                        <div id="cardDataBonus" style="display: none">
+                        <div id="cardDataBonus" style="display:none">
                             <span>Пока мы не запустили бонусную программу,<br> Ваша скидка <span id="discountValue"></span>. <br>
                                 О начале действия бонусной программы мы сообщим дополнительно и Вы сможете поспользоваться Вашими бонусами.</span>
                         </div>
-                        <div id="cardDataBonusPreffered" style="display: none">
+                        <div id="cardDataBonusPreffered" style="display:none">
                             <span>Бонусная карта, переход на дисконтную(заглушка).</span>
                         </div>
-                        <p id="changeDiscountSystem" style="display: none; font-size: 18px;color: #616161;margin-top: 40px">
+                        <p id="changeDiscountSystem" style="display:none;font-size:18px;color:#616161;margin-top:40px">
                             <span>Завтра Ваша карта станет <span id="changeDiscountSystemValue"></span>.</span>
                         </p>
                         <button id="transactions-details-button" class="transactions_details_button button-primary">История</button>
@@ -589,14 +607,14 @@
                             <a href="#" onClick="showRefRules();">Полные правила акции</a>
                         </p>
                         <p>Отсканируйте QR код с другого устройства, либо поделитесь ссылкой с друзьями:</p>
-                        <p id="referLink" style="display: none" class="animated animate__fadeIn">
-                            <a id="referLinkWA" href=""><img style="width: 64px;" loading="lazy"
+                        <p id="referLink" style="display:none" class="animated animate__fadeIn">
+                            <a id="referLinkWA" href=""><img style="width:64px" loading="lazy"
                                                              src="app/assets/social/whatsapp-128x128.png" alt="WHATSAPP"></a>
-                            <a id="referLinkTG" href=""><img style="width: 64px;" loading="lazy"
+                            <a id="referLinkTG" href=""><img style="width:64px" loading="lazy"
                                                              src="app/assets/social/telegram-128x128.png" alt="TELEGRAM"></a>
                         </p>
                         <p>История отправленных приглашений:</p>
-                        <table class="u-full-width" style="font-size: 1.1rem;">
+                        <table class="u-full-width" style="font-size:1.1rem">
                             <tbody id="referrals">
                             </tbody>
                         </table>
@@ -629,7 +647,7 @@
                     </div>
                 </div>
             </main>
-            <footer style="display: none;">
+            <footer style="display:none">
                 <nav>
                     <ul class="bottomNav">
                         <li data-section="news">
