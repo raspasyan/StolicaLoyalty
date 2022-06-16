@@ -271,9 +271,6 @@ d.addEventListener("DOMContentLoaded", () => {
 
     C("#reg-birthdate").el.addEventListener("input", (e) => validateBirthdate(e.target));
 
-    // Переход на пластиковую карту
-    C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
-
     C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
 
     // Привязка пластиковой карты
@@ -1454,11 +1451,6 @@ async function checkUpdates(callback) {
     const result = await getUpdates();
     const { data, status } = result;
 
-    // if (viewNewApp && SOURCE && SOURCE.replace("APP_", "") < data.versionApp.replace("APP_", "")) {
-    //     showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
-    //     viewNewApp = null;
-    // }
-
     if (viewNewApp && SOURCE) {
         fetch(VERSION_URL + "?platform=" + PLATFORM).then(r => r.text()).then(t => {
             if (Number(t) > Number(SOURCE)) {
@@ -1467,7 +1459,7 @@ async function checkUpdates(callback) {
             viewNewApp = null;
         });
     }
-
+    
     const curSection = C().getStor(LS_SECTION),
           updates = !isEmpty(C().getStor(LS_CURR_UPDATE)) ? JSON.parse(C().getStor(LS_CURR_UPDATE)) : tempUpdate;
     let contents = !isEmpty(C().getStor(LS_CONTENTS)) ? JSON.parse(C().getStor(LS_CONTENTS)) : { "personal": "", "wallet": "" };
@@ -1477,10 +1469,12 @@ async function checkUpdates(callback) {
             updates.lastNews = data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
             drawNews(data.news);
         }
+        
         if (data.storesHash) {
             updates.storesHash = data.storesHash;
             drawStores(data.stores);
         }
+        
         if (data.personalHash) {
             setNeedUpdate(contents, result, 'personal');
             contents.personal = data.personal;
@@ -1489,11 +1483,13 @@ async function checkUpdates(callback) {
             let userName = data.personal.firstname + " " + data.personal.middlename;
             C("#feedback-name").val((userName ? userName : ""));
         }
+        
         if (data.walletHash) {
             setNeedUpdate(contents, result, 'wallet');
             contents.wallet = data.wallet;
             updates.walletHash = data.walletHash;
         }
+        
         if (data.lastPurchase) {
             updates.lastPurchase = data.lastPurchase;
             drawPurchases(data.purchases, data.transactions);
@@ -1513,6 +1509,7 @@ async function checkUpdates(callback) {
 
         C().setStor(LS_CURR_UPDATE, JSON.stringify(updates));
         C().setStor(LS_CONTENTS, JSON.stringify(contents));
+        
         renderSections();
     } else {
         // Не авторизованных отправляем на авторизацию
@@ -1526,7 +1523,7 @@ async function checkUpdates(callback) {
             callback();
         }
 
-        await api("updateWalletData");
+        //await api("updateWalletData");
         userActivityTimeout = null;
     }
 }

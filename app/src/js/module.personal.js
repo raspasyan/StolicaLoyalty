@@ -1,11 +1,39 @@
-/* global C */
+/* global C, LS_CONTENTS */
+
+// Переход на пластиковую карту
+C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
+
+C('input[name="enableNotify"]').el.addEventListener("change", (e) => {
+    changeEnableNotify(Number(e.currentTarget.checked));
+});
+
+async function changeEnableNotify(value) {
+    let result = await api("changeEnableNotify", {
+                        value: value
+                    });
+
+    if (result.status) {
+        updateCashContent("personal", "enable_notify", value);
+    }
+    
+    if (result.description) {
+        showPopup("", result.description);
+    }
+}
+
+function updateCashContent(type, method, val) {
+    let cacheContent = JSON.parse(C().getStor(LS_CONTENTS));
+    
+    cacheContent[type][method] = val;
+    C().setStor(LS_CONTENTS, JSON.stringify(cacheContent));
+}
 
 async function updatePersonalData() {
     let result = await api("getProfileData");
-    
+
     if (result.status) {
         const data = result.data;
-        
+
         if (data.firstname || data.middlename || data.lastname) {
             C("#personal_name").text([data.firstname, data.middlename, data.lastname].join(" "));
         }
@@ -51,7 +79,11 @@ function drawPersonal(personal) {
     if (!permitRedrawSection('personal')) {
         return;
     }
-        
+
+    let notifyInp = C('input[name="enableNotify"]').el;
+    
+    notifyInp.checked = (personal.enable_notify && personal.enable_notify === 1);
+
     if (personal.firstname || personal.middlename || personal.lastname) {
         C("#personal_name").text([personal.firstname, personal.middlename, personal.lastname].join(" "));
     }
@@ -74,7 +106,7 @@ function drawPersonal(personal) {
         
         C("#personal_birthdate").html(date);
     }
-
+    
     if (personal.phone) {
         a = personal.phone.split('');
         C("#personal_phone").text('+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10]);

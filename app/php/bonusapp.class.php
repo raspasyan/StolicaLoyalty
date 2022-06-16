@@ -713,6 +713,13 @@ class BonusApp
 
                         break;
                     }
+                    
+                case "changeEnableNotify": {
+                        $resultData = $this->checkAuthorization($requestData["method"]);
+                        if ($resultData) $resultData = $this->API_changeEnableNotify($resultData["data"]["id"], $requestData["data"]["value"]);
+
+                        break;
+                    }
 
                 case "setCard": {
                         $resultData = $this->checkAuthorization($requestData["method"]);
@@ -1017,6 +1024,19 @@ class BonusApp
                 "data" => [],
                 "description" => "Выполняется регистрация бонусного счёта."
             ];
+        }
+
+        return $result;
+    }
+    
+    private function API_changeEnableNotify($accountId, $value)
+    {
+        $result = ["status" => false, "description" => ($value) ? "Уведомления включены" : "Уведомления выключены"];
+
+        if ($accountId > 0) {
+            $query = $this->pdo->prepare("UPDATE accounts SET enable_notify = ? WHERE id = ?;");
+            $query->execute([$value, $accountId]);
+            $result["status"] = true;
         }
 
         return $result;
@@ -2110,10 +2130,11 @@ class BonusApp
                 "birthdate"             => $fullAccountData["data"]["birthdate"],
                 "email"                 => $fullAccountData["data"]["email"],
                 "city"                  => $fullAccountData["data"]["city"],
+                "enable_notify"         => $fullAccountData["data"]["enable_notify"],
             ];
             $personalHash = hash("md5", json_encode($personal));
             if ($options["personalHash"] != $personalHash) {
-                $result["data"]["personal"] = $personal;
+                $result["data"]["personal"]     = $personal;
                 $result["data"]["personalHash"] = $personalHash;
             }
 
@@ -2423,7 +2444,7 @@ class BonusApp
     {
         $result = FALSE;
         
-        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ?)");
+        $query = $this->pdo->prepare("SELECT push_id FROM accounts WHERE (device not regexp 'huawei' AND phone = ? AND enable_notify = 1)");
 
         $query->execute([$phone]);
         $queryResult = $query->fetch();
@@ -2582,6 +2603,7 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
+                a.enable_notify,
                 a.push_id,
                 a.device,
                 p.ext_id,
@@ -3131,6 +3153,7 @@ class BonusApp
                 a.discount,
                 a.discount_value,
                 a.preferred_discount,
+                a.enable_notify,
                 a.phone,
                 a.id as account_id,
                 p.ext_id,
@@ -4920,7 +4943,8 @@ class BonusApp
 
     private function sendPushIos($token, $title, $body)
     {
-        $apiHost  = 'https://api.push.apple.com/3/device/' . $token;
+        //$apiHost  = 'https://api.push.apple.com/3/device/' . $token;
+        $apiHost  = 'https://api.push.apple.com';
         $apnsCert = 'cert.pem';
         $apnsPass = 'jpn19810112';
         $payload['aps'] = 
@@ -4934,7 +4958,9 @@ class BonusApp
 
         $payload = json_encode($payload);
 
-        exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
+        //exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
+        $http2ch = curl_init();
+        $output = sendHTTP2Push($http2ch, $apiHost, $apnsCert, "com.stolica.bonuses", $body, $token);
         
         return $output;
     }
