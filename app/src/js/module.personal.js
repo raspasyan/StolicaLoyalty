@@ -216,5 +216,75 @@ async function setCard() {
     if (result.description) {
         showPopup(title, result.description);
     }
+}
 
+let loadScanerScript = false;
+let scanerIsEnable   = false;
+
+C("#scanerQR").el.addEventListener("click", () => {
+    if (loadScanerScript) {
+        startScaner();
+    } else {
+        loadScaner();
+    }
+});
+
+function loadScaner() {
+    showLoader();
+    loadScript('app/build/js/vendors/qrscan.min.js', () => {
+        hideLoader();
+        loadScanerScript = true;
+        startScaner();
+    });
+}
+
+let video = C().create("video").el;
+
+function startScaner() {
+    if (!scanerIsEnable) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            scanerIsEnable = true;
+            promiseTimeout(stopStreamedVideo, 30000);
+            requestAnimationFrame(tick);
+        });
+    } else {
+        stopStreamedVideo();
+    }
+}
+    
+function tick() {
+    let canvasElement = C("#canvas").el;
+    let canvas        = canvasElement.getContext("2d");
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvasElement.hidden = false;
+
+        canvasElement.height = video.videoHeight;
+        canvasElement.width  = video.videoWidth;
+        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+        
+        let imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        let code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+        });
+
+        if (code) {
+            C("#plasticNumber").el.value = code.data;
+            stopStreamedVideo();
+        }
+    }
+
+    requestAnimationFrame(tick);
+}
+    
+function stopStreamedVideo() {
+    if (!video.srcObject) return;
+    
+    video.srcObject.getTracks().forEach(function(track) {
+        scanerIsEnable = false;
+        track.stop();
+    });
 }

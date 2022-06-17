@@ -1,4 +1,4 @@
-/* global Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE, PLATFORM */
+/* global C, Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE, PLATFORM */
 
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
@@ -209,11 +209,6 @@ d.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-
-    d.addEventListener('touchstart', touchStart);
-    d.addEventListener('touchend', touchEnd);
-    d.addEventListener('touchcancel', touchEnd);
-    d.addEventListener('touchmove', touchMove);
 
     crashClearStorage();
     initPopups();
@@ -442,35 +437,8 @@ function getPrevSection(currentSection) {
     return carouselSections[i];
 }
 
-function touchStart(e) {
-    const touches = e.changedTouches;
-
-    for (let i = 0; i < touches.length; i++) {
-        startSwipeX = touches[i].pageX;
-        startSwipeY = touches[i].pageY;
-    }
-}
-
-function touchMove(e) {
-    //const touches = e.changedTouches;
-    //for (let i = 0; i < touches.length; i++) {
-    //    console.log(`Move: ${touches[i].pageX}`);
-    //}
-}
-
-function touchEnd(e) {
-    const touches = e.changedTouches;
-
-    for (let i = 0; i < touches.length; i++) {
-        stopSwipeX = touches[i].pageX;
-        stopSwipeY = touches[i].pageY;
-    }
-    
-    checkSwipeX();
-}
-
 function closeOpenOverlays() {
-    const list = [".storeMap", "#overlay-menu", "#feedback", ".qrcodeOverlay", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back"];
+    const list = [".storeMap", "#overlay-menu", "#feedback", ".qrcodeOverlay", ".positionOverlay", ".newsOverlay", "#popupOverlay", ".topNav__back", "#set_plastic"];
     let disp = (id) => {
         return C(id).el.style.display !== "none";
     };
@@ -552,22 +520,6 @@ function permitRedrawSection(section) {
     return permit;
 }
 
-async function api(method, data = "") {
-    const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json;charset=utf-8",
-            "Authorization": "Bearer " + (bearerToken ? bearerToken : "")
-        },
-        body: JSON.stringify({
-            "method": method,
-            "data": data,
-            "source": SOURCE
-        })
-    });
-    return await response.json();
-}
-
 function crashClearStorage() {
     if (!C().getStor('crash')) {
         C().delStor(LS_CURR_UPDATE);
@@ -598,14 +550,6 @@ function passViewToggle() {
     });
 }
 
-function hide(selector) {
-    C(selector).el.style.display = "none";
-}
-
-function show(selector) {
-    C(selector).el.style.display = "";
-}
-
 function initPopups() {
     C(".popup-text").els.forEach((el) => {
         el.addEventListener("click", () => {
@@ -619,22 +563,6 @@ function initPopups() {
 function userActivity() {
     if (!userActivityTimeout) {
         userActivityTimeout = setTimeout(checkUpdates, 3333);
-    }
-}
-
-function removeLoadOption(id) {
-    const b = C("option:disabled, div.temporary", C(id));
-
-    if (!b.el) {
-        return;
-    }
-
-    b.els.forEach((el) => el.parentNode.removeChild(el));
-}
-
-function modifyInput(el) {
-    if (el.value.length === 1 && +el.value[0] === 8) {
-        el.value = "+7-";
     }
 }
 
@@ -892,21 +820,6 @@ function showPopup(title, desc, message, buttonText, callback) {
     pOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animated", "animate__furious"]);
     pOverlay.addclass(["animated", "animate__fadeIn", "animate__furious"]);
 
-}
-
-function showLoader() {
-    C("#loader").style("opacity", 1);
-    show("#loader");
-}
-
-function hideLoader() {
-    const loader = C("#loader");
-
-    loader.addclass(["animate__fadeOut", "animated"]);
-    promiseTimeout(() => {
-        hide("#loader");
-        loader.delclass(["animate__fadeOut", "animated"]);
-    }, 500);
 }
 
 async function checkAuthorization() {
@@ -1320,10 +1233,6 @@ async function updateCities() {
     }
 }
 
-function dropFail(el) {
-    C(el).delclass("fail");
-}
-
 function clearLocalStorage() {
     localStorage.clear();
 }
@@ -1424,14 +1333,6 @@ async function setFeedback() {
 
     submitBut.disabled = false;
     hideLoader();
-}
-
-function isEmpty(obj) {
-    if (!obj || obj === "undefined") {
-        return true;
-    }
-
-    return Object.keys(JSON.parse(obj)).length === 0;
 }
 
 function onErrorCatch(error) {
@@ -1559,347 +1460,3 @@ async function getUpdates() {
     return await api("getUpdates", data);
 }
 
-function mask(inp) {
-    let underlay = document.createElement('input'),
-        attr = {};
-
-    attr.id = inp.id.replace("-mask", "");
-    attr.disabled = "disabled";
-    attr.type = inp.getAttribute("type");
-
-    for (let key in attr) {
-        underlay.setAttribute(key, attr[key]);
-    }
-
-    inp.parentNode.insertBefore(underlay, inp);
-    setPhoneMask(inp, false);
-    inp.addEventListener("click", () => { inp.selectionStart = inp.value.length; });
-    inp.addEventListener("input", (e) => setPhoneMask(e.target));
-}
-
-function setPhoneMask(inp, mask) {
-    const hideId = "#" + inp.id.replace("-mask", "");
-    let phone = inp.value;
-
-    if (phone === "") {
-        phone = "7";
-    }
-    if (!mask) {
-        mask = "+_(___)___-__-__";
-    }
-
-    phone = getPhoneNumbers(phone);
-
-    C(inp).val(getValueByMask(phone, mask));
-    C(hideId).val(getValueByMask(phone, mask, true));
-}
-
-function getPhoneNumbers(value) {
-    let phone = value.replace(/\D/g, "");
-
-    if (phone) {
-        phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
-    } else {
-        phone = "7";
-    }
-
-    return phone;
-}
-
-function getValueByMask(value, mask, full) {
-    const phone = value.match(/\d/g);
-    let newPhone = mask;
-
-    phone.map((e) => newPhone = newPhone.replace(/_/, e));
-
-    if (!full) {
-        newPhone = newPhone.replace(/\)_|-_|_/g, "");
-    }
-
-    return newPhone;
-}
-
-function isValidDate(dateString) {
-    if (!/^\d{2}-\d{2}-\d{4}$/.test(dateString)) {
-        return false;
-    }
-
-    const parts = dateString.split("-"),
-          day   = parseInt(parts[0], 10),
-          month = parseInt(parts[1], 10),
-          year  = parseInt(parts[2], 10);
-  
-    let monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
-
-    if (year < 1000 || year > 3000 || month == 0 || month > 12) {
-        return false;
-    }
-    
-    if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) {
-        monthLength[1] = 29;
-    }
-
-    return day > 0 && day <= monthLength[month - 1];
-}
-
-function validateBirthdate(el, isSubmit) {
-    if (!isSubmit) {
-        isSubmit = false;
-    }
-
-    el.value = el.value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1-$2").replace(/-(\d{2})(\d)/, "-$1-$2").replace(/(\d{4})\d+/, "$1");
-
-    if (el.value.length > 9) {
-        let val = el.value,
-            td  = val.split("-"),
-            bd  = new Date(td[2], --td[1], td[0]),
-            cd  = new Date(),
-            age = (cd - bd);
-
-        if (age < 568036800000 || age > 3155760000000 || bd == "Invalid Date" || !isValidDate(val)) {
-            showInputPopup("reg-birthdate");
-        } else {
-            return true;
-        }
-    } else if (isSubmit) {
-        showInputPopup("reg-birthdate");
-    }
-
-    return false;
-}
-
-const C = function (s, p) {
-    this.isC = true,
-        this.isNodeList = (nodes) => {
-            const stringRepr = Object.prototype.toString.call(nodes);
-
-            return typeof nodes === 'object' &&
-                /^\[object (HTMLCollection|NodeList|Object)\]$/.test(stringRepr) &&
-                (typeof nodes.length === 'number') &&
-                (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
-        },
-        this.isNode = (obj) => {
-            if (obj && obj.nodeType) {
-                return true;
-            } else {
-                return false;
-            }
-        },
-        this.isDocument = (obj) => {
-            return obj instanceof Document || obj instanceof Window;
-        },
-        this.isclass = (cl) => {
-            return this.els[0].classList.contains(cl);
-        },
-        this.defineEls = () => {
-            if (this.isNode(s) || this.isDocument(s)) {
-                return [s];
-            } else if (this.isNodeList(s)) {
-                return s;
-            } else {
-                if (p && p.isC) {
-                    p = p.els[0];
-                }
-
-                return this.isNode(p) ? p.querySelectorAll(s) : d.querySelectorAll(s);
-            }
-        },
-        this.defineEl = () => {
-            return this.els[0];
-        },
-        this.els = this.defineEls(),
-        this.el = this.defineEl(),
-        this.on = (type, s, fn, except) => {
-            const p = this;
-            let i;
-
-            this.bind(type, (e) => {
-                const el = (p.isNode(s) || p.isNodeList(s)) ? s : C(s).els,
-                    ex = except || false;
-                let t = e.target;
-
-                while (t && t !== this) {
-                    if (ex) {
-                        for (i = 0; i < C(ex).els.length; i++) {
-                            if (t === C(ex).els[i]) {
-                                break;
-                            }
-                        }
-                    }
-
-                    for (i = 0; i < el.length; i++) {
-                        if (t === el[i]) {
-                            fn(e, t);
-                            break;
-                        }
-                    }
-
-                    if (t) {
-                        t = t.parentNode;
-                    } else {
-                        break;
-                    }
-                }
-            });
-
-            return this;
-        },
-        this.strToNode = (h) => {
-            let terk;
-
-            if (!this.isNode(h)) {
-                const div = this.create('div');
-
-                div.html(h);
-                terk = [div.el.children[0]];
-            } else {
-                terk = [h];
-            }
-
-            this.els = terk;
-            this.el = terk[0];
-
-            return this;
-        },
-        this.attr = (attr, value) => {
-            if (!value) {
-                return this.el.getAttribute(attr);
-            }
-
-            this.els.forEach((el) => {
-                el.setAttribute(attr, value);
-            });
-
-            return this;
-        },
-        this.create = (tag) => {
-            const el = d.createElement(tag);
-            this.els = [el];
-            this.el = el;
-
-            return this;
-        },
-        this.append = (el) => {
-            this.el.append(el.el);
-        },
-        this.style = (st, val) => {
-            this.els.forEach((el) => {
-                el.style[st] = val;
-            });
-
-            return this;
-        },
-        this.addclass = (cls) => {
-            if (!Array.isArray(cls)) {
-                cls = [cls];
-            }
-
-            this.els.forEach((el) => {
-                cls.forEach((cl) => {
-                    el.classList.add(cl);
-                });
-            });
-
-            return this;
-        },
-        this.togclass = (cl) => {
-            this.els.forEach((el) => {
-                el.classList.toggle(cl);
-            });
-
-            return this;
-        },
-        this.delclass = (cls) => {
-            if (!Array.isArray(cls)) {
-                cls = [cls];
-            }
-
-            this.els.forEach((el) => {
-                cls.forEach((cl) => {
-                    el.classList.remove(cl);
-                });
-            });
-
-            return this;
-        },
-        this.delStor = (key) => {
-            localStorage.removeItem(key);
-            return this;
-        },
-        this.setStor = (key, val) => {
-            localStorage.setItem(key, val);
-            return this;
-        },
-        this.getStor = (key) => {
-            return localStorage.getItem(key);
-        },
-        this.bind = (type, fn) => {
-            let addEvent;
-
-            if (!type || !fn) {
-                return this;
-            }
-
-            if (typeof addEventListener === "function") {
-                addEvent = (el, type, fn) => {
-                    el.addEventListener(type, fn, false);
-                };
-            } else if (typeof attachEvent === "function") {
-                addEvent = (el, type, fn) => {
-                    el.attachEvent("on" + type, fn);
-                };
-            } else {
-                return this;
-            }
-
-            if (this.isNodeList(this.els) || this.els.length > 0) {
-                this.els.forEach((el) => {
-                    addEvent(el, type, fn);
-                });
-            } else if (this.isNode(this.els[0]) || this.isDocument(this.els[0])) {
-                addEvent(this.els[0], type, fn);
-            }
-
-            return this;
-        },
-        this.html = (html) => {
-            if (html !== "" && !html) {
-                return this.els[0].innerHTML;
-            }
-
-            this.els.forEach((el) => {
-                el.innerHTML = html;
-            });
-
-            return this;
-        },
-        this.text = (text) => {
-            if (text !== "" && !text) {
-                return this.els[0].innerText;
-            }
-
-            this.els.forEach((el) => {
-                el.innerText = text;
-            });
-
-            return this;
-        },
-        this.val = (value) => {
-            if (value !== "" && !value) {
-                return this.els[0].value;
-            }
-
-            this.els.forEach((el) => {
-                el.value = value;
-            });
-
-            return this;
-        };
-
-    if (this instanceof C) {
-        return this.C;
-    } else {
-        return new C(s, p);
-    }
-
-};

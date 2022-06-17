@@ -12,29 +12,30 @@ const path = {
             build_app: {
                 assets: 'cordova/www/app/assets/',
                 js: 'cordova/www/app/build/js/',
+                js_vendors: 'cordova/www/app/build/js/vendors/',
                 css: 'cordova/www/app/build/styles/',
                 indx: 'cordova/www/'
             },
 
             src_app: {
                 assets: ['app/assets/*/*', 'app/assets/*.*'],
-                js:   'app/src/js/*.js',
-                css: 'app/src/scss/styles.scss',
                 vendors: 'app/src/scss/vendors/*.css',
                 indx: ['app/php/templates/index.html', 'manifest.json'],
-                cons: ['app/src/js/const/cordova.const.js', 'app/src/js/module.main.js']
+                cons: ['app/src/js/const/cordova.const.js', 'app/src/js/module.main.js', 'app/src/js/libs/*.js']
             },
 
             build_desktop: {
                 js: 'app/build/js/',
+                js_vendors: 'app/build/js/vendors/',
                 css: 'app/build/styles/'
             },
 
             src_desktop: {
                 js:   'app/src/js/*.js',
+                js_vendors: 'app/src/js/vendors/*.js',
                 css: 'app/src/scss/styles.scss',
                 vendors: ['app/src/scss/vendors/*.css', 'app/src/scss/static_page/*.css'],
-                cons: ['app/src/js/const/site.const.js', 'app/src/js/module.main.js']
+                cons: ['app/src/js/const/site.const.js', 'app/src/js/module.main.js', 'app/src/js/libs/*.js']
             },
 
             clean: './build'
@@ -51,9 +52,15 @@ gulp.task('js:build', function (done) {
     gulp.src(path.src_desktop.js)
         .pipe(uglify())
         .pipe(gulp.dest(path.build_desktop.js));
-    gulp.src(path.src_app.js)
+    gulp.src(path.src_desktop.js_vendors)
+        .pipe(uglify())
+        .pipe(gulp.dest(path.build_desktop.js_vendors));
+    gulp.src(path.src_desktop.js)
         .pipe(uglify())
         .pipe(gulp.dest(path.build_app.js));
+    gulp.src(path.src_desktop.js_vendors)
+        .pipe(uglify())
+        .pipe(gulp.dest(path.build_app.js_vendors));
     gulp.src(path.src_app.cons)
         .pipe(uglify())
         .pipe(concat('module.main.js'))
@@ -72,7 +79,7 @@ gulp.task('css:build', function (done) {
         .pipe(prefixer())
         .pipe(cssmin())
         .pipe(gulp.dest(path.build_desktop.css));
-    gulp.src(path.src_app.css)
+    gulp.src(path.src_desktop.css)
         .pipe(sass())
         .pipe(prefixer())
         .pipe(cssmin())

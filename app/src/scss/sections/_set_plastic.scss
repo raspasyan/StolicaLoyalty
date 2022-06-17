@@ -40,12 +40,29 @@
             font-weight: normal;
             text-align: center;
             display: grid;
+            padding: 0;
+            
+            #canvas {
+                width: 100%;
+                height: 198px;
+                background-color: black;
+                margin:0 auto;
+            }
+            
+            video {
+                width: 300px;
+                height: auto;
+                margin: 0 auto;
+                position: relative;
+                top: 2.75rem;
+                overflow: hidden;
+            }
             
             .scan_focus {
+                position: absolute;
                 display: block;
                 height: 27px;
                 width: 28px;
-                margin-top: 37px;
                 justify-self: center;
                 align-self: center;
 
@@ -87,7 +104,7 @@
             position: absolute;
             width: 100%;
             left: 0px;
-            top: 20%;
+            top: 10%;
             line-height: 24px;
         }
     }
