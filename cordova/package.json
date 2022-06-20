@@ -23,6 +23,8 @@
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-firebase-analytics": "~6.1.0",
     "cordova-plugin-firebase-messaging": "^6.1.2",
+    "cordova-plugin-qr-barcode-scanner": "^8.0.3",
+    "cordova-plugin-qrscanner": "github:bitpay/cordova-plugin-qrscanner",
     "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-support-android-plugin": "~1.0.0",
     "device": "^0.3.12"
@@ -57,7 +59,10 @@
           "ios"
         ]
       },
-      "cordova-plugin-brightness": {}
+      "cordova-plugin-brightness": {},
+      "cordova-plugin-qr-barcode-scanner": {
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
+      }
     }
   }
 }
