@@ -705,9 +705,9 @@ class BonusApp
                         break;
                     }
 
-                case "getNews": {
+                case "getNews": { // устаревший метод
                         $resultData = $this->API_getNews(
-                            (!empty($requestData["data"]["lastId"]) ? $requestData["data"]["lastId"] : 0),
+                            $requestData["data"],
                             (!empty($requestData["data"]["limit"]) ? $requestData["data"]["limit"] : null)
                         );
 
@@ -1098,9 +1098,9 @@ class BonusApp
         return $result;
     }
 
-    private function API_getNews($lastNewsId = 0, $limit = 10)
+    private function API_getNews($options, $limit = 10) //устаревший метод
     {
-        return $this->getNews($lastNewsId, $limit);
+        return $this->getNews($options, $limit);
     }
 
     private function API_setFeedback($data)
@@ -1577,8 +1577,6 @@ class BonusApp
 
     public function getDeposits($limit = 100)
     {
-        $result = ["status" => false, "data" => null];
-
         $query = $this->pdo->prepare("SELECT
                 id,
                 card_number,
@@ -1592,12 +1590,9 @@ class BonusApp
             LIMIT :limit
         ");
         $query->execute(["limit" => $limit]);
-        $queryResult = $query->fetchAll();
+        $result = $query->fetchAll();
 
-        $result["status"] = true;
-        if (count($queryResult)) $result["data"] = $queryResult;
-
-        return $result;
+        return count($result) ? ["status" => true, "data" => $result] : ["status" => false, "data" => null];
     }
 
     public function service_completeRegistration()
@@ -2093,7 +2088,7 @@ class BonusApp
              "personalHash"       => "",
              "walletHash"         => "",
              "storesHash"         => "",
-             "lastNews"           => "",
+             "newsHash"           => "",
              "lastPurchase"       => "",
              "lastTransaction"    => "",
              "pushId"             => "",
@@ -2111,6 +2106,7 @@ class BonusApp
                 "wallet"        => [],
                 "walletHash"    => "",
                 "news"          => [],
+                "newsHash"      => "",
                 "purchases"     => [],
                 "transactions"  => [],
                 "versionApp"    => APP_VERSION
@@ -2186,8 +2182,16 @@ class BonusApp
             }
         }
 
-        $getNewsResult = $this->getNews($options["lastNews"]);
-        if ($getNewsResult["status"]) $result["data"]["news"] = $getNewsResult["data"];
+        $getNewsResult = $this->getNews($options);
+        if ($getNewsResult["status"]) {
+            $news = $getNewsResult["data"];
+            $newsHash = hash("md5", json_encode($news));
+                        
+            if ((array_key_exists("newsHash", $options) && $options["newsHash"] != $newsHash) || (array_key_exists("lastNews", $options))) {
+                $result["data"]["news"] = $news;
+                $result["data"]["newsHash"] = $newsHash;
+            }
+        }
 
         $getStoresFullDataResult = $this->getStoresFullData();
         if ($getStoresFullDataResult["status"]) {
@@ -4469,10 +4473,15 @@ class BonusApp
         ];
     }
 
-    private function getNews($lastNewsId = 0, $limit = 50)
+    private function getNews($options, $limit = 50)
     {
-        $result = ["status" => true, "data" => []];
-
+        $result     = ["status" => false, "data" => []];
+        $lastNewsId = 0;
+        
+        if (array_key_exists("lastNews", $options)) {
+            $lastNewsId = $options["lastNews"];
+        }
+        
         $cd = new DateTime();
         $query = $this->pdo->prepare("SELECT
                 id,
@@ -4488,7 +4497,7 @@ class BonusApp
                 AND date_to_post <= :cd
                 AND is_active = 1
             ORDER BY
-                id
+                date_to_post
             LIMIT :limit
         ");
         $query->execute(["lastNewsId" => $lastNewsId, "cd" => $cd->format('Y-m-d'), "limit" => $limit]);
@@ -4650,9 +4659,7 @@ class BonusApp
             return $result;
         }
 
-        if (!array_key_exists('is_active', $data)) {
-            $data['is_active'] = 0;
-        }
+        $data['is_active'] = !array_key_exists('is_active', $data) ? 0 : 1;
             
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
         $name       = date("dmy") . rand(1, 100) . '.jpg';

@@ -113,7 +113,7 @@ let currentSection = "",
         personalHash: "",
         walletHash: "",
         storesHash: "",
-        lastNews: "",
+        newsHash: "",
         lastPurchase: "",
         lastTransaction: ""
     };
@@ -211,6 +211,14 @@ d.addEventListener("DOMContentLoaded", () => {
     });
 
     crashClearStorage();
+    
+    let updateStore = JSON.parse(C().getStor(LS_CURR_UPDATE));
+    if (updateStore.lastNews) {
+        delete updateStore.lastNews;
+        updateStore.newsHash = "";
+        C().setStor(LS_CURR_UPDATE, JSON.stringify(updateStore));
+    }
+    
     initPopups();
 
     bearerToken = C().getStor(LS_TOKEN);
@@ -274,10 +282,6 @@ d.addEventListener("DOMContentLoaded", () => {
 
     C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
 
-    // Привязка пластиковой карты
-    C("#set_card").el.addEventListener("click", () => setCard());
-
-    // Вход без пароля
     C("#reset_confirmation_code").el.addEventListener("input", (e) => C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
     C("#reg-confirmation-code").el.addEventListener("input", (e) => C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
@@ -668,13 +672,6 @@ async function drawSection(section) {
         }
         
         case "set_plastic": {
-            promiseTimeout(() => {
-                let el = C("#plasticNumber").el;
-                el.focus();
-                console.log(document.activeElement);
-                hideKeyboard(el);
-            }, 1000);
-
             break;
         }
     }
@@ -710,12 +707,6 @@ async function drawSection(section) {
     });
 
     C().setStor(LS_SECTION, section);
-}
-
-function hideKeyboard(el) {
-    setTimeout(function() {
-        el.blur();
-    }, 500);
 }
 
 async function renderReferSection() {
@@ -1390,7 +1381,7 @@ async function checkUpdates(callback) {
 
     if (status) {
         if (data.news.length) {
-            updates.lastNews = data.news.reduce((newLastId, element) => (element.id > newLastId ? element.id : updates.lastNews), updates.lastNews);
+            updates.newsHash = data.newsHash;
             drawNews(data.news);
         }
         
@@ -1461,7 +1452,7 @@ async function getUpdates() {
     }
     
     if (initApp) {
-        data.lastNews = 0;
+        data.newsHash = "";
         data.storesHash = "";
         data.lastPurchase = "";
         data.lastTransaction = "";

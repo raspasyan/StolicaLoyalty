@@ -1,4 +1,4 @@
-/* global d, C, LS_CONTENTS */
+/* global d, C, LS_CONTENTS, LS_SECTION */
 
 // Переход на пластиковую карту
 C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
@@ -192,24 +192,23 @@ async function changeProfileData() {
 
 async function setCard() {
     let title;
+    let inp = C("#plasticNumber");
     
-    if (C("#plasticNumber").val().length < 10) {
+    inp.el.blur();
+    
+    if (inp.val().length < 10) {
         showPopup("Внимание", "Не указан номер карты!");
         return;
     }
 
     showLoader();
-    C("#set_card").el.disabled = true;
 
     let result = await api("setCard", {
-                        card_number: C("#plasticNumber").val()
+                        card_number: inp.val()
                     });
 
-    C("#personal_changePassword_button").el.disabled = false;
-
     hideLoader();
-    C("#set_card").el.disabled = false;
-    C("#plasticNumber").val("");
+    inp.val("");
 
     title = result.status ? "" : "Внимание";
     
@@ -238,10 +237,10 @@ function loadScaner() {
     });
 }
     
-    d.addEventListener("textInput", (e) => {
-        //alert(e.data);
-    });
-    
+C("#plasticNumber").el.addEventListener("textInput", (e) => {
+    setTimeout(setCard, 333);
+});
+
 d.onkeydown = GetKey;
   
 function GetKey() {
@@ -249,6 +248,22 @@ function GetKey() {
       return false;
    }
 }
+
+let timerDisableFocus;
+
+d.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && C().getStor(LS_SECTION) === "set_plastic") {
+        const inp = C("#plasticNumber").el;
+        
+        timerDisableFocus = setTimeout(() => {
+            inp.blur();
+        }, 3000);
+        
+        if (d.activeElement !== inp) {
+            inp.focus();
+        }
+    }
+});
 
 let video = C().create("video").el;
 
@@ -286,6 +301,7 @@ function tick() {
         if (code) {
             C("#plasticNumber").el.value = code.data;
             stopStreamedVideo();
+            setCard();
         }
     }
 

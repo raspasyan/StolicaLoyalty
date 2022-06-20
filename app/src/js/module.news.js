@@ -6,7 +6,8 @@ function drawNews(newsList) {
         return false;
     }
     
-    const container = C(".news>div.container").el;
+    const container = C(".news>div.container");
+    container.html("");
     
     removeLoadOption("#news>div.container");
     newsList.forEach((news) => {
@@ -24,7 +25,7 @@ function drawNews(newsList) {
                       </div>`;
         const newsContEl = C().strToNode(temp);
 
-        container.prepend(newsContEl.el);
+        container.el.prepend(newsContEl.el);
         
         newsContEl.el.addEventListener("click", () => {
             const el = C(".newsOverlay");
