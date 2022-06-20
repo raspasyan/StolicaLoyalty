@@ -1,4 +1,4 @@
-/* global C, LS_CONTENTS */
+/* global d, C, LS_CONTENTS */
 
 // Переход на пластиковую карту
 C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
@@ -237,6 +237,18 @@ function loadScaner() {
         startScaner();
     });
 }
+    
+    d.addEventListener("textInput", (e) => {
+        //alert(e.data);
+    });
+    
+d.onkeydown = GetKey;
+  
+function GetKey() {
+   if(event.keyCode === 9) {
+      return false;
+   }
+}
 
 let video = C().create("video").el;
 
@@ -286,5 +298,8 @@ function stopStreamedVideo() {
     video.srcObject.getTracks().forEach(function(track) {
         scanerIsEnable = false;
         track.stop();
+        let canvas = C("#canvas").el.getContext("2d");
+        canvas.fillStyle = "white";
+        canvas.fillRect(0, 0, video.videoWidth, video.videoHeight);
     });
 }

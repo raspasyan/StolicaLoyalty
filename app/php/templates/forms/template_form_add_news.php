@@ -80,6 +80,7 @@
     $data['description']  = "";
     $data['date_to_post'] = "";
     $data['image']        = "";
+    $data['is_active']    = 1;
     
     if (isset($news) && isset($news['id'])) {
         $data = $news;
@@ -107,6 +108,10 @@
                 <?php if($data['image'] !== ""){ ?>
                     <img style="width:100%" src="<?=$data['image']?>">
                 <?php } ?>
+            </div>
+            <div>
+               <input id="is_active" type="checkbox" name="is_active" <?=($data['is_active'])?"checked":null?> style="top:-10px;position:relative" />
+                <label for="is_active">Показывать на сайте</label>
             </div>
             <div>
                <input id="key" type="text" name="key" value="" required/>

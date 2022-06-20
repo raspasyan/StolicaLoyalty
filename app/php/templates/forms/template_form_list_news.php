@@ -30,8 +30,8 @@
     </style>
     <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
         <ul>
-        <?php foreach($listNews as $id => $title){ ?>
-            <li><a href="/add-news?id=<?=$id?>"><?=$title?></a></li>
+        <?php foreach($listNews as $news){ ?>
+            <li><a href="/add-news?id=<?=$news['id']?>" style="<?=(!$news['is_active'])?"color:lightgrey":null?>"><?=$news['title']?></a></li>
         <?php } ?>
         </ul>
     </div>

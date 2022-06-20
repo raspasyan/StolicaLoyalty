@@ -666,6 +666,17 @@ async function drawSection(section) {
         case "news": {
             break;
         }
+        
+        case "set_plastic": {
+            promiseTimeout(() => {
+                let el = C("#plasticNumber").el;
+                el.focus();
+                console.log(document.activeElement);
+                hideKeyboard(el);
+            }, 1000);
+
+            break;
+        }
     }
 
     C(".main > div").els.forEach((el) => {
@@ -699,6 +710,12 @@ async function drawSection(section) {
     });
 
     C().setStor(LS_SECTION, section);
+}
+
+function hideKeyboard(el) {
+    setTimeout(function() {
+        el.blur();
+    }, 500);
 }
 
 async function renderReferSection() {

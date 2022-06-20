@@ -4486,6 +4486,7 @@ class BonusApp
             WHERE
                 id > :lastNewsId
                 AND date_to_post <= :cd
+                AND is_active = 1
             ORDER BY
                 id
             LIMIT :limit
@@ -4634,10 +4635,10 @@ class BonusApp
 
     private function getListNews()
     {
-        $query = $this->pdo->prepare("SELECT id, title FROM news ORDER BY id DESC;");
+        $query = $this->pdo->prepare("SELECT id, title, is_active FROM news ORDER BY id DESC;");
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
+        return $query->fetchAll();
     }
 
     private function sendNewsToServer()
@@ -4649,13 +4650,17 @@ class BonusApp
             return $result;
         }
 
+        if (!array_key_exists('is_active', $data)) {
+            $data['is_active'] = 0;
+        }
+            
         $uploaddir  = dirname(__DIR__) . "/assets/news/";
         $name       = date("dmy") . rand(1, 100) . '.jpg';
         $uploadfile = $uploaddir . $name;
 
         if (array_key_exists('id', $data) && $data['id'] > 0) {
-            $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?  WHERE id = ?;");
-            $query->execute([$data['date'], $data['desc'], $data['title'], $data['id']]);
+            $query = $this->pdo->prepare("UPDATE news SET date_to_post = ?, description = ?, title = ?, is_active = ?  WHERE id = ?;");
+            $query->execute([$data['date'], $data['desc'], $data['title'], $data['is_active'], $data['id']]);
 
             if (isset($_FILES) && array_key_exists('img', $_FILES) && $_FILES['img']['tmp_name'] !== "") {
                 if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
@@ -4667,13 +4672,14 @@ class BonusApp
             $result = TRUE;
         } else {
             if (@move_uploaded_file($_FILES['img']['tmp_name'], $uploadfile)) {
-                $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description) VALUES (?, ?, ?, ?, ?)");
+                $query = $this->pdo->prepare("INSERT INTO news (date, date_to_post, title, image, description, is_active) VALUES (?, ?, ?, ?, ?, ?)");
                 $query->execute([
                     date("Y-m-d"),
                     $data["date"],
                     $data["title"],
                     "app/assets/news/" . $name,
-                    $data["desc"]
+                    $data["desc"],
+                    $data["is_active"]
                 ]);
 
                 if ($this->pdo->lastInsertId() > 0) {
