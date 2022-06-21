@@ -361,7 +361,8 @@ function openNearBurning() {
             }
         });
         
-        burnHtml = `<h4><center>Ближайшие сгорания</center></h4>
+        burnHtml = `<div class="nearBurn" style="text-align:center;margin-bottom:2rem;text-decoration:none;display:block">Отложи сгорание, совершив покупку с бонусной картой до дня сгорания</div>
+                    <h4><center>Ближайшие сгорания</center></h4>
                         <div class="close-positions"><i class="icon-cancel" onClick="closePositions()"></i></div>
                         ${burnListHtml}
                     <center><button onClick="closePositions()">Закрыть</button></center>`;
