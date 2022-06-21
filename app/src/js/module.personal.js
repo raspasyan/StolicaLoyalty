@@ -273,6 +273,9 @@ function loadScaner() {
     });
 }
     
+/* 
+ *      For automatic send card number
+ * 
 C("#plasticNumber").el.addEventListener("textInput", (e) => {
     setTimeout(setCard, 333);
 });
@@ -295,6 +298,8 @@ d.addEventListener("keydown", () => {
     }, 5000);
 
 });
+*/
+
 
 let video = C().create("video").el;
 

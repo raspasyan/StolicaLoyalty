@@ -260,7 +260,8 @@ d.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
-
+    
+    C("#set_card").el.addEventListener("click", () => setCard());
     C("#auth-button").el.addEventListener("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach((label) => {
