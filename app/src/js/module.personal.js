@@ -277,28 +277,23 @@ C("#plasticNumber").el.addEventListener("textInput", (e) => {
     setTimeout(setCard, 333);
 });
 
-d.onkeydown = GetKey;
-  
-function GetKey() {
-   if(event.keyCode === 9) {
-      return false;
-   }
-}
-
 let timerDisableFocus;
 
-d.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && C().getStor(LS_SECTION) === "set_plastic") {
-        const inp = C("#plasticNumber").el;
-        
-        timerDisableFocus = setTimeout(() => {
-            inp.blur();
-        }, 3000);
-        
-        if (d.activeElement !== inp) {
-            inp.focus();
-        }
+d.addEventListener("keydown", () => {
+    if (C().getStor(LS_SECTION) !== "set_plastic") {
+        return;
     }
+        
+    const inp = C("#plasticNumber").el;
+    
+    if (d.activeElement !== inp) {
+        inp.focus();
+    }
+    
+    timerDisableFocus = setTimeout(() => {
+        inp.blur();
+    }, 5000);
+
 });
 
 let video = C().create("video").el;

@@ -390,7 +390,7 @@ function openQrOverlay() {
     const cardNumber = JSON.parse(C().getStor(LS_CONTENTS)).wallet.cardNumber;
 
     show(".qrcodeOverlay");
-    C(".qrcodeOverlay__cont").html(`<span style="position:relative;display:block;text-align:right;margin-bottom:5rem">
+    C(".qrcodeOverlay__cont").html(`<span style="position:relative;display:block;text-align:right">
                                             <i class="icon-cancel" onClick="closeQrOverlay()" style="position:absolute;right:0rem;top:-5rem;font-size:2.5rem"></i>
                                         </span>
                                         <h4><center>Бонусная карта</center></h4>

@@ -213,7 +213,7 @@ d.addEventListener("DOMContentLoaded", () => {
     crashClearStorage();
     
     let updateStore = JSON.parse(C().getStor(LS_CURR_UPDATE));
-    if (updateStore.lastNews) {
+    if (updateStore && updateStore.lastNews) {
         delete updateStore.lastNews;
         updateStore.newsHash = "";
         C().setStor(LS_CURR_UPDATE, JSON.stringify(updateStore));
