@@ -1439,7 +1439,7 @@ async function checkUpdates(callback) {
             callback();
         }
 
-        //await api("updateWalletData");
+        await api("updateWalletData");
         userActivityTimeout = null;
     }
 }

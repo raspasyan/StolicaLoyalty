@@ -58,7 +58,6 @@
         <icon src="icons/100x100.png" width="100" height="100" />
         <!-- iTunes Marketing Image -->
         <icon src="icons/1024x1024.png" width="1024" height="1024" />
-        <resource-file src="res/GoogleService-Info.plist" />
     </platform>
 	
     <platform name="android">
