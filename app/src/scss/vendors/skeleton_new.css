@@ -187,6 +187,19 @@
     border: 1px solid #bbb;
     cursor: pointer;
     box-sizing: border-box; }
+  button.link {
+    display: block;
+    margin: 0 auto;
+    text-decoration: underline;
+    border: none;
+    text-transform: none;
+    text-decoration: underline;
+    border: none;
+    color: initial;
+    background-color: initial;
+    font-weight: initial;
+    font-size: 1.25rem;
+  }
   .button:hover,
   button:hover,
   input[type="submit"]:hover,

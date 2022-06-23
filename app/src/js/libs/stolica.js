@@ -120,6 +120,10 @@ const C = function (s, p) {
             return this;
         },
         this.addclass = (cls) => {
+            if (!cls) {
+                return;
+            }
+            
             if (!Array.isArray(cls)) {
                 cls = [cls];
             }

@@ -1,4 +1,4 @@
-/* global C, Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN, SOURCE, PLATFORM */
+/* global C, Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN */
 
 const API_URL = DOMAIN + "/api";
 const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
@@ -109,6 +109,8 @@ let currentSection = "",
     initApp = true,
     clientInfo = "Сайт",
     clientDevice,
+    platform = null,
+    versionApp = null,
     tempUpdate = {
         personalHash: "",
         walletHash: "",
@@ -142,11 +144,15 @@ d.addEventListener("DOMContentLoaded", () => {
         });
         
         clientDevice = `${device.platform} ${device.version} (${device.manufacturer} ${device.model})`;
+        platform     = device.platform;
+        
+        cordova.getAppVersion.getVersionCode(function (version) {
+            versionApp = version;
+            clientInfo   = `${device.platform} (${versionApp})`;
+        });
         
         switch (device.platform) {
             case "Android":
-                clientInfo = "Android v" + SOURCE;
-                
                 let messaging = cordova.plugins.firebase.messaging;
                 
                 messaging.getToken().then(function(token) {
@@ -160,9 +166,7 @@ d.addEventListener("DOMContentLoaded", () => {
                     //
                 });
                 break;
-            case "iOS":
-                clientInfo = "iOS v" + SOURCE;
-                
+            case "iOS":              
                 let push = window['APNSPushNotification'].init({
                         ios: {
                             alert: "true",
@@ -231,7 +235,7 @@ d.addEventListener("DOMContentLoaded", () => {
         purchases: 1
     }));
     
-    if (deviceType() !== "desktop" && !SOURCE && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
+    if (deviceType() !== "desktop" && !versionApp && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
         C(".alertUpdater__desc_name a").el.href = DOMAIN + "/application";
         show(C("#alertUpdater").el);
     }
@@ -261,7 +265,7 @@ d.addEventListener("DOMContentLoaded", () => {
         });
     });
     
-    C("#set_card").el.addEventListener("click", () => setCard());
+    //C("#set_card").el.addEventListener("click", () => setCard());
     C("#auth-button").el.addEventListener("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach((label) => {
@@ -810,12 +814,16 @@ function showPopup(title, desc, message, buttonText, callback) {
     }
 
     if (cancelText) {
-        const but = C().create('button');
+        let className = "button";
+        
+        if (cancelText.indexOf("link:") === 0) {
+            cancelText = cancelText.replace("link:", "");
+            className  = "link";
+        }
 
-        but.addclass('button');
-        but.text(cancelText);
-        but.el.id = "cancelText";
-        C('#popupCont').append(but);
+        let elem = `<button class="${className}" id="cancelText">${cancelText}</button>`;
+        
+        C('#popupCont').append(C().strToNode(elem));
     }
 
     pButton.el.addEventListener("click", () => {
@@ -1329,7 +1337,7 @@ async function setFeedback() {
         name: C("#feedback-name").val(),
         email: C("#feedback-email").val(),
         reason: C("#feedback-reason").val(),
-        message: C("#feedback-message").val() + " (Источник: " + clientInfo + ")"
+        message: C("#feedback-message").val() + " (" + clientInfo + ")"
     });
 
     if (result.status) {
@@ -1367,11 +1375,12 @@ async function checkUpdates(callback) {
     const result = await getUpdates();
     const { data, status } = result;
 
-    if (viewNewApp && SOURCE) {
-        fetch(VERSION_URL + "?platform=" + PLATFORM).then(r => r.text()).then(t => {
-            if (Number(t) > Number(SOURCE)) {
-                showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!");
+    if (viewNewApp && versionApp && platform) {
+        fetch(VERSION_URL + "?platform=" + platform).then(r => r.text()).then(t => {
+            if (Number(t) > Number(versionApp)) {
+                showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!", "", ["Обновить", "link:Напомнить позже"], linkToApp);
             }
+            
             viewNewApp = null;
         });
     }
@@ -1384,6 +1393,10 @@ async function checkUpdates(callback) {
         if (data.news.length) {
             updates.newsHash = data.newsHash;
             drawNews(data.news);
+        }
+        
+        if (data.serverVersion) {
+            C().setStor("versions", JSON.stringify(data.serverVersion));
         }
         
         if (data.storesHash) {

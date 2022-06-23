@@ -1,4 +1,4 @@
-/* global C */
+/* global C, versionApp, API_URL, bearerToken, platform */
 
 function isEmpty(obj) {
     if (!obj || obj === "undefined") {
@@ -51,6 +51,18 @@ function show(selector) {
     C(selector).el.style.display = "";
 }
 
+function linkToApp() {
+    let link = 'market://details?id=com.stolica.bonuses';
+    
+    if (platform === "iOS") {
+        //https:
+        //itunes.apple.com/ru/app/id[APPLE_ID]
+        link = 'https://apps.apple.com/ru/app/%D1%81%D1%82%D0%BE%D0%BB%D0%B8%D1%86%D0%B0-%D0%B1%D0%BE%D0%BD%D1%83%D1%81%D1%8B/id1590266964';
+    }
+    
+    cordova.InAppBrowser.open(link, '_system');
+}
+
 async function api(method, data = "") {
     const response = await fetch(API_URL, {
         method: "POST",
@@ -61,7 +73,7 @@ async function api(method, data = "") {
         body: JSON.stringify({
             "method": method,
             "data": data,
-            "source": SOURCE
+            "source": versionApp
         })
     });
     return await response.json();

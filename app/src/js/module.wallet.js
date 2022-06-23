@@ -1,4 +1,4 @@
-/* global C, d, SOURCE, Intl */
+/* global C, d, versionApp, Intl, LS_CONTENTS, currentBrightness */
 
 const cardImageW = 512,
       cardImageH = 328,
@@ -468,7 +468,7 @@ function drawBonusCard(cardNumber, el) {
             link.href = dataURL;
             link.download = fileName;
             
-            if (!SOURCE) {
+            if (!versionApp) {
                 link.click();
             } else {
                 const blob = dataURItoBlob(dataURL);
@@ -566,7 +566,7 @@ function dataURItoBlob(dataURI) {
   return blob;
 }
 
-if (SOURCE) {
+if (versionApp) {
     document.addEventListener("deviceready", function() {    
       let storageLocation = "";
 

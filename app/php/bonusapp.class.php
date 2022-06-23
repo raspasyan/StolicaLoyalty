@@ -373,7 +373,7 @@ class BonusApp
                     if (!empty($_GET) || !empty($_GET["platform"])) {
                         $currentVersion = APP_VERSION;
 
-                        switch ($_GET["platform"]) {
+                        switch (strtolower($_GET["platform"])) {
                             case "android": {
                                     $currentVersion = APP_VERSION_ANDROID;
                                     break;
@@ -1901,18 +1901,19 @@ class BonusApp
         $result = ["status" => false, "data" => []];
 
         $message =
-            "*" . $feedback["time"] . "*," .
-            " *" . $feedback["name"] . "*" .
-            " (" . $feedback["reason"] . "):" .
-            " _'" . $feedback["message"] . "'_," .
-            " " . $feedback["phone"] . "," .
-            " " . $feedback["account_phone"] . "," .
-            " " . $feedback["email"];
+            $feedback["time"] . ", " .
+            $feedback["name"] . " (" . 
+            $feedback["reason"] . "): " .
+            $feedback["message"] . ", " .
+            $feedback["phone"] . ", " .
+            $feedback["account_phone"] . ", " .
+            $feedback["email"];
 
-        $patterns = ["/\(/", "/\)/", "/\[/", "/\]/", "/@/", "/\./", "/\-/", "/\:/", "/\,/", "/\;/", "/\_/", "/\?/", "/\!/"];
-        $replacements = ["\(", "\)", "\[", "\]", "\@", "\.", "\-", "\:", "\,", "\;", "\_", "\?", "\!"];
-        $message = preg_replace($patterns, $replacements, $message);
-
+        //$patterns = ["/\(/", "/\)/", "/\[/", "/\]/", "/@/", "/\./", "/\-/", "/\:/", "/\,/", "/\;/", "/\_/", "/\?/", "/\!/"];
+        //$replacements = ["\(", "\)", "\[", "\]", "\@", "\.", "\-", "\:", "\,", "\;", "\_", "\?", "\!"];
+        //$message = preg_replace($patterns, $replacements, $message);
+        $message = str_replace(["\r\n", "\r", "\n"], " ", $message);
+        
         if ($debug) debug($message);
 
         $tgResult = $this->tg($message);
@@ -2108,8 +2109,7 @@ class BonusApp
                 "news"          => [],
                 "newsHash"      => "",
                 "purchases"     => [],
-                "transactions"  => [],
-                "versionApp"    => APP_VERSION
+                "transactions"  => []
             ]
         ];
 
@@ -4989,6 +4989,6 @@ class BonusApp
 
     private function tg($message, $status = "info")
     {
-        return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&parse_mode=MarkDownV2&text=" . $message), true);
+        return json_decode(file_get_contents("https://api.telegram.org/bot" . TG_BOT_KEY . "/sendMessage?chat_id=" . TG_CHAT_ID . "&text=" . $message), true);
     }
 }
