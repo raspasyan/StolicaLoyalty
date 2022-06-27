@@ -87,6 +87,26 @@ class BonusApp
                     break;
                 }
 
+            case "add-mailing": {
+                    $result = $this->initPDO();
+
+                    if (!empty($_POST)) {
+                        echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
+                        
+                        if ($result = $this->sendMailingPush($_POST)) {
+                            print_r($result);
+                        } else {
+                            echo '<h1>Произошла ошибка!</h1> <p><a href="/add-mailing">Попробовать еще раз</a></p>';
+                        }
+                        
+                        echo '</div>';
+                    } else {
+                        require_once 'templates/forms/template_form_add_mailing.php';
+                    }
+
+                    break;
+                }
+                
             case "add-news": {
                     $result = $this->initPDO();
 
@@ -1315,49 +1335,6 @@ class BonusApp
         }
     }
 
-    private function sendHTTP2Push($http2ch, $http2_server, $apple_cert, $app_bundle_id, $message, $token)
-    {
-        // url (endpoint)
-        $url = "{$http2_server}/3/device/{$token}";
-        $cert = realpath($apple_cert);
-
-        // headers
-        $headers = array(
-            "apns-topic: {$app_bundle_id}",
-            "User-Agent: My Sender"
-        );
-
-        curl_setopt_array($http2ch, array(
-            CURLOPT_URL => $url,
-            CURLOPT_PORT => 443,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_POST => TRUE,
-            CURLOPT_POSTFIELDS => $message,
-            CURLOPT_RETURNTRANSFER => TRUE,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSLCERT => $cert,
-            CURLOPT_SSLCERTPASSWD => 'jpn19810112',
-            CURLOPT_SSLCERTTYPE => 'P12',
-            CURLOPT_HEADER => 1
-        ));
-
-        $result = curl_exec($http2ch);
-
-        print_r($result);
-
-        if ($result === FALSE) {
-            //throw new Exception("Curl failed: " .  curl_error($http2ch));
-        }
-
-        // get response
-        $status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
-        if ($status == "200")
-            echo "SENT|NA";
-        else
-            echo "FAILED|$status";
-    }
-
     /* Сервисные ф-ии */
 
     function service_prepareProlongations()
@@ -2171,7 +2148,7 @@ class BonusApp
                 if ($getTransactionsResult["status"]) $result["data"]["transactions"] = $getTransactionsResult["data"];
             }
 
-            if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
+            if (array_key_exists("push_id", $fullAccountData["data"]) && array_key_exists("pushId", $options) && !is_null($options["pushId"]) && $fullAccountData["data"]["push_id"] != $options["pushId"]) {
                 $query = $this->pdo->prepare("UPDATE accounts SET push_id = :push_id WHERE phone = :phone");
                 $query->execute(["push_id" => $options["pushId"], "phone" => $phone]);
             }
@@ -2449,9 +2426,8 @@ class BonusApp
 
     private function getPushIDNotify($phone)
     {
-        $result = FALSE;
-        
-        $query = $this->pdo->prepare("SELECT a.push_id FROM accounts a, accounts_notify b WHERE (a.device not regexp 'huawei' and b.account_id = a.id AND a.phone = ? AND b.enable_push_notify = 1)");
+        //$query = $this->pdo->prepare("SELECT a.push_id FROM accounts a, accounts_notify b WHERE (a.device not regexp 'huawei' and b.account_id = a.id AND a.phone = ? AND b.enable_push_notify = 1)");
+        $query = $this->pdo->prepare("SELECT a.push_id FROM accounts a, accounts_notify b WHERE (b.account_id = a.id AND b.enable_push_notify = 1 AND a.phone = ?)");
 
         $query->execute([$phone]);
         $queryResult = $query->fetch();
@@ -4206,7 +4182,22 @@ class BonusApp
     {
         $result = ["status" => false, "data" => null];
 
-        $query = $this->pdo->prepare("SELECT a.phone, a.discount FROM accounts a LEFT JOIN profiles p ON a.id = p.account_id WHERE a.status != 0 AND p.ext_id IS NULL LIMIT ?");
+        //$query = $this->pdo->prepare("SELECT a.phone, a.discount FROM accounts a LEFT JOIN profiles p ON a.id = p.account_id WHERE a.status != 0 AND p.ext_id IS NULL LIMIT ?");
+        
+        $query = $this->pdo->prepare("SELECT a.phone, a.discount 
+                                        FROM accounts a 
+                                           INNER JOIN profiles p
+                                           ON a.id = p.account_id
+                                           WHERE a.status != 0 AND p.ext_id IS NULL
+                                        UNION ALL
+                                        SELECT a.phone, a.discount 
+                                           FROM accounts a 
+                                           WHERE NOT EXISTS (
+                                                SELECT p.account_id
+                                                FROM profiles p
+                                                WHERE a.id = p.account_id
+                                           ) AND a.status != 0
+                                            LIMIT ?");
         $query->execute([$limit]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) $result = [
@@ -4220,8 +4211,8 @@ class BonusApp
     private function getAccountsWithoutExtCard($limit = 100)
     {
         $result = ["status" => false, "data" => null];
-
-        $query = $this->pdo->prepare("SELECT
+        
+        /*  $query = $this->pdo->prepare("SELECT
                 a.phone,
                 p.ext_id
             FROM accounts a
@@ -4231,8 +4222,26 @@ class BonusApp
                 a.status = 1
                 AND NOT p.ext_id IS NULL
                 AND b.id IS NULL
-            LIMIT ?
-        ");
+            LIMIT ?"); */
+        
+        $query = $this->pdo->prepare("SELECT
+                                            a.phone, p.ext_id
+                                        FROM accounts a
+                                        INNER JOIN profiles p ON a.id = p.account_id
+                                        WHERE
+                                            a.status = 1
+                                            AND 
+                                            p.ext_id IS NOT NULL
+                                            AND
+                                            (
+                                                NOT EXISTS (
+                                                    SELECT b.account_id
+                                                    FROM bonuscards b
+                                                    WHERE b.account_id = a.id
+                                                )
+                                            )
+                                        LIMIT ?");
+        
         $query->execute([$limit]);
         $queryResult = $query->fetchAll();
         if (count($queryResult)) $result = [
@@ -4649,6 +4658,52 @@ class BonusApp
 
         return $query->fetchAll();
     }
+    
+    private function getListPushIds()
+    {
+        $query = $this->pdo->prepare("SELECT 
+                                        a.phone, 
+                                        a.push_id 
+                                    FROM 
+                                        accounts a, 
+                                        accounts_notify b 
+                                    WHERE 
+                                        a.push_id IS NOT NULL 
+                                        AND 
+                                        b.account_id = a.id 
+                                        AND 
+                                        b.enable_push_notify = 1");
+        $query->execute();
+        $queryResult = $query->fetchAll();
+        
+        return $queryResult;
+    }
+    
+    private function sendMailingPush($data)
+    {
+        $result = FALSE;
+        
+        if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
+            return $result;
+        }
+        
+        $result['success'] = [];
+        $result['errors']  = [];
+        $listPushes = $this->getListPushIds();
+        
+        foreach ($listPushes as $push) {
+            $ext = $this->sendPush($push['push_id'], $data['title'], $data['message']);
+
+            if ($ext['status']) {
+                $result['success'][] = $push['phone'];
+            } else {
+                $result['errors'][] = $push['phone'];
+            }
+        }
+        
+        
+
+    }
 
     private function sendNewsToServer()
     {
@@ -4965,26 +5020,72 @@ class BonusApp
 
     private function sendPushIos($token, $title, $body)
     {
-        //$apiHost  = 'https://api.push.apple.com/3/device/' . $token;
         $apiHost  = 'https://api.push.apple.com';
-        $apnsCert = 'cert.pem';
-        $apnsPass = 'jpn19810112';
-        $payload['aps'] = 
-          array(
-                'alert' => array (
-                        'title' => $title,
-                        'body'  => $body
-                        ), 
-                'badge' => 42
-          );
+
+        $payload['aps'] = array(
+                                    'alert' => array (
+                                            'title' => $title,
+                                            'body'  => $body
+                                            ), 
+                                    'badge' => 0
+                              );
 
         $payload = json_encode($payload);
 
         //exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
-        $http2ch = curl_init();
-        $output = sendHTTP2Push($http2ch, $apiHost, $apnsCert, "com.stolica.bonuses", $body, $token);
         
-        return $output;
+        return $this->sendHTTP2Push($apiHost, "com.stolica.bonuses", $payload, $token);
+    }
+    
+    private function sendHTTP2Push($http2_server, $app_bundle_id, $message, $token)
+    {
+        $result["status"] = False;
+        // url (endpoint)
+        $url = "{$http2_server}/3/device/{$token}";
+        $cert = realpath('cert.pem');
+
+        // headers
+        $headers = array(
+            "apns-topic: {$app_bundle_id}",
+            "User-Agent: My Sender"
+        );
+            
+        $http2ch = curl_init();
+        
+        curl_setopt($http2ch, CURLOPT_HTTP_VERSION, 3);
+        curl_setopt($http2ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+        curl_setopt_array($http2ch, array(
+            CURLOPT_URL => $url,
+            CURLOPT_PORT => 443,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => $message,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSLCERT => $cert,
+            CURLOPT_SSLCERTPASSWD => 'jpn19810112',
+            CURLOPT_HEADER => TRUE
+        ));
+
+        $output = curl_exec($http2ch);
+        $status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+        
+        if ($status == "200") {
+            $result["status"] = TRUE;
+        }
+        
+        if ($result["status"]) { //&& strripos($output, ":") != FALSE) {
+            $result["data"] = ["ext_id" => end(explode(":", trim($output)))];
+        }
+
+        //$status = curl_getinfo($http2ch, CURLINFO_HTTP_CODE);
+        //if ($status == "200")
+            //echo "SENT|NA";
+        //else
+            //echo "FAILED|$status";
+        
+        return $result;
     }
 
     private function tg($message, $status = "info")

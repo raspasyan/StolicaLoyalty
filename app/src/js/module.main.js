@@ -78,11 +78,6 @@ const sections = {
         showMenu: true,
         needAuth: true
     },
-    "alerts": {
-        title: "Подписки и уведомления",
-        showMenu: true,
-        needAuth: true
-    },
     "personal_update": {
         title: "Смена данных",
         showMenu: true,
@@ -265,7 +260,7 @@ d.addEventListener("DOMContentLoaded", () => {
         });
     });
     
-    //C("#set_card").el.addEventListener("click", () => setCard());
+    C("#set_card").el.addEventListener("click", () => setCard());
     C("#auth-button").el.addEventListener("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach((label) => {
@@ -771,74 +766,6 @@ function confirmAdult() {
     drawSection(C().getStor(LS_SECTION));
 }
 
-function showPopup(title, desc, message, buttonText, callback) {
-    const pOverlay = C("#popupOverlay"),
-        pTitle = C("#popupTitle"),
-        pDesc = C("#popupDescription"),
-        pMessage = C("#popupMessage"),
-        pButton = C("#popupButton");
-    let cancelText;
-
-    if (Array.isArray(buttonText)) {
-        cancelText = buttonText[1];
-        buttonText = buttonText[0];
-    }
-
-    if (!buttonText) {
-        buttonText = "Ок";
-    }
-
-    hideLoader();
-
-    show("#popupOverlay");
-
-    if (title) {
-        show("#popupTitle");
-        pTitle.text(title);
-    } else {
-        hide("#popupTitle");
-    }
-
-    if (desc) {
-        pDesc.html(desc);
-        show("#popupDescription");
-    } else {
-        hide("#popupDescription");
-    }
-
-    if (message) {
-        pMessage.html(message);
-        show("#popupMessage");
-    } else {
-        hide("#popupMessage");
-    }
-
-    if (cancelText) {
-        let className = "button";
-        
-        if (cancelText.indexOf("link:") === 0) {
-            cancelText = cancelText.replace("link:", "");
-            className  = "link";
-        }
-
-        let elem = `<button class="${className}" id="cancelText">${cancelText}</button>`;
-        
-        C('#popupCont').append(C().strToNode(elem));
-    }
-
-    pButton.el.addEventListener("click", () => {
-        if (callback) {
-            callback();
-            callback = null;
-        }
-    });
-
-    pButton.text(buttonText);
-    pOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animated", "animate__furious"]);
-    pOverlay.addclass(["animated", "animate__fadeIn", "animate__furious"]);
-
-}
-
 async function checkAuthorization() {
     return await api("checkAuthorization");
 }
@@ -882,7 +809,8 @@ async function auth() {
 
         location.reload();
     } else {
-        showPopup("", result.description);
+        //showPopup("", result.description);
+        showToast(result.description);
     }
 }
 
@@ -910,7 +838,8 @@ function checkReg() {
     }
 
     if (regPassEl.val() !== regPassConfEl.val()) {
-        showPopup("Внимание", "Введенные пароли не совпадают!");
+        //showPopup("Внимание", "Введенные пароли не совпадают!");
+        showToast("Введенные пароли не совпадают!");
         return 0;
     }
 
@@ -1037,7 +966,8 @@ async function confirmation() {
         } else {
             if (result.description) {
                 regConfCodeEl.val("");
-                showPopup("Внимание", result.description);
+                //showPopup("Внимание", result.description);
+                showToast(result.description);
             }
         }
     }
@@ -1095,9 +1025,10 @@ async function getResetConfirmationCode() {
             }
         } else {
             resButtonEl.disabled = false;
-            promiseTimeout(() => {
-                showPopup("Внимание", result.description);
-            }, 1000);
+            //promiseTimeout(() => {
+            //    showPopup("Внимание", result.description);
+            //}, 1000);
+            showToast(result.description);
         }
     }
 }
@@ -1195,9 +1126,10 @@ async function getResetConfirmationSms() {
                 restartResetConfirmationTimer(result.data.seconds_left);
         } else {
             resButtonEl.disabled = false;
-            promiseTimeout(() => {
-                showPopup("Внимание", result.description);
-            }, 1000);
+            //promiseTimeout(() => {
+            //    showPopup("Внимание", result.description);
+            //}, 1000);
+            showToast(result.description);
         }
     }
 }
@@ -1341,7 +1273,8 @@ async function setFeedback() {
     });
 
     if (result.status) {
-        showPopup("Готово", "Ваше сообщение передано оператору");
+        //showPopup("Готово", "Ваше сообщение передано оператору");
+        showToast("Ваше сообщение передано оператору");
         hideFeedback();
         C("#feedback-message").val("");
     } else {
@@ -1353,7 +1286,8 @@ async function setFeedback() {
 }
 
 function onErrorCatch(error) {
-    showPopup("Внимание", error.description);
+    //showPopup("Внимание", error.description);
+    showToast(error.description);
     console.warn(error);
 }
 

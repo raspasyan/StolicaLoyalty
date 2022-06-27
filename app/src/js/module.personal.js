@@ -1,4 +1,4 @@
-/* global d, C, LS_CONTENTS, LS_SECTION */
+/* global d, C, LS_CONTENTS, LS_SECTION, platform */
 
 // Переход на пластиковую карту
 C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
@@ -26,7 +26,8 @@ async function changeEnableNotify(type, value) {
     }
     
     if (result.description) {
-        showPopup("", result.description);
+        //showPopup("", result.description);
+        showToast(result.description);
     }
 }
 
@@ -161,7 +162,8 @@ async function changeCard() {
     }
     
     if (result.description) {
-        showPopup(title, result.description);
+        //showPopup(title, result.description);
+        showToast(result.description);
     }
 
 }
@@ -182,9 +184,11 @@ async function changeProfileData() {
                         });
     
     if (cardRes.status) {
-        showPopup("", "Данные профиля изменены!");
+        //showToast("", "Данные профиля изменены!");
+        showToast("Данные профиля изменены");
     } else {
-        showPopup("Внимание", cardRes.description);
+        //showToast("Внимание", cardRes.description);
+        showToast(cardRes.description);
     }
     
     C("#personal_changePassword_button").el.disabled = false;
@@ -197,7 +201,8 @@ async function setCard() {
     inp.el.blur();
     
     if (inp.val().length < 10) {
-        showPopup("Внимание", "Не указан номер карты!");
+        //showPopup("Внимание", "Не указан номер карты!");
+        showToast("Не указан номер карты");
         return;
     }
 
@@ -213,7 +218,8 @@ async function setCard() {
     title = result.status ? "" : "Внимание";
     
     if (result.description) {
-        showPopup(title, result.description);
+        //showPopup(title, result.description);
+        showToast(result.description);
     }
 }
 
@@ -221,7 +227,7 @@ let loadScanerScript = false;
 let scanerIsEnable   = false;
 
 C("#scanerQR").el.addEventListener("click", () => {
-    if (PLATFORM) { 
+    if (platform) {
         document.addEventListener("deviceready", function () {
             switch (device.platform) {
                 case "Android":
@@ -273,9 +279,9 @@ function loadScaner() {
     });
 }
     
-C("#plasticNumber").el.addEventListener("textInput", (e) => {
-    setTimeout(setCard, 333);
-});
+//C("#plasticNumber").el.addEventListener("textInput", (e) => {
+//    setTimeout(setCard, 333);
+//});
 
 let timerDisableFocus;
 

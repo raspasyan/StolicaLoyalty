@@ -23,15 +23,16 @@
 
         <script src="app/build/js/vendors/qrious.min.js"></script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=7a895d82-a17c-4fbd-8849-04120c71e5ae&lang=ru_RU&load=Geolink,geolocation,Map,ObjectManager"></script>
-        <script src="app/build/js/module.main.js?v=2106222" defer></script>
-        <script src="app/build/js/module.news.js?v=2106222" defer></script>
-        <script src="app/build/js/module.stores.js?v=2106222" defer></script>
-        <script src="app/build/js/module.personal.js?v=2106222" defer></script>
-        <script src="app/build/js/module.wallet.js?v=2106222" defer></script>
+        <script src="app/build/js/module.main.js?v=2706222" defer></script>
+        <script src="app/build/js/module.news.js?v=2706222" defer></script>
+        <script src="app/build/js/module.stores.js?v=2706222" defer></script>
+        <script src="app/build/js/module.personal.js?v=2706222" defer></script>
+        <script src="app/build/js/module.wallet.js?v=2706222" defer></script>
         
     </head>
 
     <body>
+        <div class="toasts"></div>
         <div class="loader" id="loader">
             <span class="loader__rotation"></span>
         </div>
@@ -394,7 +395,7 @@
                             <p>Пластиковую карту можно получить в магазине.</p>
                             <a href="#" onclick="drawSection('stores');return false;">Найти магазин.</a>
                             <p>&nbsp;</p>
-                            <p><a href="#" onclick="drawSection('setting_notify');return false">Разрешения на уведомления</a></p>
+                            <a href="#" onclick="drawSection('setting_notify');return false">Разрешения на уведомления</a>
                         </div>
                         <p class="personalUpdate__h">Изменить пароль</p>
                         <div class="popup"><span class="popup-text" id="personal-new-pass-popup">Введите новый пароль</span></div>
@@ -444,26 +445,28 @@
                 </div>
                 
                 <div class="settingNotify" id="setting_notify">
-                    <div class="container">
-                        <p>&nbsp;</p>
-                        <p>
+                    <div class="alerts__block">
+                        <div class="alerts__block_item">
+                            <span>Push-уведомления</span>
                             <label class="switch">
                                 <input type="checkbox" name="enablePushNotify">
                                 <span class="slider round"></span>
-                            </label> Включить PUSH уведомления
-                        </p>
-                        <p>
-                            <label class="switch">
-                                <input type="checkbox" name="enableSmsNotify">
-                                <span class="slider round"></span>
-                            </label> Включить SMS уведомления
-                        </p>
-                        <p>
+                            </label>
+                        </div>
+                        <div class="alerts__block_item">
+                            <span>Email</span>
                             <label class="switch">
                                 <input type="checkbox" name="enableEmailNotify">
                                 <span class="slider round"></span>
-                            </label> Включить E-mail уведомления
-                        </p>
+                            </label>
+                        </div>
+                        <div class="alerts__block_item">
+                            <span>SMS</span>
+                            <label class="switch">
+                                <input type="checkbox" name="enableSmsNotify">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -492,8 +495,9 @@
                                 <span class="scan_border3"></span>
                                 <span class="scan_border4"></span>
                             </button>
-                            <input type="text" name="plasticNumber" id="plasticNumber" style="position:absolute;left:-10000px" tabindex="-1">
-                            <!--<button id="set_card" class="button-primary" tabindex="-1">Добавить</button>-->
+                            <input type="text" name="plasticNumber" id="plasticNumber">
+                                   <!-- style="position:absolute;left:-10000px" tabindex="-1">-->
+                            <button id="set_card" class="button-primary" tabindex="-1">Добавить</button>
                         </div>
                     </div>
                 </div>
@@ -620,32 +624,6 @@
                             <tbody id="referrals">
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <div id="alerts">
-                    <div class="alerts__block">
-                        <div class="alerts__block_item">
-                            <span>Push-уведомления</span>
-                            <div class="switcher">
-                                <input id="push-sw" type="checkbox" /><label class="toggle" for="push-sw"><span
-                                        class="toggle--handler"></span></label>
-                            </div>
-                        </div>
-                        <div class="alerts__block_item">
-                            <span>Email</span>
-                            <div class="switcher">
-                                <input id="email-sw" type="checkbox" /><label class="toggle" for="email-sw"><span
-                                        class="toggle--handler"></span></label>
-                            </div>
-                        </div>
-                        <div class="alerts__block_item">
-                            <span>SMS</span>
-                            <div class="switcher">
-                                <input id="sms-sw" type="checkbox" /><label class="toggle" for="sms-sw"><span
-                                        class="toggle--handler"></span></label>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </main>

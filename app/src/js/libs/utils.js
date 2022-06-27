@@ -27,6 +27,91 @@ function hideLoader() {
     }, 500);
 }
 
+function showToast(message) {
+    const element = C().strToNode(`<div class="toast active"><div class="toast__cont">${message}</div></div>`);
+    const timerDisableToast = (el) => {
+                el.delclass('active');
+                setTimeout(() => {
+                    C().remove(el);
+                }, 1500);
+            };
+    
+    element.el.addEventListener("click", () => { timerDisableToast(element); });
+    
+    C('.toasts').el.prepend(element.el);
+    setTimeout(() => {
+        timerDisableToast(element);
+    }, 10000);
+}
+
+function showPopup(title, desc, message, buttonText, callback) {
+    const pOverlay = C("#popupOverlay"),
+        pTitle = C("#popupTitle"),
+        pDesc = C("#popupDescription"),
+        pMessage = C("#popupMessage"),
+        pButton = C("#popupButton");
+    let cancelText;
+
+    if (Array.isArray(buttonText)) {
+        cancelText = buttonText[1];
+        buttonText = buttonText[0];
+    }
+
+    if (!buttonText) {
+        buttonText = "Ок";
+    }
+
+    hideLoader();
+
+    show("#popupOverlay");
+
+    if (title) {
+        show("#popupTitle");
+        pTitle.text(title);
+    } else {
+        hide("#popupTitle");
+    }
+
+    if (desc) {
+        pDesc.html(desc);
+        show("#popupDescription");
+    } else {
+        hide("#popupDescription");
+    }
+
+    if (message) {
+        pMessage.html(message);
+        show("#popupMessage");
+    } else {
+        hide("#popupMessage");
+    }
+
+    if (cancelText) {
+        let className = "button";
+        
+        if (cancelText.indexOf("link:") === 0) {
+            cancelText = cancelText.replace("link:", "");
+            className  = "link";
+        }
+
+        let elem = `<button class="${className}" id="cancelText">${cancelText}</button>`;
+        
+        C('#popupCont').append(C().strToNode(elem));
+    }
+
+    pButton.el.addEventListener("click", () => {
+        if (callback) {
+            callback();
+            callback = null;
+        }
+    });
+
+    pButton.text(buttonText);
+    pOverlay.delclass(["animate__fadeIn", "animate__fadeOut", "animated", "animate__furious"]);
+    pOverlay.addclass(["animated", "animate__fadeIn", "animate__furious"]);
+
+}
+
 function modifyInput(el) {
     if (el.value.length === 1 && +el.value[0] === 8) {
         el.value = "+7-";

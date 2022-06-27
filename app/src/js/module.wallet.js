@@ -532,9 +532,10 @@ function download(filename, data, mimeType, dataURI) {
 }
 
 function showFinishDownload() {
-    promiseTimeout(() => {
-        showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
-    }, 1000);
+    //promiseTimeout(() => {
+        //showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+        showToast("Бонусная карта выгружена в память телефона");
+    //}, 1000);
 }
 
 function dataURItoBlob(dataURI) {

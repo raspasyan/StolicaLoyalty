@@ -1,3 +1,5 @@
+/* global d, Window, Document */
+
 const C = function (s, p) {
     this.isC = true,
         this.isNodeList = (nodes) => {
@@ -154,6 +156,15 @@ const C = function (s, p) {
                 });
             });
 
+            return this;
+        },
+        this.remove = (el) => {
+            let elem = el.el;
+    
+            if (d.body.contains(elem)) {
+                elem.parentNode.removeChild(elem);
+            }
+            
             return this;
         },
         this.delStor = (key) => {
