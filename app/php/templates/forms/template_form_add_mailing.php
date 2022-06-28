@@ -74,25 +74,25 @@
             margin-bottom: 2rem;
         }
     </style>
-    <div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">
+    <div style="max-width:600px;margin:10rem auto;padding:3rem;box-shadow:rgb(0 0 0 / 21%) 0px 2px 28px">
         <form action="" method="POST"  enctype="multipart/form-data">
             <div>
                 <input id="title" type="text" name="title" value="" required/>
-                <label for="title">Название</label>
+                <label for="title">Заголовок</label>
             </div>
             <div>
-                <textarea id="desc" name="desc"></textarea>
+                <textarea id="desc" name="desc" placeholder="Текст" style="margin-bottom:4rem"></textarea>
             </div>
             <div>
                <input id="key" type="text" name="key" value="" required/>
                 <label for="key">Ключ</label>
             </div>
-            <button type="submit" style="margin-top:5rem;">Разослать</button>
+            <button type="submit" style="margin-top:5rem">Отправить</button>
         </form>
     </div>
     <script>
         let d = document;
-        d.querySelectorAll("input[type=text]").forEach((el) => {
+        d.querySelectorAll(["input[type=text]"]).forEach((el) => {
             let clas  = "activeINPUT",
                 label = d.querySelector("[for=" + el.id + "]").classList,
                 exc   = ["date", "img"];

@@ -8,7 +8,7 @@ const C = function (s, p) {
             return typeof nodes === 'object' &&
                 /^\[object (HTMLCollection|NodeList|Object)\]$/.test(stringRepr) &&
                 (typeof nodes.length === 'number') &&
-                (nodes.length === 0 || (typeof nodes[0] === "object" && nodes[0].nodeType > 0));
+                (nodes.length === 0 || (typeof nodes[0] === 'object' && nodes[0].nodeType > 0));
         },
         this.isNode = (obj) => {
             if (obj && obj.nodeType) {
@@ -185,13 +185,13 @@ const C = function (s, p) {
                 return this;
             }
 
-            if (typeof addEventListener === "function") {
+            if (typeof addEventListener === 'function') {
                 addEvent = (el, type, fn) => {
                     el.addEventListener(type, fn, false);
                 };
-            } else if (typeof attachEvent === "function") {
+            } else if (typeof attachEvent === 'function') {
                 addEvent = (el, type, fn) => {
-                    el.attachEvent("on" + type, fn);
+                    el.attachEvent(`on${type}`, fn);
                 };
             } else {
                 return this;
@@ -208,7 +208,7 @@ const C = function (s, p) {
             return this;
         },
         this.html = (html) => {
-            if (html !== "" && !html) {
+            if (html !== '' && !html) {
                 return this.els[0].innerHTML;
             }
 
@@ -219,7 +219,7 @@ const C = function (s, p) {
             return this;
         },
         this.text = (text) => {
-            if (text !== "" && !text) {
+            if (text !== '' && !text) {
                 return this.els[0].innerText;
             }
 
@@ -230,7 +230,7 @@ const C = function (s, p) {
             return this;
         },
         this.val = (value) => {
-            if (value !== "" && !value) {
+            if (value !== '' && !value) {
                 return this.els[0].value;
             }
 

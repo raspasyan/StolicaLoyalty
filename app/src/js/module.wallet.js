@@ -65,7 +65,7 @@ function drawWallet(walletData) {
             }
         }
 
-        C("#discountValue").text(walletData.discountValue + '%');
+        C("#discountValue").text(`${walletData.discountValue}%`);
 
         let discountBalance = false;
 
@@ -139,8 +139,8 @@ function drawWallet(walletData) {
                 today.setDate(today.getDate()+1);
                                 
                 dateField.text(today.toLocaleString('ru-Ru').replace(", ", "\r\n"));
-                amountField.text("+" + activation);
-                bonusField.text(" бонусов (активация)");
+                amountField.text(`+${activation}`);
+                bonusField.text(' бонусов (активация)');
                 
                 blockBalanceEl.el.append(dateField.el);
                 amountField.el.append(bonusField.el);
@@ -203,13 +203,13 @@ async function disablePurchase(id, type) {
               async () => {
                         let apiMethod = (type==="purch") ? "disablePurchase" : "disableTransaction";
                         let result    = await api(apiMethod, {id});
-                        let purEl     = C("div[data-purchase-id='" + id + "']");
+                        let purEl     = C(`div[data-purchase-id="${id}"]`);
 
                         purEl.delclass(["animated", "animate__fadeIn"]);
                         purEl.addclass(["animated", "animate__fadeOut"]);
                         promiseTimeout(() => {
                             purEl.addclass("hudden");
-                            hide('[data-purchase-id="' + id + '"]');
+                            hide(`[data-purchase-id="${id}"]`);
                         }, 1000);
                         
                         return result;
@@ -223,7 +223,7 @@ function drawPurchase(purchase) {
           amount    = payment_amount ? yana(payment_amount) : "",
           onlyDate  = purchase.operation_date.substr(0, 10).split("-").reverse().join("."),
           refund    = (!purchase.operation_type) ? '<span class="bad" style="font-size: 12px;text-align: right;">чек возврата</span>' : '',
-          linkStore = '<span>' + purchase.store_title + '</span>';
+          linkStore = `<span>${purchase.store_title}</span>`;
     let tempPositions = '',
         tempOld       = '';
 
@@ -240,10 +240,10 @@ function drawPurchase(purchase) {
             
             let discount  = "";
             if(discount_amount && discount_amount > 0){
-                discount  = yana(discount_amount, "-") + " Р";
+                discount  = `${yana(discount_amount, "-")} Р`;
             }
             if(payment_amount && payment_amount != 0){
-                discount  = yana(payment_amount) + " Б";
+                discount  = `${yana(payment_amount)} Б`;
             }
             
             tempPositions += `<div class="payment-details payment-details-full">
@@ -290,11 +290,11 @@ function drawPurchase(purchase) {
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount" style="margin-left: 20px;">из них бонусами: </span>
-                        <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
+                        <span class="bad">${(amount ? `${amount} <span>Б</span>` : '')}</span>
                     </div>
                     <div class="payment-row">
                         <span class="payment-amount">Начислено бонусов: </span>
-                        <span class="good">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
+                        <span class="good">${(cashback ? `${cashback} <span>Б</span>` : '')}</span>
                     </div>
                     <div class="payment-row-store">
                         <span class="payment-amount">Магазин: </span>
@@ -321,8 +321,8 @@ function drawPurchase(purchase) {
                     </div>
                     <div class="purchase__row">
                         <span class="type"><span class="ring"><i class="${type.icon}"></i></span> <span class="title-${type.icon}">${type.name}</span></span>
-                        <span class="bad">${(amount ? (amount + " <span>Б</span>") : "")}</span>
-                        <span class="${(cashback_amount > 0 ? "good" : "bad")}">${(cashback ? (cashback + " <span>Б</span>") : "")}</span>
+                        <span class="bad">${(amount ? `${amount} <span>Б</span>` : '')}</span>
+                        <span class="${(cashback_amount > 0 ? "good" : "bad")}">${(cashback ? `${cashback} <span>Б</span>` : "")}</span>
                     </div>
                 </div>`;
     
@@ -462,7 +462,7 @@ function drawBonusCard(cardNumber, el) {
 
         C("#downloadCard").el.addEventListener("click", () => {
             const dataURL  = cardCanvasCtx.canvas.toDataURL("image/jpeg"),
-                  fileName = "Stolica - Bonus card - " + cardNumber + ".jpg",
+                  fileName = `Stolica - Bonus card - ${cardNumber}.jpg`,
                   link     = d.createElement("a");
 
             link.href = dataURL;
@@ -532,10 +532,10 @@ function download(filename, data, mimeType, dataURI) {
 }
 
 function showFinishDownload() {
-    //promiseTimeout(() => {
-        //showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
-        showToast("Бонусная карта выгружена в память телефона");
-    //}, 1000);
+    promiseTimeout(() => {
+        showPopup("Успешно", "", "Бонусная карта выгружена в память телефона");
+        //showToast("Бонусная карта выгружена в память телефона");
+    }, 1000);
 }
 
 function dataURItoBlob(dataURI) {

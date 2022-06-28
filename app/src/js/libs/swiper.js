@@ -1,6 +1,6 @@
 /* global d */
 
-d.addEventListener("DOMContentLoaded", () => {
+d.addEventListener('DOMContentLoaded', () => {
 
     d.addEventListener('touchstart', touchStart);
     d.addEventListener('touchend', touchEnd);

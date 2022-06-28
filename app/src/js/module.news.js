@@ -11,7 +11,7 @@ function drawNews(newsList) {
     
     removeLoadOption("#news>div.container");
     newsList.forEach((news) => {
-        const imageSrc = DOMAIN + "/" + news.image,
+        const imageSrc = `${DOMAIN}/${news.image}`,
               date     = news.date_to_post.split("-").reverse().join("."),
               imgElem  = news.image ? `<img src="${imageSrc}">` : '';
             

@@ -1,135 +1,135 @@
 /* global C, Notification, fetch, ymaps, Document, Window, attachEvent, DOMAIN */
 
-const API_URL = DOMAIN + "/api";
-const TERMS_URL = DOMAIN + "/politika-konfidentsialnosti";
-const RULES_URL = DOMAIN + "/pravila";
-const REF_RULES_URL = DOMAIN + "/pravila-akcii";
-const VERSION_URL = DOMAIN + "/version";
-const LS_TOKEN = "LS_BearerToken";
-const LS_CURR_UPDATE = "LS_CurrentUpdate";
-const LS_CONTENTS = "LS_Contents";
-const LS_NEED_UPDATE = "LS_NeedUpdate";
-const LS_SECTION = "section";
-const LS_PUSHID = "LS_pushID";
+const API_URL = `${DOMAIN}/api`;
+const TERMS_URL = `${DOMAIN}/politika-konfidentsialnosti`;
+const RULES_URL = `${DOMAIN}/pravila`;
+const REF_RULES_URL = `${DOMAIN}/pravila-akcii`;
+const VERSION_URL = `${DOMAIN}/version`;
+const LS_TOKEN = 'LS_BearerToken';
+const LS_CURR_UPDATE = 'LS_CurrentUpdate';
+const LS_CONTENTS = 'LS_Contents';
+const LS_NEED_UPDATE = 'LS_NeedUpdate';
+const LS_SECTION = 'section';
+const LS_PUSHID = 'LS_pushID';
+const d = document;
 
-let lastPhone = "",
-    secondsInterval = null,
-    secondsLeft = 0,
-    d = document,
-    resetCodeTimer = null,
-    resetCodeTimerValue = 0,
-    viewNewApp = 1,
-    currentBrightness;
+let lastPhone = '';
+let secondsInterval = null;
+let secondsLeft = 0;
+let resetCodeTimer = null;
+let resetCodeTimerValue = 0;
+let viewNewApp = 1;
+let currentBrightness;
 
 const carouselSections = [
-    "news",
-    "stores",
-    "wallet",
-    "personal"
+    'news',
+    'stores',
+    'wallet',
+    'personal'
 ];
 
 const sections = {
-    "adult": {},
-    "intro": {},
-    "registration": {
-        title: "Регистрация",
-        prevSection: "pre-registration"
+    adult: {},
+    intro: {},
+    registration: {
+        title: 'Регистрация',
+        prevSection: 'preregistration'
     },
-    "pre-registration": {
-        title: "Выбор города",
-        prevSection: "intro"
+    preregistration: {
+        title: 'Выбор города',
+        prevSection: 'intro'
     },
-    "authorization": {
-        title: "Вход",
-        prevSection: "intro"
+    authorization: {
+        title: 'Вход',
+        prevSection: 'intro'
     },
-    "reset": {
-        title: "Сброс пароля",
-        prevSection: "authorization"
+    reset: {
+        title: 'Сброс пароля',
+        prevSection: 'authorization'
     },
-    "personal": {
-        title: "Профиль",
+    personal: {
+        title: 'Профиль',
         showMenu: true,
         needAuth: true
     },
-    "wallet": {
-        title: "Кошелек",
+    wallet: {
+        title: 'Кошелек',
         showMenu: true,
         needAuth: true
     },
-    "news": {
-        title: "Новости",
+    news: {
+        title: 'Новости',
         showMenu: true,
         needAuth: true
     },
-    "refer": {
-        title: "Приглашение",
+    refer: {
+        title: 'Приглашение',
         showMenu: true,
-        prevSection: "personal",
+        prevSection: 'personal',
         needAuth: true
     },
-    "stores": {
-        title: "Магазины",
-        showMenu: true,
-        needAuth: true
-    },
-    "reg_success": {
-        title: "Регистрация завершена",
+    stores: {
+        title: 'Магазины',
         showMenu: true,
         needAuth: true
     },
-    "personal_update": {
-        title: "Смена данных",
+    reg_success: {
+        title: 'Регистрация завершена',
         showMenu: true,
-        prevSection: "personal",
         needAuth: true
     },
-    "set_plastic": {
-        title: "Привязка карты",
+    personal_update: {
+        title: 'Смена данных',
         showMenu: true,
-        prevSection: "personal_update",
+        prevSection: 'personal',
         needAuth: true
     },
-    "setting_notify": {
-        title: "Разрешения на уведомления",
+    set_plastic: {
+        title: 'Привязка карты',
         showMenu: true,
-        prevSection: "personal_update",
+        prevSection: 'personal_update',
+        needAuth: true
+    },
+    setting_notify: {
+        title: 'Разрешения на уведомления',
+        showMenu: true,
+        prevSection: 'personal_update',
         needAuth: true
     }
 };
 
-let currentSection = "",
-    bearerToken = "",
+let currentSection = '',
+    bearerToken = '',
     userActivityTimeout = null,
     initApp = true,
-    clientInfo = "Сайт",
+    clientInfo = 'Сайт',
     clientDevice,
     platform = null,
     versionApp = null,
     tempUpdate = {
-        personalHash: "",
-        walletHash: "",
-        storesHash: "",
-        newsHash: "",
-        lastPurchase: "",
-        lastTransaction: ""
+        personalHash: '',
+        walletHash: '',
+        storesHash: '',
+        newsHash: '',
+        lastPurchase: '',
+        lastTransaction: ''
     };
 
 const deviceType = () => {
     const ua = navigator.userAgent;
 
     if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-        return "mobile";
+        return 'mobile';
     } else if (/Mobile|Android|iPhone|iPad|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-        return "mobile";
+        return 'mobile';
     }
 
-    return "desktop";
+    return 'desktop';
 };
 
 // Инициализация св-в приложения
-d.addEventListener("DOMContentLoaded", () => {
-    document.addEventListener("deviceready", function () {
+d.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('deviceready', function () {
         let brightness = cordova.plugins.brightness;
 
         brightness.getBrightness((res) => {
@@ -231,7 +231,7 @@ d.addEventListener("DOMContentLoaded", () => {
     }));
     
     if (deviceType() !== "desktop" && !versionApp && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
-        C(".alertUpdater__desc_name a").el.href = DOMAIN + "/application";
+        C(".alertUpdater__desc_name a").el.href = `${DOMAIN}/application`;
         show(C("#alertUpdater").el);
     }
 
@@ -250,12 +250,12 @@ d.addEventListener("DOMContentLoaded", () => {
 
     // Подключаем обработчики для Popup
     C('span[id*="-popup"]').els.forEach((pop) => {
-        const inp = C("#" + pop.id.replace("-popup", "")).el;
+        const inp = C(`#${pop.id.replace("-popup", "")}`).el;
 
         ["blur", "input"].map((evt) => {
             inp.addEventListener(evt, (e) => {
                 dropFail(e.target);
-                C("#" + e.target.id + "-popup").delclass("show");
+                C(`#${e.target.id}-popup`).delclass("show");
             });
         });
     });
@@ -292,46 +292,46 @@ d.addEventListener("DOMContentLoaded", () => {
         addEventListener("input", () => {
             const idInp = "#personal-new-pass",
                 valEl = C(idInp).val(),
-                valConf = C(idInp + "-confirmation").val();
+                valConf = C(`${idInp}-confirmation`).val();
 
-            C("#personal_changePassword_button").el.disabled = (valEl === valConf) ? false : true;
+            C('#personal_changePassword_button').el.disabled = (valEl === valConf) ? false : true;
         });
     });
 
-    C("#personal-new-pass-confirmation").el.addEventListener("input", (e) => {
-        let but = C("#personal_changePassword_button").el;
+    C('#personal-new-pass-confirmation').el.addEventListener('input', (e) => {
+        let but = C('#personal_changePassword_button').el;
         const el = e.currentTarget,
-            valPass = C("#personal-new-pass").val();
+            valPass = C('#personal-new-pass').val();
 
         but.disabled = (valPass === el.value) ? false : true;
     });
 
     passViewToggle();
 
-    C("#reg-button").el.addEventListener("click", () => {
+    C('#reg-button').el.addEventListener("click", () => {
         if (checkReg()) {
-            showPopup("Подтверждение звонком", "Вам позвонят на номер\n" + C("#reg-phone-mask").val(), "На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок", "Запросить звонок", reg);
+            showPopup(`Подтверждение звонком`, `Вам позвонят на номер\n${C('#reg-phone-mask').val()}`, `На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок`, `Запросить звонок`, reg);
         }
     });
 
-    C('a[data-click="openBalanceView"]').el.addEventListener("click", (e) => {
+    C('a[data-click="openBalanceView"]').el.addEventListener('click', (e) => {
         const el = C('.balance-view').el.classList;
 
         el.toggle('open');
-        e.target.innerHTML = el.contains('open') ? "Скрыть" : "Подробнее...";
+        e.target.innerHTML = el.contains('open') ? 'Скрыть' : 'Подробнее...';
     });
 
-    C("#reset_button").el.addEventListener("click", () => {
+    C('#reset_button').el.addEventListener('click', () => {
         if (canGetResetConfirmationCode()) {
-            showPopup("Подтверждение звонком", "Ожидайте звонок на номер:\n" + C("#reset-phone-mask").val(), "На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.", "Запросить звонок", getResetConfirmationCode);
+            showPopup(`Подтверждение звонком`, `Ожидайте звонок на номер:\n${C("#reset-phone-mask").val()}`, `На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.`, `Запросить звонок`, getResetConfirmationCode);
         }
     });
 
-    C("#transactions-details-button").el.addEventListener("click", (e) => {
-        const list = C("#transactions").el.classList,
+    C('#transactions-details-button').el.addEventListener('click', (e) => {
+        const list = C('#transactions').el.classList,
             t = C(e.target);
 
-        list.toggle("hidden");
+        list.toggle('hidden');
 
         if (list.contains("hidden")) {
             t.text("история");
@@ -538,27 +538,27 @@ function crashClearStorage() {
 
 function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach((el) => {
-        el.addEventListener("click", (e) => {
+        el.addEventListener('click', (e) => {
             const i = e.currentTarget;
             let inp = i.parentNode.children[0];
 
-            i.classList.remove("icon-eye", "icon-eye-off");
+            i.classList.remove('icon-eye', 'icon-eye-off');
 
-            inp.type = (inp.type === "password" ? "text" : "password");
-            if (inp.type === "password") {
-                i.classList.add("icon-eye-off");
+            inp.type = (inp.type === 'password' ? 'text' : 'password');
+            if (inp.type === 'password') {
+                i.classList.add('icon-eye-off');
             } else {
-                i.classList.add("icon-eye");
+                i.classList.add('icon-eye');
             }
         });
     });
 }
 
 function initPopups() {
-    C(".popup-text").els.forEach((el) => {
-        el.addEventListener("click", () => {
-            if (el.classList.contains("show")) {
-                el.classList.remove("show");
+    C('.popup-text').els.forEach((el) => {
+        el.addEventListener('click', () => {
+            if (el.classList.contains('show')) {
+                el.classList.remove('show');
             }
         });
     });
@@ -571,11 +571,11 @@ function userActivity() {
 }
 
 function openNav() {
-    show("#overlay-menu");
+    show('#overlay-menu');
 }
 
 function closeNav() {
-    hide("#overlay-menu");
+    hide('#overlay-menu');
 }
 
 async function promiseTimeout(fn, ms) {
@@ -622,7 +622,7 @@ async function drawSection(section) {
             break;
         }
 
-        case "pre-registration": {
+        case "preregistration": {
             await updateCities();
             break;
         }
@@ -729,8 +729,8 @@ async function renderReferSection() {
 
             show("#referLink");
 
-            C("#referLinkTG").attr("href", "https://t.me/share/url?url=" + data.link + "&text=Столица: бонусы&utm_source=ref_tg");
-            C("#referLinkWA").attr("href", "https://api.whatsapp.com/send?text=Столица: бонусы " + data.link + "&utm_source=ref_wa");
+            C("#referLinkTG").attr("href", `https://t.me/share/url?url=${data.link}&text=Столица: бонусы&utm_source=ref_tg`);
+            C("#referLinkWA").attr("href", `https://api.whatsapp.com/send?text=Столица: бонусы ${data.link}&utm_source=ref_wa`);
         }
 
         if (data.referrals && data.referrals.length)
@@ -742,7 +742,7 @@ async function renderReferSection() {
                 tr.append(td);
 
                 td = C().create("td");
-                td.text("7-***-***-" + ref_row.phone);
+                td.text(`7-***-***-${ref_row.phone}`);
                 tr.append(td);
 
                 td = C().create("td");
@@ -753,11 +753,11 @@ async function renderReferSection() {
                 if (ref_row.gifted) {
                     td.style("fontWeight", "bold");
                 }
-                td.text((ref_row.gifted ? "+" + ref_row.referral_gift : "n/a"));
-                td.addclass(ref_row.gifted ? "good" : "bad");
+                td.text((ref_row.gifted ? `+${ref_row.referral_gift}` : 'n/a'));
+                td.addclass(ref_row.gifted ? 'good' : 'bad');
                 tr.append(td);
 
-                C("#referrals").append(tr);
+                C('#referrals').append(tr);
             });
     }
 }
@@ -809,8 +809,8 @@ async function auth() {
 
         location.reload();
     } else {
-        //showPopup("", result.description);
-        showToast(result.description);
+        showPopup("", result.description);
+        //showToast(result.description);
     }
 }
 
@@ -838,8 +838,8 @@ function checkReg() {
     }
 
     if (regPassEl.val() !== regPassConfEl.val()) {
-        //showPopup("Внимание", "Введенные пароли не совпадают!");
-        showToast("Введенные пароли не совпадают!");
+        showPopup("Внимание", "Введенные пароли не совпадают!");
+        //showToast("Введенные пароли не совпадают!");
         return 0;
     }
 
@@ -894,22 +894,22 @@ async function reg() {
 
         if (result.description) {
             promiseTimeout(() => {
-                showPopup("", `${result.description}, возможно вам нужно <a href="" onclick="drawSection('reset');return false;">восстановить пароль</a>?`);
+                showPopup('', `${result.description}, возможно вам нужно <a href="" onclick="drawSection('reset');return false;">восстановить пароль</a>?`);
             }, 1000);
         }
     }
 }
 
 function setConfirmationTimeout(result) {
-    let regConfRemindEl = C("#reg_confirmation_remind"),
-        regConfCodePopupEl = C("#reg-confirmation-code-popup"),
-        regConfInfoEl = C("#reg_confirmation_info");
+    let regConfRemindEl = C('#reg_confirmation_remind'),
+        regConfCodePopupEl = C('#reg-confirmation-code-popup'),
+        regConfInfoEl = C('#reg_confirmation_info');
 
-    hide("#confirmation_button_reset");
+    hide('#confirmation_button_reset');
     secondsLeft = result.data.seconds_left;
     regConfCodePopupEl.text(result.description);
     regConfInfoEl.text(result.description);
-    regConfRemindEl.text("Повторная отправка будет доступна через " + secondsLeft + " сек.");
+    regConfRemindEl.text(`Повторная отправка будет доступна через ${secondsLeft} сек.`);
 
     if (secondsInterval) {
         clearInterval(secondsInterval);
@@ -917,11 +917,11 @@ function setConfirmationTimeout(result) {
 
     secondsInterval = setInterval(() => {
         secondsLeft--;
-        regConfRemindEl.text("Повторная отправка будет доступна через " + secondsLeft + " сек.");
+        regConfRemindEl.text(`Повторная отправка будет доступна через ${secondsLeft} сек.`);
         if (secondsLeft <= 0) {
             clearInterval(secondsInterval);
-            regConfRemindEl.text("");
-            show("#confirmation_button_reset");
+            regConfRemindEl.text('');
+            show('#confirmation_button_reset');
         }
     }, 1000);
 }
@@ -966,8 +966,8 @@ async function confirmation() {
         } else {
             if (result.description) {
                 regConfCodeEl.val("");
-                //showPopup("Внимание", result.description);
-                showToast(result.description);
+                showPopup("Внимание", result.description);
+                //showToast(result.description);
             }
         }
     }
@@ -1025,10 +1025,10 @@ async function getResetConfirmationCode() {
             }
         } else {
             resButtonEl.disabled = false;
-            //promiseTimeout(() => {
-            //    showPopup("Внимание", result.description);
-            //}, 1000);
-            showToast(result.description);
+            promiseTimeout(() => {
+                showPopup("Внимание", result.description);
+            }, 1000);
+            //showToast(result.description);
         }
     }
 }
@@ -1039,7 +1039,7 @@ function restartResetConfirmationTimer(seconds) {
     resetCodeTimerValue = seconds - 1;
 
     show("#reset_confirmation_time");
-    resConfTimeEl.text(resetCodeTimerValue + " сек.");
+    resConfTimeEl.text(`${resetCodeTimerValue} сек.`);
 
     if (resetCodeTimer) {
         clearInterval(resetCodeTimer);
@@ -1047,7 +1047,7 @@ function restartResetConfirmationTimer(seconds) {
 
     resetCodeTimer = setInterval(() => {
         show("#reset_confirmation_time");
-        resConfTimeEl.text(resetCodeTimerValue + " сек.");
+        resConfTimeEl.text(`${resetCodeTimerValue} сек.`);
         resetCodeTimerValue--;
 
         if (!resetCodeTimerValue) {
@@ -1126,19 +1126,19 @@ async function getResetConfirmationSms() {
                 restartResetConfirmationTimer(result.data.seconds_left);
         } else {
             resButtonEl.disabled = false;
-            //promiseTimeout(() => {
-            //    showPopup("Внимание", result.description);
-            //}, 1000);
-            showToast(result.description);
+            promiseTimeout(() => {
+                showPopup("Внимание", result.description);
+            }, 1000);
+            //showToast(result.description);
         }
     }
 }
 
 function attentionFocus(el) {
     el.scrollIntoView();
-    el.classList.add("fail");
+    el.classList.add('fail');
     el.focus();
-    C("#" + el.id + "-popup").togclass("show");
+    C(`#${el.id}-popup`).togclass('show');
 }
 
 async function logOff() {
@@ -1237,13 +1237,13 @@ function hideFeedback() {
 }
 
 function showInputPopup(id) {
-    const et = C("#" + id);
+    const et = C(`#${id}`);
 
     et.el.scrollIntoView();
     et.addclass("fail");
     et.el.focus();
 
-    C("#" + id + "-popup").addclass("show");
+    C(`#${id}-popup`).addclass('show');
 }
 
 async function setFeedback() {
@@ -1269,12 +1269,12 @@ async function setFeedback() {
         name: C("#feedback-name").val(),
         email: C("#feedback-email").val(),
         reason: C("#feedback-reason").val(),
-        message: C("#feedback-message").val() + " (" + clientInfo + ")"
+        message: `${C("#feedback-message").val()} (${clientInfo})`
     });
 
     if (result.status) {
-        //showPopup("Готово", "Ваше сообщение передано оператору");
-        showToast("Ваше сообщение передано оператору");
+        showPopup("Готово", "Ваше сообщение передано оператору");
+        //showToast("Ваше сообщение передано оператору");
         hideFeedback();
         C("#feedback-message").val("");
     } else {
@@ -1286,8 +1286,8 @@ async function setFeedback() {
 }
 
 function onErrorCatch(error) {
-    //showPopup("Внимание", error.description);
-    showToast(error.description);
+    showPopup("Внимание", error.description);
+    //showToast(error.description);
     console.warn(error);
 }
 
@@ -1310,7 +1310,7 @@ async function checkUpdates(callback) {
     const { data, status } = result;
 
     if (viewNewApp && versionApp && platform) {
-        fetch(VERSION_URL + "?platform=" + platform).then(r => r.text()).then(t => {
+        fetch(`${VERSION_URL}?platform=${platform}`).then(r => r.text()).then(t => {
             if (Number(t) > Number(versionApp)) {
                 showPopup("Внимание", "Вышла новая версия, пожалуйста, обновите приложение!", "", ["Обновить", "link:Напомнить позже"], linkToApp);
             }
@@ -1343,7 +1343,7 @@ async function checkUpdates(callback) {
             contents.personal = data.personal;
             updates.personalHash = data.personalHash;
 
-            let userName = data.personal.firstname + " " + data.personal.middlename;
+            let userName = `${data.personal.firstname} ${data.personal.middlename}`;
             C("#feedback-name").val((userName ? userName : ""));
         }
         

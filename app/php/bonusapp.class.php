@@ -93,10 +93,27 @@ class BonusApp
                     if (!empty($_POST)) {
                         echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
                         
-                        if ($result = $this->sendMailingPush($_POST)) {
-                            print_r($result);
-                        } else {
-                            echo '<h1>Произошла ошибка!</h1> <p><a href="/add-mailing">Попробовать еще раз</a></p>';
+                        $result = $this->sendMailingPush($_POST);
+                        
+                        echo '<h1>Рассылка push уведомлений завершена</h1>';
+                        echo '<p><a href="/add-mailing"><<< Назад</a></p>';
+                        
+                        if (count($result['error']) > 0) {
+                            echo '<h3>Не удалось отправить уведомление на номера:</h3>';
+                            echo '<ul>';
+                            foreach ($result['error'] as $phone) {
+                                echo '<li>' . $phone . '</li>';
+                            }
+                            echo '</ul>';
+                        }
+                        
+                        if (count($result['success']) > 0) {
+                            echo '<h3>Успешно отправлены уведомления на номера:</h3>';
+                            echo '<ul>';
+                            foreach ($result['success'] as $phone) {
+                                echo '<li>' . $phone . '</li>';
+                            }
+                            echo '</ul>';
                         }
                         
                         echo '</div>';
@@ -4681,7 +4698,7 @@ class BonusApp
     
     private function sendMailingPush($data)
     {
-        $result = FALSE;
+        $result['status'] = TRUE;
         
         if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
             return $result;
@@ -4692,7 +4709,7 @@ class BonusApp
         $listPushes = $this->getListPushIds();
         
         foreach ($listPushes as $push) {
-            $ext = $this->sendPush($push['push_id'], $data['title'], $data['message']);
+            $ext = $this->sendPush($push['push_id'], $data['title'], $data['desc']);
 
             if ($ext['status']) {
                 $result['success'][] = $push['phone'];
@@ -4701,8 +4718,7 @@ class BonusApp
             }
         }
         
-        
-
+        return $result;
     }
 
     private function sendNewsToServer()

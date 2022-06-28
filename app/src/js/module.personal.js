@@ -26,8 +26,8 @@ async function changeEnableNotify(type, value) {
     }
     
     if (result.description) {
-        //showPopup("", result.description);
-        showToast(result.description);
+        showPopup("", result.description);
+        //showToast(result.description);
     }
 }
 
@@ -69,7 +69,7 @@ async function updatePersonalData() {
 
         if (data.phone) {
             let a = data.phone.split('');
-            C("#personal_phone").text('+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10]);
+            C("#personal_phone").text(`+${a[0]} (${a[1]}${a[2]}${a[3]}) ${a[4]}${a[5]}${a[6]}-${a[7]}${a[8]}-${a[9]}${a[10]}`);
         }
 
         C("#personalCardType").text((data.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ");
@@ -124,7 +124,7 @@ function drawPersonal(personal) {
     
     if (personal.phone) {
         a = personal.phone.split('');
-        C("#personal_phone").text('+' + a[0] + ' (' + a[1] + a[2] + a[3] + ') ' + a[4] + a[5] + a[6] + '-' + a[7] + a[8] + '-' + a[9] + a[10]);
+        C("#personal_phone").text(`+${a[0]} (${a[1]}${a[2]}${a[3]}) ${a[4]}${a[5]}${a[6]}-${a[7]}${a[8]}-${a[9]}${a[10]}`);
     }
 
     C("#personalCardType").text((personal.preferred_discount) ? "ДИСКОНТНАЯ" : "БОНУСНАЯ");
@@ -162,8 +162,8 @@ async function changeCard() {
     }
     
     if (result.description) {
-        //showPopup(title, result.description);
-        showToast(result.description);
+        showPopup(title, result.description);
+        //showToast(result.description);
     }
 
 }
@@ -184,11 +184,11 @@ async function changeProfileData() {
                         });
     
     if (cardRes.status) {
-        //showToast("", "Данные профиля изменены!");
-        showToast("Данные профиля изменены");
+        showPopup("", "Данные профиля изменены!");
+        //showToast("Данные профиля изменены");
     } else {
-        //showToast("Внимание", cardRes.description);
-        showToast(cardRes.description);
+        showPopup("Внимание", cardRes.description);
+        //showToast(cardRes.description);
     }
     
     C("#personal_changePassword_button").el.disabled = false;
@@ -201,8 +201,8 @@ async function setCard() {
     inp.el.blur();
     
     if (inp.val().length < 10) {
-        //showPopup("Внимание", "Не указан номер карты!");
-        showToast("Не указан номер карты");
+        showPopup("Внимание", "Не указан номер карты!");
+        //showToast("Не указан номер карты");
         return;
     }
 
@@ -218,8 +218,8 @@ async function setCard() {
     title = result.status ? "" : "Внимание";
     
     if (result.description) {
-        //showPopup(title, result.description);
-        showToast(result.description);
+        showPopup(title, result.description);
+        //showToast(result.description);
     }
 }
 
@@ -237,7 +237,7 @@ C("#scanerQR").el.addEventListener("click", () => {
                             setCard();
                        },
                        function (error) {
-                           //alert("Scanning failed: " + error);
+                           //alert(`Scanning failed: ${error}`);
                        },
                        {
                            preferFrontCamera : false, // iOS and Android

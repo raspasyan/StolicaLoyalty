@@ -4,9 +4,9 @@ function mask(inp) {
     let underlay = C().create('input').el,
         attr = {};
 
-    attr.id = inp.id.replace("-mask", "");
-    attr.disabled = "disabled";
-    attr.type = inp.getAttribute("type");
+    attr.id = inp.id.replace('-mask', '');
+    attr.disabled = 'disabled';
+    attr.type = inp.getAttribute('type');
 
     for (let key in attr) {
         underlay.setAttribute(key, attr[key]);
@@ -14,19 +14,19 @@ function mask(inp) {
 
     inp.parentNode.insertBefore(underlay, inp);
     setPhoneMask(inp, false);
-    inp.addEventListener("click", () => { inp.selectionStart = inp.value.length; });
-    inp.addEventListener("input", (e) => setPhoneMask(e.target));
+    inp.addEventListener('click', () => { inp.selectionStart = inp.value.length; });
+    inp.addEventListener('input', (e) => setPhoneMask(e.target));
 }
 
 function setPhoneMask(inp, mask) {
-    const hideId = "#" + inp.id.replace("-mask", "");
+    const hideId = `#${inp.id.replace('-mask', '')}`;
     let phone = inp.value;
 
-    if (phone === "") {
-        phone = "7";
+    if (phone === '') {
+        phone = '7';
     }
     if (!mask) {
-        mask = "+_(___)___-__-__";
+        mask = '+_(___)___-__-__';
     }
 
     phone = getPhoneNumbers(phone);
@@ -36,12 +36,12 @@ function setPhoneMask(inp, mask) {
 }
 
 function getPhoneNumbers(value) {
-    let phone = value.replace(/\D/g, "");
+    let phone = value.replace(/\D/g, '');
 
     if (phone) {
-        phone = phone.replace(/^([^7])/, "7$1").replace(/^(\d{11})(.+)/, "$1");
+        phone = phone.replace(/^([^7])/, '7$1').replace(/^(\d{11})(.+)/, '$1');
     } else {
-        phone = "7";
+        phone = '7';
     }
 
     return phone;
@@ -54,7 +54,7 @@ function getValueByMask(value, mask, full) {
     phone.map((e) => newPhone = newPhone.replace(/_/, e));
 
     if (!full) {
-        newPhone = newPhone.replace(/\)_|-_|_/g, "");
+        newPhone = newPhone.replace(/\)_|-_|_/g, '');
     }
 
     return newPhone;
