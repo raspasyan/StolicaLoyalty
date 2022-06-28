@@ -3,16 +3,11 @@
 // Переход на пластиковую карту
 C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
 
-C('input[name="enablePushNotify"]').el.addEventListener("change", (e) => {
-    changeEnableNotify("push", Number(e.currentTarget.checked));
-});
 
-C('input[name="enableSmsNotify"]').el.addEventListener("change", (e) => {
-    changeEnableNotify("sms", Number(e.currentTarget.checked));
-});
-
-C('input[name="enableEmailNotify"]').el.addEventListener("change", (e) => {
-    changeEnableNotify("email", Number(e.currentTarget.checked));
+C('input[name^="enableNotify"]').els.forEach((el) => {
+    el.addEventListener("change", (e) => {
+        changeEnableNotify(el.dataset.type, Number(e.currentTarget.checked));
+    });
 });
 
 async function changeEnableNotify(type, value) {
@@ -89,15 +84,11 @@ function drawPersonal(personal) {
     if (!permitRedrawSection('personal')) {
         return;
     }
-
-    let notifyPushInp = C('input[name="enablePushNotify"]').el;
-    notifyPushInp.checked = (personal.enable_push_notify && personal.enable_push_notify === 1);
-
-    let notifySmsInp = C('input[name="enableSmsNotify"]').el;
-    notifySmsInp.checked = (personal.enable_sms_notify && personal.enable_sms_notify === 1);
-
-    let notifyEmailInp = C('input[name="enableEmailNotify"]').el;
-    notifyEmailInp.checked = (personal.enable_email_notify && personal.enable_email_notify === 1);
+    
+    C('input[name^="enableNotify"]').els.forEach((el) => {
+        let type = el.dataset.type;
+        el.checked = (personal[`enable_${type}_notify`] && personal[`enable_${type}_notify`] === 1);
+    });
 
     if (personal.firstname || personal.middlename || personal.lastname) {
         C("#personal_name").text([personal.firstname, personal.middlename, personal.lastname].join(" "));
