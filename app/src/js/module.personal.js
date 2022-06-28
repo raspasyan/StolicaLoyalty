@@ -269,10 +269,11 @@ function loadScaner() {
         startScaner();
     });
 }
-    
-//C("#plasticNumber").el.addEventListener("textInput", (e) => {
-//    setTimeout(setCard, 333);
-//});
+if (!C("#set_card").el) {
+    C("#plasticNumber").el.addEventListener("textInput", (e) => {
+        setTimeout(setCard, 333);
+    });
+}
 
 let timerDisableFocus;
 

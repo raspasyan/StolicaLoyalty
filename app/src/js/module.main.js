@@ -230,11 +230,6 @@ d.addEventListener('DOMContentLoaded', () => {
         purchases: 1
     }));
     
-    if (deviceType() !== "desktop" && !versionApp && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
-        C(".alertUpdater__desc_name a").el.href = `${DOMAIN}/application`;
-        show(C("#alertUpdater").el);
-    }
-
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach((inp) => {
         mask(inp);
@@ -260,7 +255,10 @@ d.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    C("#set_card").el.addEventListener("click", () => setCard());
+    if (C("#set_card").el) {
+        C("#set_card").el.addEventListener("click", () => setCard());
+    }
+    
     C("#auth-button").el.addEventListener("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach((label) => {
@@ -307,7 +305,14 @@ d.addEventListener('DOMContentLoaded', () => {
     });
 
     passViewToggle();
-
+    
+    const checkBrowserForUpdater = setTimeout(() => {
+        if (deviceType() !== "desktop" && !versionApp && C().getStor("NOW_DATE") != new Date().toLocaleDateString()) {
+            C(".alertUpdater__desc_name a").el.href = `${DOMAIN}/application`;
+            show(C("#alertUpdater").el);
+        }
+    }, 5000);
+    
     C('#reg-button').el.addEventListener("click", () => {
         if (checkReg()) {
             showPopup(`Подтверждение звонком`, `Вам позвонят на номер\n${C('#reg-phone-mask').val()}`, `На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок`, `Запросить звонок`, reg);
