@@ -1,11 +1,11 @@
 /* global d, C, LS_CONTENTS, LS_SECTION, platform */
 
 // Переход на пластиковую карту
-C("#personal_changeCard_button").el.addEventListener("click", () => changeCard());
+C("#personal_changeCard_button").bind("click", () => changeCard());
 
 
 C('input[name^="enableNotify"]').els.forEach((el) => {
-    el.addEventListener("change", (e) => {
+    C(el).bind("change", (e) => {
         changeEnableNotify(el.dataset.type, Number(e.currentTarget.checked));
     });
 });
@@ -63,7 +63,7 @@ async function updatePersonalData() {
         }
 
         if (data.phone) {
-            let a = data.phone.split('');
+            const a = data.phone.split('');
             C("#personal_phone").text(`+${a[0]} (${a[1]}${a[2]}${a[3]}) ${a[4]}${a[5]}${a[6]}-${a[7]}${a[8]}-${a[9]}${a[10]}`);
         }
 
@@ -114,7 +114,7 @@ function drawPersonal(personal) {
     }
     
     if (personal.phone) {
-        a = personal.phone.split('');
+        const a = personal.phone.split('');
         C("#personal_phone").text(`+${a[0]} (${a[1]}${a[2]}${a[3]}) ${a[4]}${a[5]}${a[6]}-${a[7]}${a[8]}-${a[9]}${a[10]}`);
     }
 
@@ -217,9 +217,9 @@ async function setCard() {
 let loadScanerScript = false;
 let scanerIsEnable   = false;
 
-C("#scanerQR").el.addEventListener("click", () => {
+C("#scanerQR").bind("click", () => {
     if (platform) {
-        document.addEventListener("deviceready", function () {
+        d.addEventListener("deviceready", function () {
             switch (device.platform) {
                 case "Android":
                     cordova.plugins.barcodeScanner.scan(
@@ -231,17 +231,17 @@ C("#scanerQR").el.addEventListener("click", () => {
                            //alert(`Scanning failed: ${error}`);
                        },
                        {
-                           preferFrontCamera : false, // iOS and Android
-                           showFlipCameraButton : true, // iOS and Android
-                           showTorchButton : true, // iOS and Android
-                           torchOn: false, // Android, launch with the torch switched on (if available)
-                           saveHistory: true, // Android, save scan history (default false)
-                           prompt : "Просканируйте QR код", // Android
-                           resultDisplayDuration: 500, // Android, display scanned text for X ms. 0 suppresses it entirely, default 1500
-                           formats : "QR_CODE", // default: all but PDF_417 and RSS_EXPANDED
-                           orientation : "portrait", // Android only (portrait|landscape), default unset so it rotates with the device
-                           disableAnimations : true, // iOS
-                           disableSuccessBeep: false // iOS and Android
+                           preferFrontCamera :      false, // iOS and Android
+                           showFlipCameraButton :   true, // iOS and Android
+                           showTorchButton :        true, // iOS and Android
+                           torchOn:                 false, // Android, launch with the torch switched on (if available)
+                           saveHistory:             true, // Android, save scan history (default false)
+                           prompt :                 "Просканируйте QR код", // Android
+                           resultDisplayDuration:   500, // Android, display scanned text for X ms. 0 suppresses it entirely, default 1500
+                           formats :                "QR_CODE", // default: all but PDF_417 and RSS_EXPANDED
+                           orientation :            "portrait", // Android only (portrait|landscape), default unset so it rotates with the device
+                           disableAnimations :      true, // iOS
+                           disableSuccessBeep:      false // iOS and Android
                        }
                     );
 
@@ -269,8 +269,9 @@ function loadScaner() {
         startScaner();
     });
 }
+
 if (!C("#set_card").el) {
-    C("#plasticNumber").el.addEventListener("textInput", (e) => {
+    C("#plasticNumber").bind("textInput", (e) => {
         setTimeout(setCard, 333);
     });
 }

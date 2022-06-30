@@ -28,7 +28,7 @@
             font-family: "Open Sans", sans-serif;
             color: #222;
         }
-        input, textarea {
+        input, textarea, select {
             display: block;
             width:100%;
         }
@@ -69,6 +69,14 @@
             top: -10.5rem;
             font-size: 1.25rem;
         }
+        #listPhones {
+            max-height: 0px;
+            transition: 0.5s max-height;
+            overflow: hidden;
+        }
+        #listPhones.active {
+            max-height: 300px;
+        }
         .ck-editor__editable_inline {
             min-height: 300px;
             margin-bottom: 2rem;
@@ -76,6 +84,15 @@
     </style>
     <div style="max-width:600px;margin:10rem auto;padding:3rem;box-shadow:rgb(0 0 0 / 21%) 0px 2px 28px">
         <form action="" method="POST"  enctype="multipart/form-data">
+            <div>
+                <select name="type" style="margin-bottom:4rem">
+                    <option value="phones">По номеру телефона</option>
+                    <option value="pushes">Всем клиентам</option>
+                </select>
+            </div>
+            <div id="listPhones" class="active">
+                <textarea id="desc" name="phones" placeholder="Список телефонов в один столбец" style="margin-bottom:4rem"></textarea>
+            </div>
             <div>
                 <input id="title" type="text" name="title" value="" required/>
                 <label for="title">Заголовок</label>
@@ -92,18 +109,28 @@
     </div>
     <script>
         let d = document;
-        d.querySelectorAll(["input[type=text]"]).forEach((el) => {
+        d.querySelectorAll(['input[type="text"]']).forEach((el) => {
             let clas  = "activeINPUT",
-                label = d.querySelector("[for=" + el.id + "]").classList,
-                exc   = ["date", "img"];
+                label = d.querySelector(`[for=${el.id}]`).classList,
+                exc   = ['date', 'img'];
             
             if (el.value) label.add(clas);
             
             if (!exc.includes(el.id)) {
-                el.addEventListener("focus", () => label.add(clas));
-                el.addEventListener("blur",  () => {
+                el.addEventListener('focus', () => label.add(clas));
+                el.addEventListener('blur',  () => {
                     if (!el.value) label.remove(clas);
                 });
+            }
+        });
+        d.querySelector('select[name="type"]').addEventListener('change', (e) => {
+            const el = e.target;
+            let listPhones = d.querySelector('#listPhones');
+            
+            if (el.value==='phones') {
+                listPhones.classList.add('active');
+            } else {
+                listPhones.classList.remove('active');
             }
         });
     </script>

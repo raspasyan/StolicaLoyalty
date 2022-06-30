@@ -4676,8 +4676,10 @@ class BonusApp
         return $query->fetchAll();
     }
     
-    private function getListPushIds()
+    private function getListPushIds($phones=null)
     {
+        $add_phones = ($phones) ? " AND a.phone IN (" . implode(",", $phones) . ")" : "";
+        
         $query = $this->pdo->prepare("SELECT 
                                         a.phone, 
                                         a.push_id 
@@ -4689,7 +4691,7 @@ class BonusApp
                                         AND 
                                         b.account_id = a.id 
                                         AND 
-                                        b.enable_push_notify = 1");
+                                        b.enable_push_notify = 1" . $add_phones);
         $query->execute();
         $queryResult = $query->fetchAll();
         
@@ -4701,12 +4703,28 @@ class BonusApp
         $result['status'] = TRUE;
         
         if (YANDEX_NEWS_FORM_KEY !== $data['key']) {
+            $result['status'] = FALSE;
             return $result;
+        }
+        
+        $phones = $data['phones'];
+        $arr_phones = NULL;
+        
+        if ($data['type']==="pushes") {
+            print_r("Всем из базы");
+        } else {
+            $phones = str_replace(" ", "", $phones);
+            $phones = str_replace(",", "\r\n", $phones);
+            $arr_phones = explode("\r\n", $phones);
+            
+            foreach($arr_phones as &$phone){
+                $phone = preg_replace("/^./", "7", $phone);
+            }
         }
         
         $result['success'] = [];
         $result['errors']  = [];
-        $listPushes = $this->getListPushIds();
+        $listPushes = $this->getListPushIds($arr_phones);
         
         foreach ($listPushes as $push) {
             $ext = $this->sendPush($push['push_id'], $data['title'], $data['desc']);

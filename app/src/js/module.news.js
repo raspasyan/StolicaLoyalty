@@ -27,7 +27,7 @@ function drawNews(newsList) {
 
         container.el.prepend(newsContEl.el);
         
-        newsContEl.el.addEventListener("click", () => {
+        newsContEl.bind("click", () => {
             const el = C(".newsOverlay");
 
             show(".newsOverlay");
@@ -42,7 +42,7 @@ function drawNews(newsList) {
     });
 }
 
-C(".newsOverlay").el.addEventListener("click", (e) => {
+C(".newsOverlay").bind("click", (e) => {
     if (e.target === e.currentTarget || e.target.type === "submit") {
         hide(".newsOverlay");
         d.body.classList.remove("hideOverflow");

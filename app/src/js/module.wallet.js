@@ -191,7 +191,7 @@ function drawPurchases(purchases, transactions) {
     
     C("span[data-disable-purchase]").els.forEach((el) => {
         let type = (el.classList.contains("purch")) ? "purch" : "trans";
-        el.addEventListener("click", () => disablePurchase(el.dataset.disablePurchase, type));
+        C(el).bind("click", () => disablePurchase(el.dataset.disablePurchase, type));
     });
 }
 
@@ -330,7 +330,7 @@ function drawPurchase(purchase) {
     C("#transactions").el.prepend(elList);
     
     if (purchase.positions) {
-        C(".purchase__row", elList).el.addEventListener("click", () => fillOverlay(tempOld));
+        C(".purchase__row", elList).bind("click", () => fillOverlay(tempOld));
     }
 }
 
@@ -382,7 +382,7 @@ function closeQrOverlay() {
     hide(".qrcodeOverlay");
     d.body.classList.remove("hideOverflow");
     
-    document.addEventListener("deviceready", function() {
+    d.addEventListener("deviceready", function() {
         cordova.plugins.brightness.setBrightness(currentBrightness, (suc) => {}, (err) => {});
     });
 }
@@ -418,7 +418,7 @@ function openQrOverlay() {
     qrEl.el.cardNumber = cardNumber;
     qrEl.append(qrCanvas);
     
-    document.addEventListener("deviceready", function() {
+    d.addEventListener("deviceready", function() {
         cordova.plugins.brightness.setBrightness(1, (suc) => {}, (err) => {});
     });
 }
@@ -443,8 +443,8 @@ function drawBonusCard(cardNumber, el) {
     
     cardImg.loaded = false;
     cardImg.src = cardImageSRC;
-    qrEl.el.addEventListener("click", openQrOverlay);
-    cardImg.addEventListener("load", () => {
+    qrEl.bind("click", openQrOverlay);
+    C(cardImg).bind("load", () => {
         let cardCanvas = d.createElement("canvas");
         cardCanvas.width = cardImageW;
         cardCanvas.height = cardImageH;
@@ -460,7 +460,7 @@ function drawBonusCard(cardNumber, el) {
         
         show("#downloadCard");
 
-        C("#downloadCard").el.addEventListener("click", () => {
+        C("#downloadCard").bind("click", () => {
             const dataURL  = cardCanvasCtx.canvas.toDataURL("image/jpeg"),
                   fileName = `Stolica - Bonus card - ${cardNumber}.jpg`,
                   link     = d.createElement("a");
@@ -483,7 +483,7 @@ function download(filename, data, mimeType, dataURI) {
                 type: mimeType
               });
 
-    document.addEventListener("deviceready", function() {
+    d.addEventListener("deviceready", function() {
       let storageLocation = "";
 
       switch (device.platform) {
@@ -568,7 +568,7 @@ function dataURItoBlob(dataURI) {
 }
 
 if (versionApp) {
-    document.addEventListener("deviceready", function() {    
+    d.addEventListener("deviceready", function() {    
       let storageLocation = "";
 
       if (device.platform === "Android") {

@@ -36,7 +36,7 @@ function showToast(message) {
                 }, 1500);
             };
     
-    element.el.addEventListener('click', () => { timerDisableToast(element); });
+    element.bind('click', () => { timerDisableToast(element); });
     
     C('.toasts').el.prepend(element.el);
     setTimeout(() => {
@@ -99,7 +99,7 @@ function showPopup(title, desc, message, buttonText, callback) {
         C('#popupCont').append(C().strToNode(elem));
     }
 
-    pButton.el.addEventListener('click', () => {
+    pButton.bind('click', () => {
         if (callback) {
             callback();
             callback = null;

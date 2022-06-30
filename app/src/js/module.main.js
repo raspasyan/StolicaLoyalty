@@ -129,7 +129,7 @@ const deviceType = () => {
 
 // Инициализация св-в приложения
 d.addEventListener('DOMContentLoaded', () => {
-    document.addEventListener('deviceready', function () {
+    C(d).bind('deviceready', function () {
         let brightness = cordova.plugins.brightness;
 
         brightness.getBrightness((res) => {
@@ -143,7 +143,7 @@ d.addEventListener('DOMContentLoaded', () => {
         
         cordova.getAppVersion.getVersionCode(function (version) {
             versionApp = version;
-            clientInfo   = `${device.platform} (${versionApp})`;
+            clientInfo   = `${device.platform} v${versionApp}`;
         });
         
         switch (device.platform) {
@@ -196,7 +196,7 @@ d.addEventListener('DOMContentLoaded', () => {
                 break;
         }
         
-        document.addEventListener('backbutton', function (e) {
+        C(d).bind('backbutton', function (e) {
             e.preventDefault();
             
             if (!closeOpenOverlays()) {
@@ -233,7 +233,7 @@ d.addEventListener('DOMContentLoaded', () => {
     // Применим маску ко всем полям ввода номера телефона
     C('input[id*="-mask"]').els.forEach((inp) => {
         mask(inp);
-        inp.addEventListener("input", (e) => {
+        C(inp).bind("input", (e) => {
             let phone = e.currentTarget.value;
             C('input[id*="-phone-mask"]').els.forEach((phn) => {
                 phn.value = phone;
@@ -248,21 +248,19 @@ d.addEventListener('DOMContentLoaded', () => {
         const inp = C(`#${pop.id.replace("-popup", "")}`).el;
 
         ["blur", "input"].map((evt) => {
-            inp.addEventListener(evt, (e) => {
+            C(inp).bind(evt, (e) => {
                 dropFail(e.target);
                 C(`#${e.target.id}-popup`).delclass("show");
             });
         });
     });
     
-    if (C("#set_card").el) {
-        C("#set_card").el.addEventListener("click", () => setCard());
-    }
+    C("#set_card").bind("click", () => setCard());
     
-    C("#auth-button").el.addEventListener("click", () => auth());
+    C("#auth-button").bind("click", () => auth());
 
     C(".system_tabsHead > span label").els.forEach((label) => {
-        label.addEventListener("click", (e) => {
+        C(label).bind("click", (e) => {
             const el = e.currentTarget.parentNode,
                 elCs = el.parentNode.parentNode.children[1].children,
                 tabHeads = el.parentNode.children;
@@ -276,18 +274,18 @@ d.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    C("#reg-birthdate").el.addEventListener("input", (e) => validateBirthdate(e.target));
+    C("#reg-birthdate").bind("input", (e) => validateBirthdate(e.target));
 
-    C("#personal_changePassword_button").el.addEventListener("click", () => changeProfileData());
+    C("#personal_changePassword_button").bind("click", () => changeProfileData());
 
-    C("#reset_confirmation_code").el.addEventListener("input", (e) => C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
+    C("#reset_confirmation_code").bind("input", (e) => C("#reset_confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reg-confirmation-code").el.addEventListener("input", (e) => C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
+    C("#reg-confirmation-code").bind("input", (e) => C("#confirmation_button").el.disabled = (e.target.value.length === 4 ? false : true));
 
-    C("#reset-phone-mask").el.addEventListener("input", (e) => C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true));
+    C("#reset-phone-mask").bind("input", (e) => C("#reset_button").el.disabled = (e.target.value.length === 16 ? false : true));
 
-    d.querySelectorAll("#personal-new-pass-confirmation, #personal-new-pass").forEach(() => {
-        addEventListener("input", () => {
+    C(["#personal-new-pass-confirmation, #personal-new-pass"]).els.forEach((el) => {
+        C(el).bind("input", () => {
             const idInp = "#personal-new-pass",
                 valEl = C(idInp).val(),
                 valConf = C(`${idInp}-confirmation`).val();
@@ -296,7 +294,7 @@ d.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    C('#personal-new-pass-confirmation').el.addEventListener('input', (e) => {
+    C('#personal-new-pass-confirmation').bind('input', (e) => {
         let but = C('#personal_changePassword_button').el;
         const el = e.currentTarget,
             valPass = C('#personal-new-pass').val();
@@ -311,28 +309,28 @@ d.addEventListener('DOMContentLoaded', () => {
             C(".alertUpdater__desc_name a").el.href = `${DOMAIN}/application`;
             show(C("#alertUpdater").el);
         }
-    }, 5000);
+    }, 10000);
     
-    C('#reg-button').el.addEventListener("click", () => {
+    C('#reg-button').bind("click", () => {
         if (checkReg()) {
             showPopup(`Подтверждение звонком`, `Вам позвонят на номер\n${C('#reg-phone-mask').val()}`, `На звонок отвечать не требуется, введите последние четыре цифры номера телефона с которого совершён звонок`, `Запросить звонок`, reg);
         }
     });
 
-    C('a[data-click="openBalanceView"]').el.addEventListener('click', (e) => {
+    C('a[data-click="openBalanceView"]').bind('click', (e) => {
         const el = C('.balance-view').el.classList;
 
         el.toggle('open');
         e.target.innerHTML = el.contains('open') ? 'Скрыть' : 'Подробнее...';
     });
 
-    C('#reset_button').el.addEventListener('click', () => {
+    C('#reset_button').bind('click', () => {
         if (canGetResetConfirmationCode()) {
             showPopup(`Подтверждение звонком`, `Ожидайте звонок на номер:\n${C("#reset-phone-mask").val()}`, `На звонок отвечать не требуется, введите последние 4-ре цифры номера телефона входящего звонка.`, `Запросить звонок`, getResetConfirmationCode);
         }
     });
 
-    C('#transactions-details-button').el.addEventListener('click', (e) => {
+    C('#transactions-details-button').bind('click', (e) => {
         const list = C('#transactions').el.classList,
             t = C(e.target);
 
@@ -347,14 +345,14 @@ d.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    C("#feedback-submit").el.addEventListener("click", () => setFeedback());
+    C("#feedback-submit").bind("click", () => setFeedback());
 
     // Выбор города
-    C("#store_cities").el.addEventListener("change", (e) => drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores"))));
+    C("#store_cities").bind("change", (e) => drawStoresInCity(JSON.parse(e.target.options[e.target.selectedIndex].getAttribute("data-stores"))));
 
     // Навигация
     C(".bottomNav>li, .mainMenu__content_nav>li").els.forEach((el) => {
-        el.addEventListener("click", (e) => {
+        C(el).bind("click", (e) => {
             let section = e.currentTarget.dataset.section;
 
             closeNav();
@@ -366,7 +364,7 @@ d.addEventListener('DOMContentLoaded', () => {
     });
 
     // Сокрытие всплывающего окна
-    C("#popupOverlay").el.addEventListener("click", (e) => {
+    C("#popupOverlay").bind("click", (e) => {
         const el = e.currentTarget.classList;
 
         el.remove("animate__fadeIn", "animate__fadeOut", "animated", "animate__furious");
@@ -388,8 +386,8 @@ d.addEventListener('DOMContentLoaded', () => {
 
     checkUpdates(() => {
         if (bearerToken) {
-            d.body.addEventListener("pointerover", userActivity);
-            d.body.addEventListener("pointerdown", userActivity);
+            C('body').bind("pointerover", userActivity);
+            C('body').bind("pointerdown", userActivity);
         }
     });
 });
@@ -479,7 +477,7 @@ function closeOpenOverlays() {
             }
             
             case ".qrcodeOverlay": {
-                document.addEventListener("deviceready", function() {
+                C(d).bind("deviceready", function() {
                     cordova.plugins.brightness.setBrightness(currentBrightness, (suc) => {}, (err) => {});
                 });
             }
@@ -543,7 +541,7 @@ function crashClearStorage() {
 
 function passViewToggle() {
     C('input + i[class^="icon-eye"]').els.forEach((el) => {
-        el.addEventListener('click', (e) => {
+        C(el).bind('click', (e) => {
             const i = e.currentTarget;
             let inp = i.parentNode.children[0];
 
@@ -561,7 +559,7 @@ function passViewToggle() {
 
 function initPopups() {
     C('.popup-text').els.forEach((el) => {
-        el.addEventListener('click', () => {
+        C(el).bind('click', () => {
             if (el.classList.contains('show')) {
                 el.classList.remove('show');
             }

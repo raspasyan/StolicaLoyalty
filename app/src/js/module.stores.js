@@ -55,7 +55,7 @@ function drawStoresInCity(stores) {
         
         const store = C().strToNode(temp);
 
-        store.el.addEventListener("click", () => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
+        store.bind("click", () => getStoreToGeoMap(city.coordinates, city.title, city.store_title, city.shedule, city.phone, city.rsa_id));
 
         list.el.append(store.el);
 
@@ -98,8 +98,8 @@ function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {
     
     const storeMap = C().strToNode(temp);
     
-    C("div>div", storeMap).el.addEventListener("click", () => closeStore());
-    C("i", storeMap).el.addEventListener("click", () => closeStore());
+    C("div>div", storeMap).bind("click", () => closeStore());
+    C("i", storeMap).bind("click", () => closeStore());
     d.body.appendChild(storeMap.el);
 
     const x = parseFloat(coordinates.split(',')[0]),
