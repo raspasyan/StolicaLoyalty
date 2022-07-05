@@ -9,6 +9,9 @@ use phpFCMv1\Config\APNsConfig;
 class BonusApp
 {
     private $pdo = null;
+    private static $currentIndexForPron = 0;
+    private static $listIdsForPron      = [];
+    
 
     private $providers = [
         "DIG_FC",                   // Билайн
@@ -93,7 +96,19 @@ class BonusApp
                     if (!empty($_POST)) {
                         echo '<div style="max-width:600px;margin:10rem auto;padding: 3rem;box-shadow: rgb(0 0 0 / 21%) 0px 2px 28px;">';
                         
+                        if (!$this->checkPhones($_POST)) {
+                            echo '<h1>Неверные номера в списке получателей</h1>';
+                            echo '<p><a href="/add-mailing"><<< Назад</a></p>';
+                            break;
+                        }
+                        
                         $result = $this->sendMailingPush($_POST);
+                        
+                        if (!$result['status']) {
+                            echo '<h1>Неверный ключ</h1>';
+                            echo '<p><a href="/add-mailing"><<< Назад</a></p>';
+                            break;
+                        }
                         
                         echo '<h1>Рассылка push уведомлений завершена</h1>';
                         echo '<p><a href="/add-mailing"><<< Назад</a></p>';
@@ -321,7 +336,7 @@ class BonusApp
 
             case "cron": {
                     // Пример: http://localhost/cron?token=CRON_TOKEN&method=METHOD_NAME
-                    if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+                    //if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
                     switch ($_GET["method"]) {
                         default: {
@@ -365,6 +380,7 @@ class BonusApp
                                 break;
                             }
                         case "prepareprolongations": {
+                            
                                 $this->service_prepareProlongations();
                                 break;
                             }
@@ -1370,6 +1386,200 @@ class BonusApp
     function prepareProlongations()
     {
         $result = ["status" => false, "data" => []];
+        $max_connections = 40;
+
+        $startTotal = microtime(true);
+
+        // $dtEnd = new DateTime("2022-06-13T11:00:00");
+        // $dtStart = new DateTime("2022-06-13T11:00:00");
+        $dtEnd = new DateTime();
+        $dtStart = new DateTime();
+        $dtStart->modify("-10 minutes");
+
+        $startGetPurchases = microtime(true);
+
+        $LMX = $this->getLMX();
+        $getPurchasesResult = $LMX->getPurchases([
+            "startChequeTime" => $dtStart->format("Y-m-d H:i:s"),
+            "lastChequeTime" => $dtEnd->format("Y-m-d H:i:s"),
+            "count" => 9999,
+            "from" => 0,
+            "state" => "Confirmed"
+        ]);
+
+        $result["data"]["LMX->getPurchases"] = round(microtime(true) - $startGetPurchases, 4);
+
+        if ($getPurchasesResult["status"]) {
+            $result["status"] = true;
+
+            $bonusCards = [];
+            foreach ($getPurchasesResult["data"]->data as $value) {
+                if (!empty($value->personIdentifier) && !in_array($value->personIdentifier, $bonusCards)) array_push($bonusCards, $value->personIdentifier);
+            }
+            // $bonusCards = ["00000028N1H63E"];
+
+            if (count($bonusCards)) {                
+                $start = microtime(true);
+                $query = $this->pdo->prepare("SELECT
+                        a.phone,
+                        p.ext_id,
+                        p.last_pron,
+                        b.card_number
+                    FROM
+                        profiles p
+                        LEFT JOIN accounts a ON a.id = p.account_id
+                        LEFT JOIN bonuscards b ON a.id = b.account_id AND b.status = 1
+                    WHERE
+                        p.account_id IN (SELECT
+                                account_id
+                            FROM
+                                bonuscards
+                            WHERE card_number IN ('" . implode("','", $bonusCards) . "')
+                        )
+                        AND (p.last_pron IS NULL OR p.last_pron < :dtStart)
+                ");
+                $query->execute(["dtStart" => $dtStart->format("Y-m-d H:i:s")]);
+                $queryResult = $query->fetchAll();
+                $result["data"]["queryResult"] = round(microtime(true) - $start, 4);
+                
+                if (count($queryResult)) {
+                    self::$listIdsForPron            = [];
+                    self::$currentIndexForPron       = 0;
+                    $result["data"]["prolongations"] = [];
+                    
+                    $success = 0;
+                    $all     = 0;
+                    $mh      = curl_multi_init();
+
+                    for ($i = 0; $i < $max_connections; $i++) {
+                        $this->addUrlMultiDetailedBalance($mh, $queryResult);
+                    }
+
+                    do {
+                        $status = curl_multi_exec($mh, $active);
+
+                        if ($active) {
+                            $mhinfo = curl_multi_info_read($mh);
+
+                            if (is_array($mhinfo) && ($ch = $mhinfo['handle'])) {
+                                $all++;
+                                $content = curl_multi_getcontent($ch);
+                                $info = curl_getinfo($ch);
+                                
+                                if ($info['http_code'] == 200) {
+                                    $success++;
+                                    $queryResultRow = $queryResult[self::$listIdsForPron[$ch]];
+                                    $currentResult  = [
+                                        "phone" => $queryResultRow["phone"],
+                                        "personId" => $queryResultRow["ext_id"],
+                                        "prolongationAmount" => 0
+                                    ];
+
+                                    $start            = microtime(true);
+                                    $getBalanceResult = null;
+                                    $updatePron       = false;
+
+                                    $methodResult = json_decode($content);
+                                    if ($methodResult && $methodResult->result->state == "Success") {
+                                        if (!empty($methodResult->data->items)) {
+                                            $lifeTimes = [];
+
+                                            if (!empty($methodResult->data->items[0]->lifeTimesByTime))
+                                                foreach($methodResult->data->items[0]->lifeTimesByTime as $value)
+                                                    array_push($lifeTimes, [
+                                                        "amount" => $value->amount * 100,
+                                                        "date"   => $value->date
+                                                    ]);
+                                            
+                                            $res["status"] = true;
+                                            $res["data"] = [
+                                                "balance"    => $methodResult->data->items[0]->amount,
+                                                "activation" => $methodResult->data->items[0]->notActivatedAmount,
+                                                "lifeTimes"  => $lifeTimes
+                                            ];
+                                        } else {
+                                            $res["description"] = "Бонусные счета отсутствуют.";
+                                        }
+                                        $updatePron = true;
+                                    }
+                                    
+                                    $getBalanceResult = $res;
+                                    
+                                    if ($getBalanceResult && count($getBalanceResult["data"]["lifeTimes"])) {
+                                        $currentResult["LMX->getBalance"] = round(microtime(true) - $start, 4);
+
+                                        $totalAmount = 0;
+                                        foreach ($getBalanceResult["data"]["lifeTimes"] as $lifeTime) if ($lifeTime["amount"] < 0) $totalAmount += $lifeTime["amount"] * -1;
+                                        $totalAmount = round($totalAmount / 100);
+                                        if ($totalAmount) {
+                                            $currentResult["prolongationAmount"] = $totalAmount;
+
+                                            $setDepositsResult = $this->setDeposits([
+                                                ["card_number" => $queryResultRow["card_number"], "deposit" => 0, "amount" => $totalAmount, "description" => "prolongation"],
+                                                ["card_number" => $queryResultRow["card_number"], "deposit" => 1, "amount" => $totalAmount, "description" => "prolongation"]
+                                            ]);
+                                            $currentResult["setDepositsResult"] = $setDepositsResult;
+
+                                            $updatePron = $setDepositsResult["status"];
+                                        }
+                                    }
+
+                                    if ($updatePron) {
+                                        $setProfileDataByPhoneResult = $this->setProfileDataByPhone($queryResultRow["phone"], ["last_pron" => $dtEnd->format("Y-m-d H:i:s")]);
+                                        $currentResult["setProfileDataByPhoneResult"] = $setProfileDataByPhoneResult;
+                                    }
+
+                                    $result["data"]["prolongations"][] = $currentResult;
+                                }
+                                
+                                curl_multi_remove_handle($mh, $ch);
+                                curl_close($ch);
+
+                                $this->addUrlMultiDetailedBalance($mh, $queryResult);
+                            }
+                        }
+                    } while ($active);
+                    
+                    curl_multi_close($mh);
+                }
+            }
+        } else {
+            $result["data"] = "Не удалось получить список чеков.";
+        }
+
+        $result["data"]["totalTime"] = round(microtime(true) - $startTotal, 4);
+
+        return $result;
+    }
+    
+    private function addUrlMultiDetailedBalance($mh, $url_list)
+    {
+        if (isset($url_list[self::$currentIndexForPron])) {
+            $LMX = $this->getLMX();
+            $ch = curl_init();
+            $url = LMX_HOST . "/systemapi/api/Users/" . $url_list[self::$currentIndexForPron]["ext_id"] . "/DetailedBalance";
+            $authorization = "Authorization: Bearer " . $LMX->SAPI_accessToken;
+            
+            curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json', $authorization));
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            curl_multi_add_handle($mh, $ch);
+            
+            self::$listIdsForPron[$ch] = self::$currentIndexForPron;
+            self::$currentIndexForPron++;
+            
+            return true;
+        }
+    }
+
+
+    
+    /*
+    function prepareProlongations()
+    {
+        $result = ["status" => false, "data" => []];
 
         $startTotal = microtime(true);
 
@@ -1482,6 +1692,7 @@ class BonusApp
 
         return $result;
     }
+    */
 
     function service_executeProlongations()
     {
@@ -1499,6 +1710,154 @@ class BonusApp
     public function executeProlongations($limit)
     {
         $result = ["status" => false, "data" => []];
+        $max_connections = 30;
+
+        $getDepositsResult = $this->getDeposits($limit);
+        
+        if ($getDepositsResult["status"]) {
+            if (count($getDepositsResult["data"])) {
+                $LMX = $this->getLMX();
+                self::$listIdsForPron = [];
+                self::$currentIndexForPron = 0;
+                                
+                $mh = curl_multi_init();
+
+                for ($i = 0; $i < $max_connections; $i++) {
+                    $this->addUrlMultiAddDeposit($mh, $getDepositsResult["data"]);
+                }
+
+                do {
+                    $status = curl_multi_exec($mh, $active);
+
+                    if ($active) {
+                        $mhinfo = curl_multi_info_read($mh);
+
+                        if (is_array($mhinfo) && ($ch = $mhinfo['handle'])) {
+                            $all++;
+                            $content = curl_multi_getcontent($ch);
+                            $info    = curl_getinfo($ch);
+                            
+                            if ($info['http_code'] == 201 || $info['http_code'] == 200) {
+                                $chargeOnResult = ["status" => false, "data" => null];
+                                
+                                if ($content) {
+                                    $chargeOnResult["status"] = true;
+                                    $chargeOnResult["data"]   = json_decode($content);
+                                } else {
+                                    $chargeOnResult["description"] = "ERROR_DESCRIPTION";
+                                }
+                                
+                                if ($chargeOnResult["status"]) {
+                                    $cd = new DateTime();
+                                    $setDepositsResult = $this->setDeposits([["id" => $getDepositsResult["data"][self::$listIdsForPron[$ch]]["id"], "status" => 1, "time" => $cd->format("Y-m-d H:i:s")]]);
+                                    if ($setDepositsResult["status"]) {
+                                        //
+                                    } else {
+                                        $this->journal("CRON", __FUNCTION__, "", $setDepositsResult["status"], json_encode(["f" => "setDeposits", "a" => ["id" => $getDepositsResult["data"][self::$listIdsForPron[$ch]]["id"], "status" => 1]]), json_encode($setDepositsResult, JSON_UNESCAPED_UNICODE));
+                                    }
+
+                                    $result["data"][] = $setDepositsResult;
+                                } else {
+                                    $this->journal("CRON", __FUNCTION__, "", $chargeOnResult["status"], json_encode(["f" => "LMX->chargeOn", "a" => [$getDepositsResult["data"][self::$listIdsForPron[$ch]]["card_number"], $getDepositsResult["data"][self::$listIdsForPron[$ch]]["amount"], 2, $getDepositsResult["data"][self::$listIdsForPron[$ch]]["description"], $getDepositsResult["data"][self::$listIdsForPron[$ch]]["deposit"]]]), json_encode($chargeOnResult, JSON_UNESCAPED_UNICODE));
+                                }
+
+                            }
+
+                            curl_multi_remove_handle($mh, $ch);
+                            curl_close($ch);
+
+                            $this->addUrlMultiAddDeposit($mh, $getDepositsResult["data"]);
+                            
+                        }
+                    }
+                } while ($active);
+
+                curl_multi_close($mh);
+//==========
+            $result["status"] = true;
+        }
+    }
+    
+    return $result;
+}
+    
+private function addUrlMultiAddDeposit($mh, $url_list)
+{
+    if (isset($url_list[self::$currentIndexForPron])) {
+        $deposit     = $url_list[self::$currentIndexForPron];
+        $cardNumber  = $deposit["card_number"];
+        $amount      = $deposit["amount"];
+        $extId       = 2;
+        $description = $deposit["description"];
+        $type        = ($deposit["deposit"] ? "Deposit" : "Withdraw");
+        
+        $rawData = json_encode(array(
+            "operations" => array ( array (
+                    "Identifier"     => $cardNumber,
+                    "identifierType" => "cardNumber",
+                    "amount"         => $amount,
+                    "description"    => "",
+                    "externalInfo"   => ""
+                )),
+            "lifeTimeDefinition" => array (
+                    "id" => $extId),
+            "legal" => array (
+                    "id"        => 12, 
+                    "partnerId" => 1),
+            "currency" => array (
+                    "id"   => 1, 
+                    "name" => "Бонусы (9885300862.10)"),
+            "loyaltyProgram" => array (
+                "externalId"      => "D28308F6-B7F2-4851-8AAD-245A2BD4FFB9",
+                "description"     => null,
+                "paymentSystemId" => 1,
+                "images"          => null,
+                "id"              => 1,
+                "name"            => "Default"
+            ),
+            "partner" => array (
+                "id"              => 1,
+                "externalId"      => "d43db70f-dfb5-7158-df0d-f28ac938f3a4",
+                "name"            => "Столица",
+                "canEdit"         => true,
+                "loyaltyPrograms" => array ("id" => 1,  "name" => "Default"),
+                "legalName"       => null
+            ),
+            "targetGroup"         => null,
+            "type"                => $type,
+            "description"         => $description,
+            "internalDescription" => $description
+        ));
+
+        $url = LMX_HOST . "/systemapi/api/deposit";
+        $LMX = $this->getLMX();
+        $ch = curl_init();
+        $authorization = "Authorization: Bearer " . $LMX->SAPI_accessToken;
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:', 'Content-Type:application/json', $authorization)); //'Content-Length: '.strlen($rawData), 
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $rawData);
+
+        curl_multi_add_handle($mh, $ch);
+
+        self::$listIdsForPron[$ch] = self::$currentIndexForPron;
+        self::$currentIndexForPron++;
+
+        return true;
+    }
+    
+    return false;
+}
+    
+
+    
+/*
+    public function executeProlongations($limit)
+    {
+        $result = ["status" => false, "data" => []];
 
         $getDepositsResult = $this->getDeposits($limit);
         if ($getDepositsResult["status"]) {
@@ -1507,6 +1866,7 @@ class BonusApp
 
                 foreach ($getDepositsResult["data"] as $deposit) {
                     $chargeOnResult = $LMX->chargeOn($deposit["card_number"], $deposit["amount"], 2, $deposit["description"], $deposit["deposit"]);
+                    
                     if ($chargeOnResult["status"]) {
                         $cd = new DateTime();
                         $setDepositsResult = $this->setDeposits([["id" => $deposit["id"], "status" => 1, "time" => $cd->format("Y-m-d H:i:s")]]);
@@ -1528,11 +1888,11 @@ class BonusApp
 
         return $result;
     }
+*/
 
     public function setDeposits($deposits)
     {
-        $result = ["status" => false, "data" => []];
-
+        $result = ["status" => false, "data" => []];        
         $externalTransaction = $this->pdo->inTransaction();
         if (!$externalTransaction) $this->pdo->beginTransaction();
 
@@ -4698,6 +5058,26 @@ class BonusApp
         return $queryResult;
     }
     
+    private function checkPhones($data)
+    {
+        if ($data['type']=="pushes") {
+            return TRUE;
+        }
+        
+        $phones     = trim($data['phones']);
+        $phones     = str_replace(" ", "", $phones);
+        $phones     = str_replace(",", "\r\n", $phones);
+        $arr_phones = explode("\r\n", $phones);
+
+        foreach($arr_phones as $phone){
+            if (strlen($phone) != 11) {
+                return FALSE;
+            }
+        }
+        
+        return TRUE;
+    }
+    
     private function sendMailingPush($data)
     {
         $result['status'] = TRUE;
@@ -4710,9 +5090,7 @@ class BonusApp
         $phones = $data['phones'];
         $arr_phones = NULL;
         
-        if ($data['type']==="pushes") {
-            print_r("Всем из базы");
-        } else {
+        if ($data['type']==="phones") {
             $phones = str_replace(" ", "", $phones);
             $phones = str_replace(",", "\r\n", $phones);
             $arr_phones = explode("\r\n", $phones);
@@ -5054,21 +5432,14 @@ class BonusApp
 
     private function sendPushIos($token, $title, $body)
     {
-        $apiHost  = 'https://api.push.apple.com';
-
-        $payload['aps'] = array(
-                                    'alert' => array (
-                                            'title' => $title,
-                                            'body'  => $body
-                                            ), 
-                                    'badge' => 0
-                              );
-
-        $payload = json_encode($payload);
+        $apiHost = 'https://api.push.apple.com';
+        $message = '{"aps":{"alert":{"title":"'. $title .'","body":"'. $body .'"},"badge":0}}';
 
         //exec('curl -d \''.$payload.'\' --cert '.$apnsCert.':'.$apnsPass.' -H "apns-topic: com.stolica.bonuses" -H "apns-priority: 10" --http2 ' . $apiHost, $output);
         
-        return $this->sendHTTP2Push($apiHost, "com.stolica.bonuses", $payload, $token);
+        //return $this->sendHTTP2Push($apiHost, "com.stolica.bonuses", $payload, $token);
+        
+        return json_decode(file_get_contents("http://stolica-dv.ru/api/1?token=" . $token . "&message=" . urlencode($message)), true);
     }
     
     private function sendHTTP2Push($http2_server, $app_bundle_id, $message, $token)

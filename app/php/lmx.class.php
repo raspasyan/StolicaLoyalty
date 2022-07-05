@@ -1,6 +1,6 @@
 <?php
 class LMX {
-    private $SAPI_accessToken = null;
+    public $SAPI_accessToken = null;
     private $PAPI_accessToken = null;
 
     function __construct($SAPI_accessToken = "", $PAPI_accessToken = "") {
@@ -1371,7 +1371,7 @@ class LMX {
         return $result;
     }
 
-    private function SAPI_Deposit($data) {    
+    private function SAPI_Deposit($data) {
         $result = $this->SAPI_CheckToken();
         if ($result["status"]) {
             $url = LMX_HOST . "/systemapi/api/deposit";
