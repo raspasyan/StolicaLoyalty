@@ -138,6 +138,11 @@ d.addEventListener('DOMContentLoaded', () => {
             console.log(JSON.stringify(err));
         });
         
+        C("#set_card").el.style.position = "absolute";
+        C("#set_card").el.style.left = "-10000px";
+        C("#plasticNumber").el.style.position = "absolute";
+        C("#plasticNumber").el.style.left = "-10000px";
+        
         clientDevice = `${device.platform} ${device.version} (${device.manufacturer} ${device.model})`;
         platform     = device.platform;
         
@@ -637,15 +642,6 @@ async function drawSection(section) {
             show("#registration_cont");
             hide("#reg_confirmation");
 
-            C("#prem").el.checked = true;
-            C("#discount").el.checked = false;
-
-            if (city.options[city.options.selectedIndex].getAttribute("default-discount") === 0) {
-                hide("#loyalty-system");
-            } else {
-                show("#loyalty-system");
-            }
-
             break;
         }
 
@@ -775,10 +771,11 @@ async function checkAuthorization() {
 
 async function auth() {
     const authPhoneEl = C("#auth-phone-mask"),
-        authPassEl = C("#auth-pass"),
-        authPassPop = C("#auth-pass-popup"),
-        phone = getPhoneNumbers(C("#auth-phone-mask").val()),
-        authButton = C("#auth-button").el;
+          authPassEl  = C("#auth-pass"),
+          authPassPop = C("#auth-pass-popup"),
+          authButton  = C("#auth-button").el,
+          phone       = getPhoneNumbers(C("#auth-phone-mask").val()),
+          pass        = authPassEl.val();
 
     if (!phone || phone.length !== 11) {
         showInputPopup("auth-phone-mask");
@@ -799,11 +796,11 @@ async function auth() {
 
     let result = await api("authorization", {
         phone,
-        pass: authPassEl.val()
+        pass
     });
 
     authButton.disabled = false;
-
+        
     if (result.status) {
         clearLocalStorage();
 
@@ -818,11 +815,11 @@ async function auth() {
 }
 
 function checkReg() {
-    const regPhoneEl = C("#reg-phone-mask"),
-        regBdEl = C("#reg-birthdate").el,
-        regPassEl = C("#reg-pass"),
-        regPassConfEl = C("#reg-pass-confirm"),
-        phone = getPhoneNumbers(regPhoneEl.val());
+    const regPhoneEl    = C("#reg-phone-mask"),
+          regBdEl       = C("#reg-birthdate").el,
+          regPassEl     = C("#reg-pass"),
+          regPassConfEl = C("#reg-pass-confirm"),
+          phone         = getPhoneNumbers(regPhoneEl.val());
 
     if (phone.length !== 11) {
         showInputPopup("reg-phone-mask");
@@ -850,10 +847,10 @@ function checkReg() {
 }
 
 async function reg() {
-    let regPhoneEl = C("#reg-phone-mask"),
-        regBdEl = C("#reg-birthdate"),
+    let regPhoneEl  = C("#reg-phone-mask"),
+        regBdEl     = C("#reg-birthdate"),
         regButtonEl = C("#reg-button").el,
-        phone = getPhoneNumbers(regPhoneEl.val()),
+        phone       = getPhoneNumbers(regPhoneEl.val()),
         birthdate;
 
 
@@ -870,11 +867,11 @@ async function reg() {
     let result = await api("registration", {
         phone,
         birthdate,
-        pass: C("#reg-pass").val(),
+        pass:      C("#reg-pass").val(),
         firstname: C("#reg_firstname").val(),
-        discount: (C("#discount").el.checked ? 1 : 0),
-        email: C("#reg_email").val(),
-        city: C("#city").val()
+        discount:  0,
+        email:     C("#reg_email").val(),
+        city:      C("#city").val()
     });
 
     regButtonEl.disabled = false;
@@ -994,7 +991,7 @@ async function confirmationReset() {
 }
 
 function canGetResetConfirmationCode() {
-    let resetPhoneEl = C("#reset-phone-mask"),
+    let resetPhoneEl    = C("#reset-phone-mask"),
         resetPhonePopEl = C("#reset-phone-popup");
 
     if (resetPhoneEl.val().length < 16) {
@@ -1009,8 +1006,8 @@ function canGetResetConfirmationCode() {
 }
 
 async function getResetConfirmationCode() {
-    let resPhoneEl = C("#reset-phone-mask"),
-        resButtonEl = C("#reset_button").el,
+    let resPhoneEl    = C("#reset-phone-mask"),
+        resButtonEl   = C("#reset_button").el,
         resConfInfoEl = C("#reset_confirmation_info");
 
     if (resPhoneEl.val()) {
@@ -1198,27 +1195,37 @@ function showRequestSms() {
 }
 
 function showTerms() {
-    show("#terms");
-    C("body").addclass("hideOverflow");
-    C("#terms").el.getElementsByTagName("iframe")[0].src = TERMS_URL;
+    loadRules(TERMS_URL);
 }
 
 function showRules() {
-    show("#terms");
-    C("body").addclass("hideOverflow");
-    C("#terms").el.getElementsByTagName("iframe")[0].src = RULES_URL;
+    loadRules(RULES_URL);
 }
 
 function showRefRules() {
+    loadRules(REF_RULES_URL);
+}
+
+async function loadRules(url) {
     show("#terms");
     C("body").addclass("hideOverflow");
-    C("#terms").el.getElementsByTagName("iframe")[0].src = REF_RULES_URL;
+    const response = await fetch(url);
+
+    if (response.ok) {
+        const html   = await response.text();
+        const regexp = /<body[^>]*>([\s\S]*?)<\/body>/;
+        const body   = regexp.exec(html);
+        
+        C("#terms .terms__content").el.innerHTML = body[1];
+    } else {
+        closeTerms();
+    }
 }
 
 function closeTerms() {
+    C("#terms .terms__content").el.innerHTML = "";
     hide("#terms");
     C("body").delclass("hideOverflow");
-    C("#terms").el.getElementsByTagName("iframe")[0].src = "";
 }
 
 function showIndicator() {
@@ -1380,7 +1387,7 @@ async function checkUpdates(callback) {
     } else {
         // Не авторизованных отправляем на авторизацию
         if (sections[curSection] && sections[curSection].needAuth) {
-            logOff();
+           logOff();
         }
     }
 
@@ -1416,6 +1423,9 @@ async function getUpdates() {
         data.clientDevice = clientDevice;
     }
     
-    return await api("getUpdates", data);
+    $res = await api("getUpdates", data);
+//    console.log(data.dat);
+    
+    return $res;
 }
 

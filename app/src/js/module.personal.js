@@ -171,7 +171,7 @@ async function changeProfileData() {
     }
     
     let cardRes = await api("changeCardType", {
-                            discount: C('input[name="systemChange"]:checked').val()
+                            discount: 0
                         });
     
     if (cardRes.status) {

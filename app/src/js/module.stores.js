@@ -70,7 +70,9 @@ async function getStores() {
 }
 
 function closeStore() {
-    d.body.removeChild(C(".storeMap").el);
+    if (C(".storeMap").el) {
+        d.body.removeChild(C(".storeMap").el);
+    }
 }
 
 function getStoreToGeoMap(coordinates, city, title, shedule, phone, rsa_id) {

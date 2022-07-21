@@ -1,0 +1,26 @@
+.terms-of-use {
+    padding: 16px;
+    padding-bottom: 10rem;
+  
+    h3 {
+      text-align: center;
+    }
+    
+    h5 {
+      text-align: center;
+    }
+    
+    #terms_commands {
+      text-align: center;
+    }
+    
+    ul {
+      list-style-type: none;
+    }
+}
+
+@media(max-width: 440px) {
+  .terms-of-use {
+    overflow: hidden;
+  }
+}

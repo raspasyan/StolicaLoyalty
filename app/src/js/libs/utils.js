@@ -46,10 +46,10 @@ function showToast(message) {
 
 function showPopup(title, desc, message, buttonText, callback) {
     const pOverlay = C('#popupOverlay'),
-        pTitle = C('#popupTitle'),
-        pDesc = C('#popupDescription'),
-        pMessage = C('#popupMessage'),
-        pButton = C('#popupButton');
+          pTitle   = C('#popupTitle'),
+          pDesc    = C('#popupDescription'),
+          pMessage = C('#popupMessage'),
+          pButton  = C('#popupButton');
     let cancelText;
 
     if (Array.isArray(buttonText)) {
@@ -149,12 +149,14 @@ function linkToApp() {
 }
 
 async function api(method, data = '') {
+    const headers = new Headers();
+    
+    headers.append('Content-Type', 'application/json'); 
+    headers.append('Authorization', `Bearer ${(bearerToken || '')}`);
+    
     const response = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8',
-            Authorization: `Bearer ${(bearerToken ? bearerToken : '')}`
-        },
+        headers,
         body: JSON.stringify({
             method,
             data,

@@ -134,7 +134,8 @@
         </div>
 
         <div class="terms" id="terms" style="display:none">
-            <iframe loading="lazy" src="" frameborder="0"></iframe>
+            <div class="terms__content"></div>
+            <!--<iframe loading="lazy" src="" frameborder="0"></iframe>-->
             <div class="terms__button">
                 <button onclick='closeTerms()'>Принять</button>
             </div>
@@ -292,23 +293,6 @@
                                 <input class="u-full-width" type="password" placeholder="Повторите пароль" id="reg-pass-confirm" />
                                 <i class="icon-eye-off"></i>
                             </div>
-                            <!-- Система скидок -->
-                            <div id="loyalty-system" class="system system-reg" style="display:none">
-                                <p class="system_title">Выберите систему скидок</p>
-
-                                <div class="system_tabs">
-                                    <div class="system_tabsHead">
-                                        <span class="tab_h_active" data-tab="0"><input id="prem" type="radio"
-                                                                                       name="system" value="0" checked><label for="prem">Бонусная</label></span>
-                                        <span data-tab="1"><input id="discount" type="radio" name="system"
-                                                                  value="1"><label for="discount">Дисконтная</label></span>
-                                    </div>
-                                    <div class="system_tabsContent">
-                                        <div class="tab_c_active"><span>Кэшбек бонусами до 15%, бонусы в подарок, 2000 бонусов в подарок при регистрации.</span></div>
-                                        <div><span>Вы можете получать скидки от 5% до 10% на товар, который можно приобрести со скидкой.</span></div>
-                                    </div>
-                                </div>
-                            </div>
                             <!-- Согласие с условиями -->
                             <p class="reg_confirm">Создавая аккаунт, я соглашаюсь с <a onclick="showRules()">правилами</a> и даю
                                 согласие
@@ -411,36 +395,8 @@
                             <i class="icon-eye-off"></i>
                         </div>
                     </div>
-
-                    <div class="personalUpdate__system">
-                        <div class="container">
-                            <p class="personalUpdate__h">ВЫБЕРИТЕ ТИП КАРТЫ</p>
-                            <div class="personalUpdate__system_update">
-                                <div class="system_tabs">
-                                    <div class="system_tabsHead">
-                                        <span class="tab_h_active" data-tab="0"><input id="premChange" type="radio"
-                                                                                       name="systemChange" value="0" checked><label for="premChange">БОНУСНАЯ</label></span>
-                                        <span data-tab="1"><input id="discountChange" type="radio" name="systemChange"
-                                                                  value="1"><label for="discountChange">ДИСКОНТНАЯ</label></span>
-                                    </div>
-
-                                    <div class="system_tabsContent">
-                                        <div class="tab_c_active"><span>С покупок Вы получаете кэшбек бонусными
-                                                рублями. Свои скидки Вы сможете смотреть в личном кабинете.</span></div>
-                                        <div><span>Вы можете получать скидки от 5% до 10% на товар,
-                                                который можно приобрести со скидкой.</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="container">
-                            <p style="text-align:center;font-size:13px">Сменить вид программы Вы можете один раз в сутки. <a
-                                    onclick="showRules()">Подробнее</a></p>
-                        </div>
-                        <div class="container">
-                            <button id="personal_changePassword_button" class="button button-primary" style="width:100%">Внести
-                                изменения</button>
-                        </div>
+                    <div class="container">
+                        <button id="personal_changePassword_button" class="button button-primary">Сохранить</button>
                     </div>
                 </div>
                 
@@ -498,7 +454,6 @@
                                 <span class="scan_border4"></span>
                             </button>
                             <input type="text" name="plasticNumber" id="plasticNumber">
-                            <!--style="position:absolute;left:-10000px" tabindex="-1">-->
                             <button id="set_card" class="button-primary" tabindex="-1">Добавить</button>
                         </div>
                     </div>

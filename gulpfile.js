@@ -2,7 +2,8 @@
 
 const gulp       = require('gulp'),
       prefixer   = require('gulp-autoprefixer'),
-      uglify     = require('gulp-uglify'),
+      //uglify     = require('gulp-uglify'),
+      uglify     = require('gulp-terser'),
       sourcemaps = require('gulp-sourcemaps'),
       concat     = require('gulp-concat'),
       sass       = require('gulp-sass')(require('sass')),

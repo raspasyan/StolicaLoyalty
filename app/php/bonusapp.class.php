@@ -105,7 +105,7 @@ class BonusApp
                         $result = $this->sendMailingPush($_POST);
                         
                         if (!$result['status']) {
-                            echo '<h1>Неверный ключ</h1>';
+                            echo '<h1>Неверный ключ!</h1>';
                             echo '<p><a href="/add-mailing"><<< Назад</a></p>';
                             break;
                         }
@@ -276,11 +276,11 @@ class BonusApp
                     // ОТЛАДКА
                     $this->journal("SMS", "canSendMessage", "", $result["status"], json_encode(["f" => "canSendMessage", "a" => [$phone]]), json_encode($result, JSON_UNESCAPED_UNICODE));
                     if ($result["status"]) {
-                        if ($this->getPushIDNotify($phone)) {
-                            $provider = "PUSH";
-                        } else {
+                        //if ($this->getPushIDNotify($phone)) {
+                        //    $provider = "PUSH";
+                        //} else {
                             $provider = isset($result["data"]["provider"]) ? $this->checkNextProvider2($result["data"]["provider"], $phone) : null;
-                        }
+                        //}
 
                         $result = $this->sendMessage($phone, preg_replace("/[^0-9]/", "", $message), $provider);
 
@@ -336,7 +336,7 @@ class BonusApp
 
             case "cron": {
                     // Пример: http://localhost/cron?token=CRON_TOKEN&method=METHOD_NAME
-                    //if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
+                    if (empty($_GET) || $_GET["token"] != CRON_TOKEN || empty($_GET["method"])) header("Location: https://" . $_SERVER["HTTP_HOST"] . "/");
 
                     switch ($_GET["method"]) {
                         default: {
@@ -560,7 +560,7 @@ class BonusApp
                                                 "birthdate" => $dt->format("Y-m-d"),
                                                 "email"     => $requestData["data"]["email"]
                                             ],
-                                            $requestData["data"]["discount"],
+                                            0,
                                             $requestData["data"]["city"]
                                         );
                                     } catch (\Throwable $th) {
@@ -675,8 +675,9 @@ class BonusApp
 
                 case "changeCardType": {
                         $resultData = $this->checkAuthorization($requestData["method"]);
-                        if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["discount"]);
-
+                        //if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], $requestData["data"]["discount"]);
+                        if ($resultData) $resultData = $this->API_changeDiscountSystem($resultData["data"]["id"], $resultData["data"]["personId"], 0);
+                        
                         break;
                     }
 
@@ -1173,7 +1174,7 @@ class BonusApp
     private function API_changeDiscountSystem($accountId, $personId, $preferredDiscount)
     {
         $result = ["status" => false];
-
+        
         $LMX = $this->getLMX();
         $setDiscountAttributeValue = $LMX->setDiscountAttributeValue($personId, boolval($preferredDiscount));
         if ($setDiscountAttributeValue["status"]) {
@@ -1399,14 +1400,44 @@ class BonusApp
         $startGetPurchases = microtime(true);
 
         $LMX = $this->getLMX();
-        $getPurchasesResult = $LMX->getPurchases([
+        
+        $mess = [
             "startChequeTime" => $dtStart->format("Y-m-d H:i:s"),
-            "lastChequeTime" => $dtEnd->format("Y-m-d H:i:s"),
-            "count" => 9999,
-            "from" => 0,
-            "state" => "Confirmed"
-        ]);
+            "lastChequeTime"  => $dtEnd->format("Y-m-d H:i:s"),
+            "count"           => 9999,
+            "from"            => 0,
+            "state"           => "Confirmed"
+        ];
+        $getPurchasesResult = $LMX->getPurchases($mess);
+/*        
+        //====================
+        //print_r($getPurchasesResult);
+        echo "<br>Прошло: " . round(microtime(true) - $startTotal, 4) . "<br>";
+        $startTotal2 = microtime(true);
 
+        $chPurchase = curl_init();
+        $url = LMX_HOST . "/systemapi/api/purchases";
+        $authorization = "Authorization: Bearer " . $LMX->SAPI_accessToken;
+
+        curl_setopt($chPurchase, CURLOPT_HTTPHEADER, array('Content-Type:application/json', $authorization));
+        curl_setopt($chPurchase, CURLOPT_URL, $url);
+        curl_setopt($chPurchase, CURLOPT_POST, 1);
+        curl_setopt($chPurchase, CURLOPT_POSTFIELDS, json_encode($mess));
+        curl_setopt($chPurchase, CURLOPT_RETURNTRANSFER, 1);
+        //curl_setopt($chPurchase, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($chPurchase, CURLOPT_HEADER, 0);
+
+        $output = curl_exec($chPurchase);
+        $status = curl_getinfo($chPurchase, CURLINFO_HTTP_CODE);
+        curl_close($chPurchase);
+        $getPurchasesResultCurl["status"] = true;
+        $getPurchasesResultCurl["data"]   = json_decode($output);
+        print_r("<br>====================<br>");
+        //print_r($getPurchasesResultCurl);
+         echo "<br>Прошло: " . round(microtime(true) - $startTotal2, 4) . "<br>";
+        die();
+        //====================
+*/
         $result["data"]["LMX->getPurchases"] = round(microtime(true) - $startGetPurchases, 4);
 
         if ($getPurchasesResult["status"]) {
@@ -1470,14 +1501,13 @@ class BonusApp
                                     $success++;
                                     $queryResultRow = $queryResult[self::$listIdsForPron[$ch]];
                                     $currentResult  = [
-                                        "phone" => $queryResultRow["phone"],
-                                        "personId" => $queryResultRow["ext_id"],
+                                        "phone"              => $queryResultRow["phone"],
+                                        "personId"           => $queryResultRow["ext_id"],
                                         "prolongationAmount" => 0
                                     ];
 
-                                    $start            = microtime(true);
-                                    $getBalanceResult = null;
-                                    $updatePron       = false;
+                                    $start      = microtime(true);
+                                    $updatePron = false;
 
                                     $methodResult = json_decode($content);
                                     if ($methodResult && $methodResult->result->state == "Success") {
@@ -1560,7 +1590,7 @@ class BonusApp
             $url = LMX_HOST . "/systemapi/api/Users/" . $url_list[self::$currentIndexForPron]["ext_id"] . "/DetailedBalance";
             $authorization = "Authorization: Bearer " . $LMX->SAPI_accessToken;
             
-            curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json', $authorization));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json', $authorization));
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_HEADER, 0);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -3074,6 +3104,8 @@ private function addUrlMultiAddDeposit($mh, $url_list)
         } else {
             $result["description"] = "Пользователь не авторизован.";
         }
+        
+        $result['dat'] = json_encode(getallheaders());
 
         return $result;
     }
@@ -3084,7 +3116,9 @@ private function addUrlMultiAddDeposit($mh, $url_list)
 
         $headersList = getallheaders();
         $headersListLowerCase = [];
-        foreach ($headersList as $key => $value) $headersListLowerCase[strtolower($key)] = $value;
+        foreach ($headersList as $key => $value) {
+			$headersListLowerCase[strtolower($key)] = $value;
+		}
         if (isset($headersListLowerCase["authorization"])) {
             $tmpToken = explode("Bearer ", $headersListLowerCase["authorization"]);
             if (array_key_exists("1", $tmpToken)) {
@@ -5060,7 +5094,7 @@ private function addUrlMultiAddDeposit($mh, $url_list)
     
     private function checkPhones($data)
     {
-        if ($data['type']=="pushes") {
+        if ($data['type'] == "pushes") {
             return TRUE;
         }
         
@@ -5439,7 +5473,9 @@ private function addUrlMultiAddDeposit($mh, $url_list)
         
         //return $this->sendHTTP2Push($apiHost, "com.stolica.bonuses", $payload, $token);
         
-        return json_decode(file_get_contents("http://stolica-dv.ru/api/1?token=" . $token . "&message=" . urlencode($message)), true);
+        $res = json_decode(file_get_contents("http://stolica-dv.ru/api/1?token=" . $token . "&message=" . urlencode($message)), true);
+        return $res;
+        //return json_decode(file_get_contents("http://stolica-dv.ru/api/1?token=" . $token . "&message=" . urlencode($message)), true);
     }
     
     private function sendHTTP2Push($http2_server, $app_bundle_id, $message, $token)
